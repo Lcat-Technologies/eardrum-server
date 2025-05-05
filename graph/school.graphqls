@@ -1,0 +1,92 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+#school data model, only includes properties that cannot be shared
+
+type School @SQL {
+  id: Int! @SQL_PRIMARY @SQL_GORM(value: "autoIncrement")
+  createdAt: Time!
+  updatedAt: Time!
+  deletedAt: SoftDelete #activate softdelete
+  name: String!
+  phone_number: String!
+  password: String!
+  badge: String
+  Website: String
+}
+
+# Unverified school data model, used to store data for newly registered schools that have not verified their phone numbers
+type UnverifiedSchool @SQL {
+  id: Int! @SQL_PRIMARY @SQL_GORM(value: "autoIncrement")
+  createdAt: Time!
+  updatedAt: Time!
+  deletedAt: SoftDelete #activate softdelete
+  name: String!
+  phone_number: String!
+  password: String!
+  badge: String
+  Website: String
+}
+
+#Checks if a school phone number exists officially(completed the verification process) or temporarily (not completed the verification process)
+type PhoneNumberExists {
+  verified: Boolean!
+  unverified: Boolean!
+}
+
+#returns the status of sending an OTP code to a specific number
+type SendCodeStatus {
+  phone_number: String!
+  success: Boolean!
+}
+#returns the a school's profile data
+type SchoolProfile {
+  id: Int!
+  createdAt: Time!
+  updatedAt: Time!
+  name: String!
+  phone_number: String!
+  badge: String
+  Website: String
+  students: [StudentProfile]
+}
+#fields required by a school to log into the system
+input SchoolLogin {
+  phone_number: String!
+  password: String!
+}
+#fields required during a school signup process(mandatory and non-mandatory)
+input NewSchool {
+  name: String!
+  phone_number: String!
+  password: String!
+  badge: String
+  Website: String
+}
+#fiels required when sending an OTP code
+input verificationinfo {
+  phone_number: String!
+  otp: String!
+}
+
+input RefreshTokenInput {
+  Token: String!
+}
+
+extend type Query {
+  schoolPhoneNumberExists(phone_number: String!): PhoneNumberExists!
+  getSchoolProfile: SchoolProfile
+  getSchoolsProfile: [SchoolProfile!]
+}
+
+extend type Mutation {
+  createSchool(input: NewSchool!): UnverifiedSchool
+  verifySchool(input: verificationinfo!): School
+  sendCode(phone_number: String!): SendCodeStatus
+  schoolLogin(input: SchoolLogin!): String
+  forgotSchoolPassword(phone_number: String!): SendCodeStatus
+  requestSchoolPasswordReset(input: verificationinfo): String
+  resetSchoolPassword(new_password: String!): School
+  refreshToken(input: RefreshTokenInput): String
+}
