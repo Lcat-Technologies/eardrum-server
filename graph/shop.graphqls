@@ -1,0 +1,31 @@
+#shop data model, only includes properties that cannot be shared
+type Shop @SQL {
+  id: Int! @SQL_PRIMARY @SQL_GORM(value: "autoIncrement")
+  createdAt: Time!
+  updatedAt: Time!
+  deletedAt: SoftDelete #activate softdelete
+  name: String!
+  phone_number: String!
+  password: String!
+  account_balance: Int!
+ }
+
+#returns a shop's profile data
+type ShopProfile {
+  id: Int!
+  createdAt: Time!
+  updatedAt: Time!
+  name: String!
+  phone_number: String!
+  password: String!
+  account_balance: Int!
+}
+
+#fields required for adding a new shop to the system
+input NewShop {
+  name: String!
+  phone_number: String!
+  password: String!
+  badge: String
+  Website: String
+}

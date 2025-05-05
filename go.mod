@@ -7,7 +7,6 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fasibio/autogql v0.5.8
 	github.com/huandu/xstrings v1.4.0
-	github.com/joho/godotenv v1.5.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/twilio/twilio-go v1.23.5
 	github.com/vektah/gqlparser/v2 v2.5.17
@@ -19,12 +18,12 @@ require (
 require (
 	github.com/GigaDesk/eardrum-graph v1.0.1
 	github.com/GigaDesk/eardrum-prefix v1.0.2
+	github.com/rs/cors v1.11.1
 )
 
 require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/rs/cors v1.11.1 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 )
 
