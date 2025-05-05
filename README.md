@@ -5,7 +5,7 @@ This project is a school management system that allows multiple schools to host 
 
 * **Creation of a school account**: This project allows schools to register in order to use the system to host their data.
 * **Adding of student data**: Allows for schools to load their students' data into their network in the system.
-* **School and Student login**: Allows for schools to log into their accounts and for students to log into their accounts in the respective school network they were created in.           
+* **School and Student login**: Allows for schools to log into their accounts and for students to log into their accounts in the respective school network they were created in.
 * **Retrieving Student and School data**: Allows for retrieval of schools and students data that is already loaded into the system.
 
 ## Table of Contents
@@ -63,7 +63,16 @@ gcr.io/[PROJECT_ID]/[REPO_NAME]/[IMAGE_NAME]:[TAG]
 docker push gcr.io/[PROJECT_ID]/[REPO_NAME]/[IMAGE_NAME]:[TAG]
 ```
 If it fails for some reason run `gcloud auth configure-docker` and then push it again
-* Now go to Google Cloud Run console > Navigate to "DEPLOY CONTAINER" > pick "Service" option > select where it says "Container image URL" > Select Artifact Registry > Select your repository and image and deploy.
+* Now go to Google Cloud Run console > Navigate to "DEPLOY CONTAINER" > pick "Service" option > select where it says "Container image URL" > Select Artifact Registry > Select your repository and image and deploy with the following environment variables:
+1. POSTGRES_DBURL(From Render).
+2. NEO4J_DBURI(From Aura).
+3. NEO4J_DBUSER
+4. NEO4J_DBPASSWORD
+5. JWT_SECRET_KEY
+6. TWILIO_ACCOUNT_SID(From Twilio verify)
+7. TWILIO_AUTH_TOKEN
+8. TWILIO_VERIFY_SERVICE_SID
+9. DEFAULT_PORT
 ## Database Design     
 The database is layer of the application is designed to store data on entities and the details of their relationship.     
 ### Database Management Systems
@@ -205,4 +214,4 @@ The following details how different scenarions of errors are handled:
 - **Minor errors** - In case of a minor error, the error message is logged with level "error" and a response detailing the error is returned to the client.
 - **Critical errors** - In case of a critical error, all resolvers are blocked from receiving any incoming requests, the error message is logged with level "warn", a
                         response detailing the error is returned to the client, a shutdown countdown of ten minutes is initiated after which an the error message
-                        logged again, this time with level "fatal". 
+                        logged again, this time with level "fatal".  
