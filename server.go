@@ -15,7 +15,8 @@ import (
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/GigaDesk/eardrum-server/shutdown"
 	"github.com/go-chi/chi"
-	"github.com/joho/godotenv"
+	//"github.com/joho/godotenv"
+	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -28,10 +29,11 @@ var (
 func main() {
 
 	// Find .env file
-	err := godotenv.Load(".env")
+	
+	/*err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal().Msg(fmt.Sprintf("Error loading .env file: %s", err))
-	}
+	}*/
 
 	go phoneutils.InitializeTwilio()
 	go jwt.InitializeJwtSecretKey()
@@ -53,6 +55,13 @@ func main() {
 
 	port := defaultPort
 	router := chi.NewRouter()
+	
+	c := cors.New(cors.Options{
+        AllowedOrigins:   []string{"*"},
+		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"}, // Include "Authorization"
+	})
+    
+	router.Use(c.Handler)
 	router.Use(auth.Middleware())
 
 	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Sql: &postgresInstance.Dborm, Neo4j: &neo4jInstance }}))
