@@ -175,6 +175,12 @@ type NewStudent struct {
 	ProfilePicture     *string    `json:"profile_picture,omitempty"`
 }
 
+type NewTransaction struct {
+	PurchasedProducts []*PurchasedProduct `json:"purchased_products"`
+	PhoneNumber       string              `json:"phone_number"`
+	PinCode           string              `json:"pin_code"`
+}
+
 type PhoneNumberExists struct {
 	Verified   bool `json:"verified"`
 	Unverified bool `json:"unverified"`
@@ -195,6 +201,11 @@ type Purchase struct {
 	UnitsBought        int       `json:"units_bought"`
 	TotalAmountInCents int       `json:"total_amount_in_cents"`
 	Product            *Product  `json:"product"`
+}
+
+type PurchasedProduct struct {
+	ProductID   int `json:"product_id"`
+	UnitsBought int `json:"units_bought"`
 }
 
 type Query struct {
@@ -461,6 +472,16 @@ type TimeFilterInput struct {
 	In      []*time.Time       `json:"in,omitempty"`
 	NotIn   []*time.Time       `json:"notIn,omitempty"`
 	Between *TimeFilterBetween `json:"between,omitempty"`
+}
+
+type Transaction struct {
+	ID                     int         `json:"id"`
+	CreatedAt              time.Time   `json:"createdAt"`
+	UpdatedAt              time.Time   `json:"updatedAt"`
+	UnitsBought            int         `json:"units_bought"`
+	TotalAmountInCents     int         `json:"total_amount_in_cents"`
+	TransactionCostInCents int         `json:"transaction_cost_in_cents"`
+	Purchases              []*Purchase `json:"purchases"`
 }
 
 type UnverifiedSchool struct {

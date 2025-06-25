@@ -1,0 +1,26 @@
+#returns a transaction's data
+type Transaction {
+  id: Int!
+  createdAt: Time!
+  updatedAt: Time!
+  units_bought: Int!
+  total_amount_in_cents: Int!
+  transaction_cost_in_cents: Int!
+  purchases: [Purchase!]!
+}
+
+input PurchasedProduct {
+   product_id: Int!
+   units_bought: Int!
+}
+
+#fields required for adding a new transaction to the system
+input NewTransaction {
+  purchased_products: [PurchasedProduct!]!
+  phone_number: String!
+  pin_code: String!
+}
+
+extend type Mutation {
+  createTransaction(input: NewTransaction!): Transaction
+}

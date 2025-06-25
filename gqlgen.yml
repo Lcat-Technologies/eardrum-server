@@ -117,3 +117,7 @@ models:
     fields:
       product:
         resolver: true
+  Transaction:
+    fields:
+      purchases:
+        resolver: true
