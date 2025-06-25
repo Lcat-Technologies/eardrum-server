@@ -132,28 +132,6 @@ func (r *mutationResolver) VerifySchool(ctx context.Context, input model.Verific
 	return school, nil
 }
 
-// SendCode is the resolver for the sendCode field, it send an otp code to the provided phone number
-func (r *mutationResolver) SendCode(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
-	//validate phone number
-	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
-		return nil, err
-	}
-
-	if err := phoneutils.SendOtp(phoneNumber); err != nil {
-		log.Error().Str("phone_number", phoneNumber).Str("path", "SendCode").Msg(err.Error())
-		return nil, err
-	}
-	sendcodestatus := &model.SendCodeStatus{
-		PhoneNumber: phoneNumber,
-		Success:     true,
-	}
-	return sendcodestatus, nil
-}
-
 // SchoolLogin is the resolver for the schoolLogin field.
 func (r *mutationResolver) SchoolLogin(ctx context.Context, input model.SchoolLogin) (*string, error) {
 	//check if system is in shutdown mode
@@ -325,24 +303,6 @@ func (r *mutationResolver) ResetSchoolPassword(ctx context.Context, newPassword 
 
 	//return the updated record
 	return school, nil
-}
-
-// RefreshToken is the resolver for the refreshToken field.
-func (r *mutationResolver) RefreshToken(ctx context.Context, input *model.RefreshTokenInput) (*string, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
-	credentials, err := jwt.ParseToken(input.Token)
-	if err != nil {
-		return nil, fmt.Errorf("access denied")
-	}
-	token, error := jwt.GenerateToken(*credentials)
-	if error != nil {
-		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "RefreshToken").Msg(err.Error())
-		return nil, error
-	}
-	return &token, nil
 }
 
 // SchoolPhoneNumberExists is the resolver for the schoolPhoneNumberExists field, checks if an school's phone number already exists in both the unverified_schools and schools tables
