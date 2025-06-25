@@ -181,6 +181,12 @@ type NewTransaction struct {
 	PinCode           string              `json:"pin_code"`
 }
 
+type NewUser struct {
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
+}
+
 type PhoneNumberExists struct {
 	Verified   bool `json:"verified"`
 	Unverified bool `json:"unverified"`
@@ -584,6 +590,16 @@ type UpdateUnverifiedSchoolPayload struct {
 	// Count of affected updates
 	Count    int                 `json:"count"`
 	Affected []*UnverifiedSchool `json:"affected"`
+}
+
+type User struct {
+	ID                    int            `json:"id"`
+	CreatedAt             time.Time      `json:"createdAt"`
+	UpdatedAt             time.Time      `json:"updatedAt"`
+	Name                  string         `json:"name"`
+	PhoneNumber           string         `json:"phone_number"`
+	AccountBalanceInCents int            `json:"account_balance_in_cents"`
+	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
 
 type Verificationinfo struct {
