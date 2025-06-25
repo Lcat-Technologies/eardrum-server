@@ -8,6 +8,7 @@ type Shop {
   account_balance_in_cents: Int!
   products: [Product!]
   categories: [Category!]
+  transactions: [Transaction!]
 }
 
 #fields required for adding a new shop to the system
