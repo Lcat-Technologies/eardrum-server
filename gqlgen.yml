@@ -123,3 +123,7 @@ models:
     fields:
       purchases:
         resolver: true
+  User:
+    fields:
+      transactions:
+        resolver: true
