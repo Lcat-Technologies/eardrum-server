@@ -107,6 +107,8 @@ models:
     fields:
       products:
         resolver: true
+      categories:
+        resolver: true
   Category:
     fields:
       products:
