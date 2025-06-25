@@ -6,6 +6,7 @@ type Shop {
   name: String!
   phone_number: String!
   account_balance_in_cents: Int!
+  products: [Product!]
 }
 
 #fields required for adding a new shop to the system
