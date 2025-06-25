@@ -113,3 +113,7 @@ models:
     fields:
       products:
         resolver: true
+  Purchase:
+    fields:
+      product:
+        resolver: true
