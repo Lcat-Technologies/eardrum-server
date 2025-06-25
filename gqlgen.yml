@@ -107,3 +107,7 @@ models:
     fields:
       products:
         resolver: true
+  Category:
+    fields:
+      products:
+        resolver: true
