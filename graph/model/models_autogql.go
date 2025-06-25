@@ -32,8 +32,6 @@ func GetInputStruct(name string, obj map[string]interface{}) (interface{}, error
 	switch name {
 	case "SchoolInput":
 		return SchoolInputFromMap(obj)
-	case "ShopInput":
-		return ShopInputFromMap(obj)
 	case "StudentInput":
 		return StudentInputFromMap(obj)
 	case "UnverifiedSchoolInput":
@@ -95,50 +93,6 @@ func (d *SchoolInput) MergeToType() School {
 		Password:    tmpPassword,
 		Badge:       tmpBadge,
 		Website:     tmpWebsite,
-	}
-}
-
-// ShopInputFromMap return a ShopInput from data map
-// use github.com/mitchellh/mapstructure with reflaction
-func ShopInputFromMap(data map[string]interface{}) (ShopInput, error) {
-	model := ShopInput{}
-	err := mapstructure.Decode(data, &model)
-	return model, err
-}
-
-// MergeToType returns a map with all values set to ShopPatch
-func (d *ShopPatch) MergeToType() map[string]interface{} {
-	res := make(map[string]interface{})
-	if d.Name != nil {
-		res["name"] = *d.Name
-	}
-	if d.PhoneNumber != nil {
-		res["phone_number"] = *d.PhoneNumber
-	}
-	if d.Password != nil {
-		res["password"] = *d.Password
-	}
-	if d.AccountBalance != nil {
-		res["account_balance"] = *d.AccountBalance
-	}
-	return res
-}
-
-// MergeToType retuns a Shop filled from ShopInput
-func (d *ShopInput) MergeToType() Shop {
-
-	tmpName := d.Name
-
-	tmpPhoneNumber := d.PhoneNumber
-
-	tmpPassword := d.Password
-
-	tmpAccountBalance := d.AccountBalance
-	return Shop{
-		Name:           tmpName,
-		PhoneNumber:    tmpPhoneNumber,
-		Password:       tmpPassword,
-		AccountBalance: tmpAccountBalance,
 	}
 }
 

@@ -35,11 +35,6 @@ type PhoneNumberExists {
   unverified: Boolean!
 }
 
-#returns the status of sending an OTP code to a specific number
-type SendCodeStatus {
-  phone_number: String!
-  success: Boolean!
-}
 #returns the a school's profile data
 type SchoolProfile {
   id: Int!
@@ -83,10 +78,8 @@ extend type Query {
 extend type Mutation {
   createSchool(input: NewSchool!): UnverifiedSchool
   verifySchool(input: verificationinfo!): School
-  sendCode(phone_number: String!): SendCodeStatus
   schoolLogin(input: SchoolLogin!): String
   forgotSchoolPassword(phone_number: String!): SendCodeStatus
   requestSchoolPasswordReset(input: verificationinfo): String
   resetSchoolPassword(new_password: String!): School
-  refreshToken(input: RefreshTokenInput): String
 }

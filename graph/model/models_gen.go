@@ -17,12 +17,6 @@ type AddSchoolPayload struct {
 	Affected []*School          `json:"affected"`
 }
 
-// AddShop result with filterable data and affected rows
-type AddShopPayload struct {
-	Shop     *ShopQueryResult `json:"shop"`
-	Affected []*Shop          `json:"affected"`
-}
-
 // AddStudent result with filterable data and affected rows
 type AddStudentPayload struct {
 	Student  *StudentQueryResult `json:"student"`
@@ -49,14 +43,6 @@ type BooleanFilterInput struct {
 type DeleteSchoolPayload struct {
 	School *SchoolQueryResult `json:"school"`
 	// Count of deleted School entities
-	Count int     `json:"count"`
-	Msg   *string `json:"msg,omitempty"`
-}
-
-// DeleteShop result with filterable data and count of affected entries
-type DeleteShopPayload struct {
-	Shop *ShopQueryResult `json:"shop"`
-	// Count of deleted Shop entities
 	Count int     `json:"count"`
 	Msg   *string `json:"msg,omitempty"`
 }
@@ -155,11 +141,9 @@ type NewSchool struct {
 }
 
 type NewShop struct {
-	Name        string  `json:"name"`
-	PhoneNumber string  `json:"phone_number"`
-	Password    string  `json:"password"`
-	Badge       *string `json:"badge,omitempty"`
-	Website     *string `json:"Website,omitempty"`
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
 }
 
 type NewStudent struct {
@@ -265,68 +249,12 @@ type SendCodeStatus struct {
 }
 
 type Shop struct {
-	ID             int                       `json:"id" gorm:"primaryKey;autoIncrement;"`
-	CreatedAt      time.Time                 `json:"createdAt"`
-	UpdatedAt      time.Time                 `json:"updatedAt"`
-	DeletedAt      *runtimehelper.SoftDelete `json:"deletedAt,omitempty" gorm:"index;"`
-	Name           string                    `json:"name"`
-	PhoneNumber    string                    `json:"phone_number"`
-	Password       string                    `json:"password"`
-	AccountBalance int                       `json:"account_balance"`
-}
-
-// Filter input selection for Shop
-// Can be used f.e.: by queryShop
-type ShopFiltersInput struct {
-	ID             *IntFilterInput     `json:"id,omitempty"`
-	CreatedAt      *TimeFilterInput    `json:"createdAt,omitempty"`
-	UpdatedAt      *TimeFilterInput    `json:"updatedAt,omitempty"`
-	Name           *StringFilterInput  `json:"name,omitempty"`
-	PhoneNumber    *StringFilterInput  `json:"phone_number,omitempty"`
-	Password       *StringFilterInput  `json:"password,omitempty"`
-	AccountBalance *IntFilterInput     `json:"account_balance,omitempty"`
-	And            []*ShopFiltersInput `json:"and,omitempty"`
-	Or             []*ShopFiltersInput `json:"or,omitempty"`
-	Not            *ShopFiltersInput   `json:"not,omitempty"`
-}
-
-// Shop Input value to add new Shop
-type ShopInput struct {
-	Name           string `json:"name"`
-	PhoneNumber    string `json:"phone_number"`
-	Password       string `json:"password"`
-	AccountBalance int    `json:"account_balance"`
-}
-
-// Order Shop by asc or desc
-type ShopOrder struct {
-	Asc  *ShopOrderable `json:"asc,omitempty"`
-	Desc *ShopOrderable `json:"desc,omitempty"`
-}
-
-// Shop Patch value all values are optional to update Shop entities
-type ShopPatch struct {
-	Name           *string `json:"name,omitempty"`
-	PhoneNumber    *string `json:"phone_number,omitempty"`
-	Password       *string `json:"password,omitempty"`
-	AccountBalance *int    `json:"account_balance,omitempty"`
-}
-
-type ShopProfile struct {
-	ID             int       `json:"id"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-	Name           string    `json:"name"`
-	PhoneNumber    string    `json:"phone_number"`
-	Password       string    `json:"password"`
-	AccountBalance int       `json:"account_balance"`
-}
-
-// Shop result
-type ShopQueryResult struct {
-	Data       []*Shop `json:"data"`
-	Count      int     `json:"count"`
-	TotalCount int     `json:"totalCount"`
+	ID                    int       `json:"id"`
+	CreatedAt             time.Time `json:"createdAt"`
+	UpdatedAt             time.Time `json:"updatedAt"`
+	Name                  string    `json:"name"`
+	PhoneNumber           string    `json:"phone_number"`
+	AccountBalanceInCents int       `json:"account_balance_in_cents"`
 }
 
 // SoftDelete Filter simple datatypes
@@ -570,20 +498,6 @@ type UpdateSchoolPayload struct {
 	Affected []*School `json:"affected"`
 }
 
-// Update rules for Shop multiupdates simple possible by global filtervalue
-type UpdateShopInput struct {
-	Filter *ShopFiltersInput `json:"filter"`
-	Set    *ShopPatch        `json:"set"`
-}
-
-// UpdateShop result with filterable data and affected rows
-type UpdateShopPayload struct {
-	Shop *ShopQueryResult `json:"shop"`
-	// Count of affected updates
-	Count    int     `json:"count"`
-	Affected []*Shop `json:"affected"`
-}
-
 // Update rules for Student multiupdates simple possible by global filtervalue
 type UpdateStudentInput struct {
 	Filter *StudentFiltersInput `json:"filter"`
@@ -720,108 +634,6 @@ func (e *SchoolOrderable) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SchoolOrderable) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// Groupable data for  Shop
-// Can be used f.e.: by queryShop
-type ShopGroup string
-
-const (
-	ShopGroupID             ShopGroup = "id"
-	ShopGroupCreatedAt      ShopGroup = "createdAt"
-	ShopGroupUpdatedAt      ShopGroup = "updatedAt"
-	ShopGroupName           ShopGroup = "name"
-	ShopGroupPhoneNumber    ShopGroup = "phone_number"
-	ShopGroupPassword       ShopGroup = "password"
-	ShopGroupAccountBalance ShopGroup = "account_balance"
-)
-
-var AllShopGroup = []ShopGroup{
-	ShopGroupID,
-	ShopGroupCreatedAt,
-	ShopGroupUpdatedAt,
-	ShopGroupName,
-	ShopGroupPhoneNumber,
-	ShopGroupPassword,
-	ShopGroupAccountBalance,
-}
-
-func (e ShopGroup) IsValid() bool {
-	switch e {
-	case ShopGroupID, ShopGroupCreatedAt, ShopGroupUpdatedAt, ShopGroupName, ShopGroupPhoneNumber, ShopGroupPassword, ShopGroupAccountBalance:
-		return true
-	}
-	return false
-}
-
-func (e ShopGroup) String() string {
-	return string(e)
-}
-
-func (e *ShopGroup) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = ShopGroup(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ShopGroup", str)
-	}
-	return nil
-}
-
-func (e ShopGroup) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// for Shop a enum of all orderable entities
-// can be used f.e.: queryShop
-type ShopOrderable string
-
-const (
-	ShopOrderableID             ShopOrderable = "id"
-	ShopOrderableName           ShopOrderable = "name"
-	ShopOrderablePhoneNumber    ShopOrderable = "phone_number"
-	ShopOrderablePassword       ShopOrderable = "password"
-	ShopOrderableAccountBalance ShopOrderable = "account_balance"
-)
-
-var AllShopOrderable = []ShopOrderable{
-	ShopOrderableID,
-	ShopOrderableName,
-	ShopOrderablePhoneNumber,
-	ShopOrderablePassword,
-	ShopOrderableAccountBalance,
-}
-
-func (e ShopOrderable) IsValid() bool {
-	switch e {
-	case ShopOrderableID, ShopOrderableName, ShopOrderablePhoneNumber, ShopOrderablePassword, ShopOrderableAccountBalance:
-		return true
-	}
-	return false
-}
-
-func (e ShopOrderable) String() string {
-	return string(e)
-}
-
-func (e *ShopOrderable) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = ShopOrderable(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ShopOrderable", str)
-	}
-	return nil
-}
-
-func (e ShopOrderable) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

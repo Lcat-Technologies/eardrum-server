@@ -23,11 +23,6 @@ const (
 	AddSchool              AddName    = "AddSchool"
 	UpdateSchool           UpdateName = "UpdateSchool"
 	DeleteSchool           DeleteName = "DeleteSchool"
-	GetShop                GetName    = "GetShop"
-	QueryShop              QueryName  = "QueryShop"
-	AddShop                AddName    = "AddShop"
-	UpdateShop             UpdateName = "UpdateShop"
-	DeleteShop             DeleteName = "DeleteShop"
 	GetStudent             GetName    = "GetStudent"
 	QueryStudent           QueryName  = "QueryStudent"
 	AddStudent             AddName    = "AddStudent"
@@ -42,12 +37,12 @@ const (
 
 // Modelhooks
 type AutoGqlHookM interface {
-	model.School | model.Shop | model.Student | model.UnverifiedSchool
+	model.School | model.Student | model.UnverifiedSchool
 }
 
 // Filter Hooks
 type AutoGqlHookF interface {
-	model.SchoolFiltersInput | model.ShopFiltersInput | model.StudentFiltersInput | model.UnverifiedSchoolFiltersInput
+	model.SchoolFiltersInput | model.StudentFiltersInput | model.UnverifiedSchoolFiltersInput
 }
 
 // Many2Many Hooks
@@ -56,38 +51,37 @@ type AutoGqlHookM2M interface {
 
 // Order Hooks
 type AutoGqlHookQueryO interface {
-	model.SchoolOrder | model.ShopOrder | model.StudentOrder | model.UnverifiedSchoolOrder
+	model.SchoolOrder | model.StudentOrder | model.UnverifiedSchoolOrder
 }
 
 // Input Hooks
 type AutoGqlHookI interface {
-	model.SchoolInput | model.ShopInput | model.StudentInput | model.UnverifiedSchoolInput
+	model.SchoolInput | model.StudentInput | model.UnverifiedSchoolInput
 }
 
 // Update Hooks
 type AutoGqlHookU interface {
-	model.UpdateSchoolInput | model.UpdateShopInput | model.UpdateStudentInput | model.UpdateUnverifiedSchoolInput
+	model.UpdateSchoolInput | model.UpdateStudentInput | model.UpdateUnverifiedSchoolInput
 }
 
 // Update Payload Hooks
 type AutoGqlHookUP interface {
-	model.UpdateSchoolPayload | model.UpdateShopPayload | model.UpdateStudentPayload | model.UpdateUnverifiedSchoolPayload
+	model.UpdateSchoolPayload | model.UpdateStudentPayload | model.UpdateUnverifiedSchoolPayload
 }
 
 // Delete Payload Hooks
 type AutoGqlHookDP interface {
-	model.DeleteSchoolPayload | model.DeleteShopPayload | model.DeleteStudentPayload | model.DeleteUnverifiedSchoolPayload
+	model.DeleteSchoolPayload | model.DeleteStudentPayload | model.DeleteUnverifiedSchoolPayload
 }
 
 // Add Payload Hooks
 type AutoGqlHookAP interface {
-	model.AddSchoolPayload | model.AddShopPayload | model.AddStudentPayload | model.AddUnverifiedSchoolPayload
+	model.AddSchoolPayload | model.AddStudentPayload | model.AddUnverifiedSchoolPayload
 }
 
 // Add a getHook
 // useable for
 //   - GetSchool
-//   - GetShop
 //   - GetStudent
 //   - GetUnverifiedSchool
 func AddGetHook[T AutoGqlHookM, I any](db *AutoGqlDB, name GetName, implementation AutoGqlHookGet[T, I]) {
@@ -97,7 +91,6 @@ func AddGetHook[T AutoGqlHookM, I any](db *AutoGqlDB, name GetName, implementati
 // Add a queryHook
 // useable for
 //   - QuerySchool
-//   - QueryShop
 //   - QueryStudent
 //   - QueryUnverifiedSchool
 func AddQueryHook[M AutoGqlHookM, F AutoGqlHookF, O AutoGqlHookQueryO](db *AutoGqlDB, name QueryName, implementation AutoGqlHookQuery[M, F, O]) {
@@ -107,7 +100,6 @@ func AddQueryHook[M AutoGqlHookM, F AutoGqlHookF, O AutoGqlHookQueryO](db *AutoG
 // Add a addHook
 // useable for
 //   - AddSchool
-//   - AddShop
 //   - AddStudent
 //   - AddUnverifiedSchool
 func AddAddHook[M AutoGqlHookM, I AutoGqlHookI, AP AutoGqlHookAP](db *AutoGqlDB, name AddName, implementation AutoGqlHookAdd[M, I, AP]) {
@@ -117,7 +109,6 @@ func AddAddHook[M AutoGqlHookM, I AutoGqlHookI, AP AutoGqlHookAP](db *AutoGqlDB,
 // Add a updateHook
 // useable for
 //   - UpdateSchool
-//   - UpdateShop
 //   - UpdateStudent
 //   - UpdateUnverifiedSchool
 func AddUpdateHook[M AutoGqlHookM, U AutoGqlHookU, UP AutoGqlHookUP](db *AutoGqlDB, name UpdateName, implementation AutoGqlHookUpdate[U, UP]) {
@@ -139,7 +130,6 @@ func AddMany2ManyDeleteHook[U AutoGqlHookM2M, DP AutoGqlHookDP](db *AutoGqlDB, n
 // Add a updateHook
 // useable for
 //   - DeleteSchool
-//   - DeleteShop
 //   - DeleteStudent
 //   - DeleteUnverifiedSchool
 func AddDeleteHook[F AutoGqlHookF, DP AutoGqlHookDP](db *AutoGqlDB, name DeleteName, implementation AutoGqlHookDelete[F, DP]) {

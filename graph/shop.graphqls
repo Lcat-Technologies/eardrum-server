@@ -1,24 +1,11 @@
-#shop data model, only includes properties that cannot be shared
-type Shop @SQL {
-  id: Int! @SQL_PRIMARY @SQL_GORM(value: "autoIncrement")
-  createdAt: Time!
-  updatedAt: Time!
-  deletedAt: SoftDelete #activate softdelete
-  name: String!
-  phone_number: String!
-  password: String!
-  account_balance: Int!
- }
-
-#returns a shop's profile data
-type ShopProfile {
+#returns a shop's data
+type Shop {
   id: Int!
   createdAt: Time!
   updatedAt: Time!
   name: String!
   phone_number: String!
-  password: String!
-  account_balance: Int!
+  account_balance_in_cents: Int!
 }
 
 #fields required for adding a new shop to the system
@@ -26,6 +13,26 @@ input NewShop {
   name: String!
   phone_number: String!
   password: String!
-  badge: String
-  Website: String
+}
+
+#returns the status of sending an OTP code to a specific number
+type SendCodeStatus {
+  phone_number: String!
+  success: Boolean!
+}
+
+extend type Query {
+  getShop: Shop
+  getShops: [Shop!]
+}
+
+extend type Mutation {
+  createShop(input: NewShop!): Shop
+  verifyShop(phone_number: String!, otp: String!): String
+  sendCode(phone_number: String!): SendCodeStatus
+  shopLogin(phone_number: String!, password: String!): String
+  forgotShopPassword(phone_number: String!): SendCodeStatus
+  requestShopPasswordReset(phone_number: String!, otp: String!): String
+  resetShopPassword(new_password: String!): Shop
+  refreshToken(token: String!): String
 }
