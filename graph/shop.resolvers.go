@@ -96,3 +96,13 @@ func (r *queryResolver) GetShop(ctx context.Context) (*model.Shop, error) {
 func (r *queryResolver) GetShops(ctx context.Context) ([]*model.Shop, error) {
 	panic(fmt.Errorf("not implemented: GetShops - getShops"))
 }
+
+// Products is the resolver for the products field.
+func (r *shopResolver) Products(ctx context.Context, obj *model.Shop) ([]*model.Product, error) {
+	panic(fmt.Errorf("not implemented: Products - products"))
+}
+
+// Shop returns ShopResolver implementation.
+func (r *Resolver) Shop() ShopResolver { return &shopResolver{r} }
+
+type shopResolver struct{ *Resolver }

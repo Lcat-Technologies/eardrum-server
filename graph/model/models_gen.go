@@ -132,6 +132,11 @@ type IntFilterInput struct {
 type Mutation struct {
 }
 
+type NewProduct struct {
+	Name                string `json:"name"`
+	PricePerUnitInCents int    `json:"price_per_unit_in_cents"`
+}
+
 type NewSchool struct {
 	Name        string  `json:"name"`
 	PhoneNumber string  `json:"phone_number"`
@@ -159,6 +164,14 @@ type NewStudent struct {
 type PhoneNumberExists struct {
 	Verified   bool `json:"verified"`
 	Unverified bool `json:"unverified"`
+}
+
+type Product struct {
+	ID                  int       `json:"id"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	Name                string    `json:"name"`
+	PricePerUnitInCents int       `json:"price_per_unit_in_cents"`
 }
 
 type Query struct {
@@ -249,12 +262,13 @@ type SendCodeStatus struct {
 }
 
 type Shop struct {
-	ID                    int       `json:"id"`
-	CreatedAt             time.Time `json:"createdAt"`
-	UpdatedAt             time.Time `json:"updatedAt"`
-	Name                  string    `json:"name"`
-	PhoneNumber           string    `json:"phone_number"`
-	AccountBalanceInCents int       `json:"account_balance_in_cents"`
+	ID                    int        `json:"id"`
+	CreatedAt             time.Time  `json:"createdAt"`
+	UpdatedAt             time.Time  `json:"updatedAt"`
+	Name                  string     `json:"name"`
+	PhoneNumber           string     `json:"phone_number"`
+	AccountBalanceInCents int        `json:"account_balance_in_cents"`
+	Products              []*Product `json:"products,omitempty"`
 }
 
 // SoftDelete Filter simple datatypes
