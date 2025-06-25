@@ -102,6 +102,11 @@ func (r *shopResolver) Products(ctx context.Context, obj *model.Shop) ([]*model.
 	panic(fmt.Errorf("not implemented: Products - products"))
 }
 
+// Categories is the resolver for the categories field.
+func (r *shopResolver) Categories(ctx context.Context, obj *model.Shop) ([]*model.Category, error) {
+	panic(fmt.Errorf("not implemented: Categories - categories"))
+}
+
 // Shop returns ShopResolver implementation.
 func (r *Resolver) Shop() ShopResolver { return &shopResolver{r} }
 

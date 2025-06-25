@@ -276,13 +276,14 @@ type SendCodeStatus struct {
 }
 
 type Shop struct {
-	ID                    int        `json:"id"`
-	CreatedAt             time.Time  `json:"createdAt"`
-	UpdatedAt             time.Time  `json:"updatedAt"`
-	Name                  string     `json:"name"`
-	PhoneNumber           string     `json:"phone_number"`
-	AccountBalanceInCents int        `json:"account_balance_in_cents"`
-	Products              []*Product `json:"products,omitempty"`
+	ID                    int         `json:"id"`
+	CreatedAt             time.Time   `json:"createdAt"`
+	UpdatedAt             time.Time   `json:"updatedAt"`
+	Name                  string      `json:"name"`
+	PhoneNumber           string      `json:"phone_number"`
+	AccountBalanceInCents int         `json:"account_balance_in_cents"`
+	Products              []*Product  `json:"products,omitempty"`
+	Categories            []*Category `json:"categories,omitempty"`
 }
 
 // SoftDelete Filter simple datatypes
