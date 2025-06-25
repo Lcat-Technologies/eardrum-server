@@ -39,6 +39,15 @@ type BooleanFilterInput struct {
 	NotNull *bool               `json:"notNull,omitempty"`
 }
 
+type Category struct {
+	ID          int        `json:"id"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Products    []*Product `json:"products,omitempty"`
+}
+
 // DeleteSchool result with filterable data and count of affected entries
 type DeleteSchoolPayload struct {
 	School *SchoolQueryResult `json:"school"`
@@ -130,6 +139,11 @@ type IntFilterInput struct {
 }
 
 type Mutation struct {
+}
+
+type NewCategory struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type NewProduct struct {
