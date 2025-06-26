@@ -193,7 +193,7 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 	user, err := postgresuser.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
 
 	if err != nil {
-		log.Info().Str("phone_number", phoneNumber).Str("path", "UserLogin").Msg(err.Error())
+		log.Info().Str("phone_number", phoneNumber).Str("path", "RequestUserPasswordReset").Msg(err.Error())
 		return nil, errors.New("phone number does not exist")
 	}
 
