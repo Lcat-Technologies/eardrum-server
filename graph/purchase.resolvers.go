@@ -6,14 +6,30 @@ package graph
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
+	"github.com/GigaDesk/eardrum-graph/neo4jproduct"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 )
 
 // Product is the resolver for the product field.
 func (r *purchaseResolver) Product(ctx context.Context, obj *model.Purchase) (*model.Product, error) {
-	panic(fmt.Errorf("not implemented: Product - product"))
+	product, err := neo4jproduct.RetrievePurchaseProduct(r.Neo4j, obj.ID)
+
+	if err != nil {
+		return nil, errors.New("could not access purchase's product!")
+	}
+
+	p := model.Product{
+		ID:                  int(product.GetID()),
+		CreatedAt:           product.GetCreatedAt(),
+		UpdatedAt:           product.GetUpdatedAt(),
+		Name:                product.GetName(),
+		PricePerUnitInCents: int(product.GetPricePerUnitInCents()),
+	}
+
+	return &p, nil
+
 }
 
 // Purchase returns PurchaseResolver implementation.
