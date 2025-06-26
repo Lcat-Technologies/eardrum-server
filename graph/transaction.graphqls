@@ -3,7 +3,6 @@ type Transaction {
   id: Int!
   createdAt: Time!
   updatedAt: Time!
-  units_bought: Int!
   total_amount_in_cents: Int!
   transaction_cost_in_cents: Int!
   purchases: [Purchase!]!
