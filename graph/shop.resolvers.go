@@ -8,23 +8,103 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
+	"github.com/GigaDesk/eardrum-graph/neo4jproduct"
+	"github.com/GigaDesk/eardrum-graph/neo4jtransaction"
+	"github.com/GigaDesk/eardrum-postgres/postgresshop"
 	"github.com/GigaDesk/eardrum-prefix/validate"
+	"github.com/GigaDesk/eardrum-server/auth"
+	"github.com/GigaDesk/eardrum-server/encrypt"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/GigaDesk/eardrum-server/shutdown"
+	"github.com/GigaDesk/eardrum-sync/shop"
 	"github.com/rs/zerolog/log"
 )
 
 // CreateShop is the resolver for the createShop field.
 func (r *mutationResolver) CreateShop(ctx context.Context, input model.NewShop) (*model.Shop, error) {
-	panic(fmt.Errorf("not implemented: CreateShop - createShop"))
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	//validate inputs
+	if err := input.Validate(); err != nil {
+		return nil, err
+	}
+
+	//encrypt input password
+	encryptedpassword, err := encrypt.HashPassword(input.Password)
+	if err != nil {
+		log.Error().Str("password", input.Password).Str("path", "CreateShop").Msg(err.Error())
+		return nil, err
+	}
+
+	input.Password = encryptedpassword
+
+	if err := phoneutils.SendOtp(input.PhoneNumber); err != nil {
+		log.Error().Str("phone_number", input.PhoneNumber).Str("path", "CreateShop").Msg(err.Error())
+		return nil, err
+	}
+
+	shop, err := postgresshop.CreateShop(input, r.Sql.Db)
+
+	if err != nil {
+		log.Error().Str("name", input.Name).Str("path", "CreateShop").Msg(err.Error())
+		return nil, errors.New("an unexpected error occurred while creating the shop account. please try again later or contact support")
+	}
+
+	u := model.Shop{
+		ID:                    int(shop.GetID()),
+		CreatedAt:             shop.GetCreatedAt(),
+		UpdatedAt:             shop.GetUpdatedAt(),
+		Name:                  shop.GetName(),
+		PhoneNumber:           shop.GetPhoneNumber(),
+		AccountBalanceInCents: int(shop.GetAccountBalanceInCents()),
+	}
+
+	return &u, nil
 }
 
 // VerifyShop is the resolver for the verifyShop field.
 func (r *mutationResolver) VerifyShop(ctx context.Context, phoneNumber string, otp string) (*string, error) {
-	panic(fmt.Errorf("not implemented: VerifyShop - verifyShop"))
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	//Check the validity of the phone number
+	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
+		return nil, err
+	}
+
+	//Check the validity of an OTP code
+	if err := validate.ValidateOtp(otp); err != nil {
+		return nil, err
+	}
+	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
+		return nil, err
+	}
+	shop, err := shop.VerifyShop(phoneNumber, r.Sql.Db, r.Neo4j)
+
+	if err != nil {
+		log.Error().Str("phone_number", phoneNumber).Str("path", "VerifyShop").Msg(err.Error())
+		return nil, errors.New("an unexpected error occurred while verifying the shop account. please try again later or contact support")
+	}
+
+	credentials := jwt.TokenCredentials{
+		Id:   strconv.Itoa(int(shop.GetID())),
+		Role: "shop",
+	}
+	token, err := jwt.GenerateToken(credentials)
+	if err != nil {
+		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyShop").Msg(err.Error())
+		return nil, errors.New("error generating accessToken")
+	}
+	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyShop").Msg("shop verified successfully!")
+
+	return &token, nil
 }
 
 // SendCode is the resolver for the sendCode field, it send an otp code to the provided phone number
@@ -51,22 +131,159 @@ func (r *mutationResolver) SendCode(ctx context.Context, phoneNumber string) (*m
 
 // ShopLogin is the resolver for the shopLogin field.
 func (r *mutationResolver) ShopLogin(ctx context.Context, phoneNumber string, password string) (*string, error) {
-	panic(fmt.Errorf("not implemented: ShopLogin - shopLogin"))
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+
+	// Find the shop that matches the input phone number
+	shop, err := postgresshop.GetShopWithPhoneNumber(r.Sql.Db, phoneNumber)
+
+	if err != nil {
+		log.Info().Str("phone_number", phoneNumber).Str("path", "ShopLogin").Msg(err.Error())
+		return nil, errors.New("phone number does not exist")
+	}
+	//check if the password of the shop matches the input password
+	if err := encrypt.CheckPassword(shop.GetPassword(), password); err != nil {
+		log.Info().Str("path", "ShopLogin").Msg(err.Error())
+		return nil, errors.New("Invalid phone number or password")
+	}
+
+	credentials := jwt.TokenCredentials{
+		Id:   strconv.Itoa(int(shop.GetID())),
+		Role: "shop",
+	}
+	token, err := jwt.GenerateToken(credentials)
+	if err != nil {
+		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "ShopLogin").Msg(err.Error())
+		return nil, errors.New("error generating accessToken")
+	}
+	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "ShopLogin").Msg("shop logged in successfully!")
+	return &token, nil
 }
 
 // ForgotShopPassword is the resolver for the forgotShopPassword field.
 func (r *mutationResolver) ForgotShopPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error) {
-	panic(fmt.Errorf("not implemented: ForgotShopPassword - forgotShopPassword"))
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+
+	//validate phone number
+	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
+		return nil, err
+	}
+
+	//check if the phone number exists in the database
+	phoneexists, err := postgresshop.CheckShopPhoneNumber(r.Sql.Db, phoneNumber)
+
+	//return any error that might be associated with checking the phone number's existence in the database
+	if err != nil {
+		log.Error().Str("phone_number", phoneNumber).Str("path", "ForgotShopPassword").Msg(err.Error())
+		return nil, err
+	}
+	//return an error if phone number exists in the unverified table
+	if phoneexists.Verified != true && phoneexists.Unverified == true {
+		return nil, errors.New("phone number has been registered but is yet to be verified")
+	}
+	//return an error if phone number is neither registered nor verified
+	if phoneexists.Verified != true && phoneexists.Unverified != true {
+		return nil, errors.New("phone number does not exist")
+	}
+	//send an OTP code to the phone number provided, return error if there is any
+	if err := phoneutils.SendOtp(phoneNumber); err != nil {
+		log.Error().Str("phone_number", phoneNumber).Str("path", "ForgotShopPassword").Msg(err.Error())
+		return nil, err
+	}
+	//return status on success
+	sendcodestatus := &model.SendCodeStatus{
+		PhoneNumber: phoneNumber,
+		Success:     true,
+	}
+	return sendcodestatus, nil
 }
 
 // RequestShopPasswordReset is the resolver for the requestShopPasswordReset field.
 func (r *mutationResolver) RequestShopPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error) {
-	panic(fmt.Errorf("not implemented: RequestShopPasswordReset - requestShopPasswordReset"))
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+
+	//Check the validity of an OTP code
+	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
+		return nil, err
+	}
+
+	shop, err := postgresshop.GetShopWithPhoneNumber(r.Sql.Db, phoneNumber)
+
+	if err != nil {
+		log.Info().Str("phone_number", phoneNumber).Str("path", "RequestShopPasswordReset").Msg(err.Error())
+		return nil, errors.New("phone number does not exist")
+	}
+
+	credentials := jwt.TokenCredentials{
+		Id:   strconv.Itoa(int(shop.GetID())),
+		Role: "shop",
+	}
+	token, err := jwt.GenerateToken(credentials)
+	if err != nil {
+		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "RequestShopPasswordReset").Msg(err.Error())
+		return nil, errors.New("error generating accessToken")
+	}
+	return &token, nil
 }
 
 // ResetShopPassword is the resolver for the resetShopPassword field.
 func (r *mutationResolver) ResetShopPassword(ctx context.Context, newPassword string) (*model.Shop, error) {
-	panic(fmt.Errorf("not implemented: ResetShopPassword - resetShopPassword"))
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil {
+		return nil, errors.New("access to reset shop password denied!")
+	}
+	role := s.GetRole()
+	if role != "shop" {
+		return nil, errors.New("access to reset shop password denied. Only available for registered and logged in shops")
+	}
+	id, err := s.GetID()
+
+	if err != nil {
+		errors.New("could not access shop's id!")
+	}
+
+	//validate inputs
+	if err := validate.ValidatePassword(newPassword); err != nil {
+		return nil, err
+	}
+
+	encryptedpassword, err := encrypt.HashPassword(newPassword)
+
+	if err != nil {
+		return nil, err
+	}
+
+	shop, err := shop.UpdatePassword(r.Sql.Db, encryptedpassword, id, r.Neo4j)
+	if err != nil {
+		log.Error().Int("id", id).Str("path", "ResetShopPassword").Msg(err.Error())
+		return nil, err
+	}
+
+	shop1 := model.Shop{
+		ID:                    int(shop.GetID()),
+		CreatedAt:             shop.GetCreatedAt(),
+		UpdatedAt:             shop.GetUpdatedAt(),
+		Name:                  shop.GetName(),
+		PhoneNumber:           shop.GetPhoneNumber(),
+		AccountBalanceInCents: int(shop.GetAccountBalanceInCents()),
+	}
+
+	//return the updated record
+	return &shop1, nil
 }
 
 // RefreshToken is the resolver for the refreshToken field.
@@ -89,27 +306,146 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*str
 
 // GetShop is the resolver for the getShop field.
 func (r *queryResolver) GetShop(ctx context.Context) (*model.Shop, error) {
-	panic(fmt.Errorf("not implemented: GetShop - getShop"))
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	user, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("access to get shop profile denied!")
+	}
+	role := user.GetRole()
+	if role != "shop" {
+		return nil, errors.New("access to get shop profile denied. Only available for registered and logged in shops.")
+	}
+	id, err := user.GetID()
+
+	if err != nil {
+		errors.New("could not access shop's id!")
+	}
+
+	s, err := postgresshop.GetShopWithId(r.Sql.Db, id)
+	if err != nil {
+		log.Error().Int("id", id).Str("path", "GetShop").Msg(err.Error())
+		return nil, errors.New("could not access shop's profile!")
+	}
+	log.Info().Int("id", id).Str("role", role).Str("path", "GetShop").Msg("getting shop's profile")
+
+	shopprofile := model.Shop{
+		ID:                    int(s.GetID()),
+		CreatedAt:             s.GetCreatedAt(),
+		UpdatedAt:             s.GetUpdatedAt(),
+		Name:                  s.GetName(),
+		PhoneNumber:           s.GetPhoneNumber(),
+		AccountBalanceInCents: int(s.GetAccountBalanceInCents()),
+	}
+	return &shopprofile, nil
 }
 
 // GetShops is the resolver for the getShops field.
 func (r *queryResolver) GetShops(ctx context.Context) ([]*model.Shop, error) {
-	panic(fmt.Errorf("not implemented: GetShops - getShops"))
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+
+	shops, err := postgresshop.GetShops(r.Sql.Db)
+
+	if err != nil {
+		log.Error().Str("path", "GetShops").Msg(err.Error())
+		return nil, errors.New("could not access shops' profile!")
+	}
+
+	var shopsprofile []*model.Shop
+
+	for _, shop := range shops {
+		shopprofile := &model.Shop{
+			ID:                    int(shop.GetID()),
+			CreatedAt:             shop.GetCreatedAt(),
+			UpdatedAt:             shop.GetUpdatedAt(),
+			Name:                  shop.GetName(),
+			PhoneNumber:           shop.GetPhoneNumber(),
+			AccountBalanceInCents: int(shop.GetAccountBalanceInCents()),
+		}
+		shopsprofile = append(shopsprofile, shopprofile)
+	}
+
+	return shopsprofile, nil
 }
 
 // Products is the resolver for the products field.
 func (r *shopResolver) Products(ctx context.Context, obj *model.Shop) ([]*model.Product, error) {
-	panic(fmt.Errorf("not implemented: Products - products"))
+	products, err := neo4jproduct.RetrieveShopProducts(r.Neo4j, obj.ID)
+
+	if err != nil {
+		return nil, errors.New("could not access shops' products!")
+	}
+
+	var productslist []*model.Product
+
+	for _, product := range products {
+		t := &model.Product{
+			ID:                  int(product.GetID()),
+			CreatedAt:           product.GetCreatedAt(),
+			UpdatedAt:           product.GetUpdatedAt(),
+			Name:                product.GetName(),
+			PricePerUnitInCents: int(product.GetPricePerUnitInCents()),
+		}
+		productslist = append(productslist, t)
+	}
+
+	return productslist, nil
 }
 
 // Categories is the resolver for the categories field.
 func (r *shopResolver) Categories(ctx context.Context, obj *model.Shop) ([]*model.Category, error) {
-	panic(fmt.Errorf("not implemented: Categories - categories"))
+	categories, err := neo4jproduct.RetrieveShopCategories(r.Neo4j, obj.ID)
+
+	if err != nil {
+		return nil, errors.New("could not access shops' categories!")
+	}
+
+	var categorylist []*model.Category
+
+	for _, category := range categories {
+		c := &model.Category{
+			ID:          int(category.GetID()),
+			CreatedAt:   category.GetCreatedAt(),
+			UpdatedAt:   category.GetUpdatedAt(),
+			Name:        category.GetName(),
+			Description: category.GetDescription(),
+		}
+		categorylist = append(categorylist, c)
+	}
+
+	return categorylist, nil
 }
 
 // Transactions is the resolver for the transactions field.
 func (r *shopResolver) Transactions(ctx context.Context, obj *model.Shop) ([]*model.Transaction, error) {
-	panic(fmt.Errorf("not implemented: Transactions - transactions"))
+	transactions, err := neo4jtransaction.RetrieveShopTransactions(r.Neo4j, obj.ID)
+
+	if err != nil {
+		return nil, errors.New("could not access shops' transactions!")
+	}
+
+	var transactionslist []*model.Transaction
+
+	for _, transaction := range transactions {
+		t := &model.Transaction{
+			ID:                     int(transaction.GetID()),
+			CreatedAt:              transaction.GetCreatedAt(),
+			UpdatedAt:              transaction.GetUpdatedAt(),
+			TotalAmountInCents:     int(transaction.GetTotalAmountInCents()),
+			TransactionCostInCents: int(transaction.GetTransactionCostInCents()),
+		}
+		transactionslist = append(transactionslist, t)
+	}
+
+	return transactionslist, nil
 }
 
 // Shop returns ShopResolver implementation.
