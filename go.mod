@@ -6,8 +6,8 @@ require (
 	github.com/99designs/gqlgen v0.17.55
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fasibio/autogql v0.5.8
-	github.com/huandu/xstrings v1.4.0
-	github.com/mitchellh/mapstructure v1.5.0
+	github.com/huandu/xstrings v1.4.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/twilio/twilio-go v1.23.5
 	github.com/vektah/gqlparser/v2 v2.5.17
 	golang.org/x/crypto v0.31.0
@@ -16,7 +16,7 @@ require (
 )
 
 require (
-	github.com/GigaDesk/eardrum-graph v1.0.1
+	github.com/GigaDesk/eardrum-graph v1.0.2
 	github.com/GigaDesk/eardrum-prefix v1.0.2
 	github.com/rs/cors v1.11.1
 )
@@ -29,8 +29,8 @@ require (
 )
 
 require (
-	github.com/AlekSi/pointer v1.2.0
 	github.com/GigaDesk/eardrum-postgres v1.0.1
+	github.com/GigaDesk/eardrum-sync v1.0.0
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
