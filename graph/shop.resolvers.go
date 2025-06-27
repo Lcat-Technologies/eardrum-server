@@ -12,6 +12,7 @@ import (
 
 	"github.com/GigaDesk/eardrum-graph/neo4jproduct"
 	"github.com/GigaDesk/eardrum-graph/neo4jtransaction"
+	"github.com/GigaDesk/eardrum-postgres/postgresproduct"
 	"github.com/GigaDesk/eardrum-postgres/postgresshop"
 	"github.com/GigaDesk/eardrum-prefix/validate"
 	"github.com/GigaDesk/eardrum-server/auth"
@@ -422,6 +423,25 @@ func (r *shopResolver) Categories(ctx context.Context, obj *model.Shop) ([]*mode
 	}
 
 	return categorylist, nil
+}
+
+// Category is the resolver for the category field.
+func (r *shopResolver) Category(ctx context.Context, obj *model.Shop, id int) (*model.Category, error) {
+	category, err := postgresproduct.GetCategoryWithId(r.Sql.Db, id)
+
+	if err != nil {
+		return nil, errors.New("could not access shop's category")
+	}
+
+	c := model.Category{
+		ID:          int(category.GetID()),
+		CreatedAt:   category.GetCreatedAt(),
+		UpdatedAt:   category.GetUpdatedAt(),
+		Name:        category.GetName(),
+		Description: category.GetDescription(),
+	}
+
+	return &c, nil
 }
 
 // Transactions is the resolver for the transactions field.

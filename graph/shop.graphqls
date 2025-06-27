@@ -8,6 +8,7 @@ type Shop {
   account_balance_in_cents: Int!
   products: [Product!]
   categories: [Category!]
+  category(id: Int!): Category
   transactions: [Transaction!]
 }
 

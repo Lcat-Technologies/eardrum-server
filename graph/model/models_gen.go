@@ -159,6 +159,7 @@ type Shop struct {
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
 	Products              []*Product     `json:"products,omitempty"`
 	Categories            []*Category    `json:"categories,omitempty"`
+	Category              *Category      `json:"category,omitempty"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
 
