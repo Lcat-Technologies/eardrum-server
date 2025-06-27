@@ -17,12 +17,12 @@ require (
 
 require (
 	github.com/GigaDesk/eardrum-graph v1.0.2
+	github.com/GigaDesk/eardrum-interfaces v1.0.9
 	github.com/GigaDesk/eardrum-prefix v1.0.2
 	github.com/rs/cors v1.11.1
 )
 
 require (
-	github.com/GigaDesk/eardrum-interfaces v1.0.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	golang.org/x/sys v0.28.0 // indirect
