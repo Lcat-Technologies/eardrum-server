@@ -131,12 +131,10 @@ type Product struct {
 }
 
 type Purchase struct {
-	ID                 int       `json:"id"`
-	CreatedAt          time.Time `json:"createdAt"`
-	UpdatedAt          time.Time `json:"updatedAt"`
-	UnitsBought        int       `json:"units_bought"`
-	TotalAmountInCents int       `json:"total_amount_in_cents"`
-	Product            *Product  `json:"product"`
+	ID                 int      `json:"id"`
+	UnitsBought        int      `json:"units_bought"`
+	TotalAmountInCents int      `json:"total_amount_in_cents"`
+	Product            *Product `json:"product"`
 }
 
 type PurchasedProduct struct {

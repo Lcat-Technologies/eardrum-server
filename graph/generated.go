@@ -97,12 +97,10 @@ type ComplexityRoot struct {
 	}
 
 	Purchase struct {
-		CreatedAt          func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Product            func(childComplexity int) int
 		TotalAmountInCents func(childComplexity int) int
 		UnitsBought        func(childComplexity int) int
-		UpdatedAt          func(childComplexity int) int
 	}
 
 	Query struct {
@@ -523,13 +521,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Product.UpdatedAt(childComplexity), true
 
-	case "Purchase.createdAt":
-		if e.complexity.Purchase.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.Purchase.CreatedAt(childComplexity), true
-
 	case "Purchase.id":
 		if e.complexity.Purchase.ID == nil {
 			break
@@ -557,13 +548,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Purchase.UnitsBought(childComplexity), true
-
-	case "Purchase.updatedAt":
-		if e.complexity.Purchase.UpdatedAt == nil {
-			break
-		}
-
-		return e.complexity.Purchase.UpdatedAt(childComplexity), true
 
 	case "Query.getDummy":
 		if e.complexity.Query.GetDummy == nil {
@@ -3440,94 +3424,6 @@ func (ec *executionContext) fieldContext_Purchase_id(_ context.Context, field gr
 	return fc, nil
 }
 
-func (ec *executionContext) _Purchase_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Purchase) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Purchase_createdAt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Purchase_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Purchase",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Purchase_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.Purchase) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Purchase_updatedAt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Purchase_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Purchase",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Purchase_units_bought(ctx context.Context, field graphql.CollectedField, obj *model.Purchase) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Purchase_units_bought(ctx, field)
 	if err != nil {
@@ -4921,10 +4817,6 @@ func (ec *executionContext) fieldContext_Transaction_purchases(_ context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Purchase_id(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Purchase_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Purchase_updatedAt(ctx, field)
 			case "units_bought":
 				return ec.fieldContext_Purchase_units_bought(ctx, field)
 			case "total_amount_in_cents":
@@ -8559,16 +8451,6 @@ func (ec *executionContext) _Purchase(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = graphql.MarshalString("Purchase")
 		case "id":
 			out.Values[i] = ec._Purchase_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "createdAt":
-			out.Values[i] = ec._Purchase_createdAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "updatedAt":
-			out.Values[i] = ec._Purchase_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
