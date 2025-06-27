@@ -11,7 +11,7 @@ require (
 	github.com/twilio/twilio-go v1.23.5
 	github.com/vektah/gqlparser/v2 v2.5.17
 	golang.org/x/crypto v0.31.0
-	gorm.io/driver/postgres v1.6.0
+	gorm.io/driver/postgres v1.6.0 // indirect
 	gorm.io/gorm v1.30.0
 )
 

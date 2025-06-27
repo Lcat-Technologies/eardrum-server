@@ -8,20 +8,21 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/GigaDesk/eardrum-graph/neo4jutils"
+	"github.com/GigaDesk/eardrum-postgres/postgresutils"
 	"github.com/GigaDesk/eardrum-server/auth"
-	"github.com/GigaDesk/eardrum-server/database/postgreutils"
 	"github.com/GigaDesk/eardrum-server/graph"
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/GigaDesk/eardrum-server/shutdown"
 	"github.com/go-chi/chi"
+
 	//"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
 )
 
 var (
-	postgresInstance postgreutils.PostgresInstance
+	postgresInstance postgresutils.PostgresInstance
 	neo4jInstance  neo4jutils.Neo4jInstance
 )
 
@@ -64,7 +65,7 @@ func main() {
 	router.Use(c.Handler)
 	router.Use(auth.Middleware())
 
-	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Sql: &postgresInstance.Dborm, Neo4j: &neo4jInstance }}))
+	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Sql: &postgresInstance, Neo4j: &neo4jInstance }}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", server)
