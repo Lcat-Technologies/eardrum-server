@@ -6,19 +6,77 @@ package graph
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
+	"github.com/GigaDesk/eardrum-graph/neo4jproduct"
+	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/graph/model"
+	"github.com/GigaDesk/eardrum-server/shutdown"
+	"github.com/GigaDesk/eardrum-sync/product"
 )
 
 // Products is the resolver for the products field.
 func (r *categoryResolver) Products(ctx context.Context, obj *model.Category) ([]*model.Product, error) {
-	panic(fmt.Errorf("not implemented: Products - products"))
+	products, err := neo4jproduct.RetrieveCategoryProducts(r.Neo4j, obj.ID)
+
+	if err != nil {
+		return nil, errors.New("could not access category's products!")
+	}
+
+	var productslist []*model.Product
+
+	for _, product := range products {
+		t := &model.Product{
+			ID:                  int(product.GetID()),
+			CreatedAt:           product.GetCreatedAt(),
+			UpdatedAt:           product.GetUpdatedAt(),
+			Name:                product.GetName(),
+			PricePerUnitInCents: int(product.GetPricePerUnitInCents()),
+		}
+		productslist = append(productslist, t)
+	}
+
+	return productslist, nil
 }
 
 // CreateCategory is the resolver for the createCategory field.
 func (r *mutationResolver) CreateCategory(ctx context.Context, input model.NewCategory) (*model.Category, error) {
-	panic(fmt.Errorf("not implemented: CreateCategory - createCategory"))
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil {
+		return nil, errors.New("access to create shop product denied!")
+	}
+	role := s.GetRole()
+	if role != "shop" {
+		return nil, errors.New("access to create shop product denied. Only available for registered and logged in shops")
+	}
+	id, err := s.GetID()
+
+	if err != nil {
+		errors.New("could not access shop's id!")
+	}
+
+	category, err := product.CreateCategory(input, id, r.Sql.Db, r.Neo4j)
+
+	if err != nil {
+		return nil, errors.New("error creating category")
+	}
+
+	c := model.Category{
+		ID:          int(category.GetID()),
+		CreatedAt:   category.GetCreatedAt(),
+		UpdatedAt:   category.GetUpdatedAt(),
+		Name:        category.GetName(),
+		Description: category.GetDescription(),
+	}
+
+	return &c, nil
 }
 
 // Category returns CategoryResolver implementation.
