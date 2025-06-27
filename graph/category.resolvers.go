@@ -9,6 +9,7 @@ import (
 	"errors"
 
 	"github.com/GigaDesk/eardrum-graph/neo4jproduct"
+	"github.com/GigaDesk/eardrum-postgres/postgresproduct"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/shutdown"
@@ -67,6 +68,43 @@ func (r *mutationResolver) CreateCategory(ctx context.Context, input model.NewCa
 	if err != nil {
 		return nil, errors.New("error creating category")
 	}
+
+	c := model.Category{
+		ID:          int(category.GetID()),
+		CreatedAt:   category.GetCreatedAt(),
+		UpdatedAt:   category.GetUpdatedAt(),
+		Name:        category.GetName(),
+		Description: category.GetDescription(),
+	}
+
+	return &c, nil
+}
+
+// AddProductToCategory is the resolver for the addProductToCategory field.
+func (r *mutationResolver) AddProductToCategory(ctx context.Context, productid int, categoryid int) (*model.Category, error) {
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil {
+		return nil, errors.New("access to add shop product to category denied!")
+	}
+	role := s.GetRole()
+	if role != "shop" {
+		return nil, errors.New("access to add shop product to category denied. Only available for registered and logged in shops")
+	}
+
+	err = neo4jproduct.AddProductToCategory(r.Neo4j, productid, categoryid)
+
+	if err != nil {
+		return nil, errors.New("error adding product to category")
+	}
+
+	category, err := postgresproduct.GetCategoryWithId(r.Sql.Db, categoryid)
 
 	c := model.Category{
 		ID:          int(category.GetID()),
