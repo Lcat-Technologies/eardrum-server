@@ -120,6 +120,7 @@ type ComplexityRoot struct {
 	Shop struct {
 		AccountBalanceInCents func(childComplexity int) int
 		Categories            func(childComplexity int) int
+		Category              func(childComplexity int, id int) int
 		CreatedAt             func(childComplexity int) int
 		ID                    func(childComplexity int) int
 		Name                  func(childComplexity int) int
@@ -186,6 +187,7 @@ type QueryResolver interface {
 type ShopResolver interface {
 	Products(ctx context.Context, obj *model.Shop) ([]*model.Product, error)
 	Categories(ctx context.Context, obj *model.Shop) ([]*model.Category, error)
+	Category(ctx context.Context, obj *model.Shop, id int) (*model.Category, error)
 	Transactions(ctx context.Context, obj *model.Shop) ([]*model.Transaction, error)
 }
 type TransactionResolver interface {
@@ -623,6 +625,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Shop.Categories(childComplexity), true
+
+	case "Shop.category":
+		if e.complexity.Shop.Category == nil {
+			break
+		}
+
+		args, err := ec.field_Shop_category_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Shop.Category(childComplexity, args["id"].(int)), true
 
 	case "Shop.createdAt":
 		if e.complexity.Shop.CreatedAt == nil {
@@ -1673,6 +1687,29 @@ func (ec *executionContext) field_Query_getDummy_argsID(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Shop_category_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Shop_category_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Shop_category_argsID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2328,6 +2365,8 @@ func (ec *executionContext) fieldContext_Mutation_createShop(ctx context.Context
 				return ec.fieldContext_Shop_products(ctx, field)
 			case "categories":
 				return ec.fieldContext_Shop_categories(ctx, field)
+			case "category":
+				return ec.fieldContext_Shop_category(ctx, field)
 			case "transactions":
 				return ec.fieldContext_Shop_transactions(ctx, field)
 			}
@@ -2672,6 +2711,8 @@ func (ec *executionContext) fieldContext_Mutation_resetShopPassword(ctx context.
 				return ec.fieldContext_Shop_products(ctx, field)
 			case "categories":
 				return ec.fieldContext_Shop_categories(ctx, field)
+			case "category":
+				return ec.fieldContext_Shop_category(ctx, field)
 			case "transactions":
 				return ec.fieldContext_Shop_transactions(ctx, field)
 			}
@@ -3728,6 +3769,8 @@ func (ec *executionContext) fieldContext_Query_getShop(_ context.Context, field 
 				return ec.fieldContext_Shop_products(ctx, field)
 			case "categories":
 				return ec.fieldContext_Shop_categories(ctx, field)
+			case "category":
+				return ec.fieldContext_Shop_category(ctx, field)
 			case "transactions":
 				return ec.fieldContext_Shop_transactions(ctx, field)
 			}
@@ -3789,6 +3832,8 @@ func (ec *executionContext) fieldContext_Query_getShops(_ context.Context, field
 				return ec.fieldContext_Shop_products(ctx, field)
 			case "categories":
 				return ec.fieldContext_Shop_categories(ctx, field)
+			case "category":
+				return ec.fieldContext_Shop_category(ctx, field)
 			case "transactions":
 				return ec.fieldContext_Shop_transactions(ctx, field)
 			}
@@ -4497,6 +4542,72 @@ func (ec *executionContext) fieldContext_Shop_categories(_ context.Context, fiel
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Category", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Shop_category(ctx context.Context, field graphql.CollectedField, obj *model.Shop) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Shop_category(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Shop().Category(rctx, obj, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Category)
+	fc.Result = res
+	return ec.marshalOCategory2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Shop_category(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Shop",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Category_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Category_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Category_updatedAt(ctx, field)
+			case "name":
+				return ec.fieldContext_Category_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Category_description(ctx, field)
+			case "products":
+				return ec.fieldContext_Category_products(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Category", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Shop_category_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -8818,6 +8929,39 @@ func (ec *executionContext) _Shop(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Shop_categories(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "category":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Shop_category(ctx, field, obj)
 				return res
 			}
 
