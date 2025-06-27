@@ -39,15 +39,15 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.NewPro
 
 	product, err := product.CreateProduct(input, id, r.Sql.Db, r.Neo4j)
 
-	if err!=nil{
+	if err != nil {
 		return nil, errors.New("error creating product")
 	}
 
-	p:=model.Product{
-		ID: int(product.GetID()),
-		CreatedAt: product.GetCreatedAt(),
-		UpdatedAt: product.GetUpdatedAt(),
-		Name: product.GetName(),
+	p := model.Product{
+		ID:                  int(product.GetID()),
+		CreatedAt:           product.GetCreatedAt(),
+		UpdatedAt:           product.GetUpdatedAt(),
+		Name:                product.GetName(),
 		PricePerUnitInCents: int(product.GetPricePerUnitInCents()),
 	}
 

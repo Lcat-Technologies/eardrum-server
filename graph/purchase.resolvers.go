@@ -29,7 +29,6 @@ func (r *purchaseResolver) Product(ctx context.Context, obj *model.Purchase) (*m
 	}
 
 	return &p, nil
-
 }
 
 // Purchase returns PurchaseResolver implementation.
