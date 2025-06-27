@@ -111,6 +111,8 @@ models:
         resolver: true
       transactions:
         resolver: true
+      category:
+        resolver: true
   Category:
     fields:
       products:
