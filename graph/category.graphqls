@@ -16,4 +16,5 @@ input NewCategory {
 
 extend type Mutation {
   createCategory(input: NewCategory!): Category
+  addProductToCategory(productid: Int!, categoryid: Int!): Category
 }
