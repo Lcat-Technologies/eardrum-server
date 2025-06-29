@@ -30,7 +30,7 @@ require (
 
 require (
 	github.com/GigaDesk/eardrum-postgres v1.0.1
-	github.com/GigaDesk/eardrum-sync v1.0.0
+	github.com/GigaDesk/eardrum-sync v1.0.1
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect

@@ -12,6 +12,8 @@ github.com/GigaDesk/eardrum-prefix v1.0.2 h1:GsLn7fuQ+N8UehBKbS0ZdcAzudEJ4+Gc1gS
 github.com/GigaDesk/eardrum-prefix v1.0.2/go.mod h1:5Z5DptQSGuVsOQ16jKNtmSu8wQ8btEoH/o1zwbpP6hA=
 github.com/GigaDesk/eardrum-sync v1.0.0 h1:ek7uzBkZa9zblv3dEsOmpDjIhnrV2ZSGAGH0lmD1xuo=
 github.com/GigaDesk/eardrum-sync v1.0.0/go.mod h1:L5xXu+d+P+lJvbD6iRUKHLKMzByUqNOmFem2wEKzXkU=
+github.com/GigaDesk/eardrum-sync v1.0.1 h1:MhibwyTlfxlnPwrCV1Ei/OGEXYgcjduvhbct/A2xtk0=
+github.com/GigaDesk/eardrum-sync v1.0.1/go.mod h1:6wFCHLIjfG/2vgyq0g9V1q2rLdOh2FT2ick63DdVFaU=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver/v3 v3.2.0/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
