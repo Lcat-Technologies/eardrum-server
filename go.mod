@@ -16,7 +16,7 @@ require (
 )
 
 require (
-	github.com/GigaDesk/eardrum-graph v1.0.2
+	github.com/GigaDesk/eardrum-graph v1.0.3
 	github.com/GigaDesk/eardrum-interfaces v1.0.9
 	github.com/GigaDesk/eardrum-prefix v1.0.2
 	github.com/rs/cors v1.11.1

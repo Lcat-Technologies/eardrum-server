@@ -2,6 +2,8 @@ github.com/99designs/gqlgen v0.17.55 h1:3vzrNWYyzSZjGDFo68e5j9sSauLxfKvLp+6ioRok
 github.com/99designs/gqlgen v0.17.55/go.mod h1:3Bq768f8hgVPGZxL8aY9MaYmbxa6llPM/qu1IGH1EJo=
 github.com/GigaDesk/eardrum-graph v1.0.2 h1:WPCUSrfAl0bogqFR81VrU9hgUxhAfCywFyjzwDgD61g=
 github.com/GigaDesk/eardrum-graph v1.0.2/go.mod h1:HJY4TqlpsDIZPfYQMx4w49tIiFXOIIG3IU0uUK2srnM=
+github.com/GigaDesk/eardrum-graph v1.0.3 h1:rjIU4ktiavUHrRXo8L4X9fCN1tskoR4YE8qryYX5okU=
+github.com/GigaDesk/eardrum-graph v1.0.3/go.mod h1:HJY4TqlpsDIZPfYQMx4w49tIiFXOIIG3IU0uUK2srnM=
 github.com/GigaDesk/eardrum-interfaces v1.0.9 h1:kt13BHiTsa6bkZ9+TKrvXN/zWvo/kFO25O1kPlW3z6Y=
 github.com/GigaDesk/eardrum-interfaces v1.0.9/go.mod h1:0S9WexmRQikEw+XbbRB1nfH92k/rbwyPFFCXzi9P0bE=
 github.com/GigaDesk/eardrum-postgres v1.0.1 h1:xWW0EnTNiJS3q85RSYGzIVZcuxN3/6kZPnVsFmD/85k=
