@@ -1,23 +1,53 @@
 package model
 
-import "github.com/GigaDesk/eardrum-interfaces/transaction"
+import (
+	"github.com/GigaDesk/eardrum-interfaces/transaction"
+	"github.com/google/uuid"
+)
 
-// returns the transaction's phone number
-func (n NewTransaction) GetPhoneNumber() string {
-	return n.PhoneNumber
+// returns the transaction's universal unique identifier
+func (n NewProductTransaction) GetUUID() uuid.UUID {
+	// Parse the string field into a uuid.UUID type.
+	parsedUUID, err := uuid.Parse(n.QRCode)
+	if err != nil {
+		// Return zero value if the string is not a valid UUID format.
+		return uuid.UUID{}
+	}
+	return parsedUUID
 }
 
 // returns the transaction's pin code
-func (n NewTransaction) GetPinCode() string {
+func (n NewProductTransaction) GetPinCode() string {
 	return n.PinCode
 }
 
-//returns the transaction's purchased products
-func (n NewTransaction) GetPurchasedProducts() []transaction.PurchasedProduct{
+// returns the transaction's purchased products
+func (n NewProductTransaction) GetPurchasedProducts() []transaction.PurchasedProduct {
 
 	var list []transaction.PurchasedProduct
-    for _ , purchasedproduct:= range n.PurchasedProducts{
-    list = append(list, purchasedproduct)
+	for _, purchasedproduct := range n.PurchasedProducts {
+		list = append(list, purchasedproduct)
 	}
 	return list
+}
+
+// returns the transaction's universal unique identifier
+func (n NewAmountTransaction) GetUUID() uuid.UUID {
+	// Parse the string field into a uuid.UUID type.
+	parsedUUID, err := uuid.Parse(n.QRCode)
+	if err != nil {
+		// Return zero value if the string is not a valid UUID format.
+		return uuid.UUID{}
+	}
+	return parsedUUID
+}
+
+// returns the transaction's pin code
+func (n NewAmountTransaction) GetPinCode() string {
+	return n.PinCode
+}
+
+// returns the transaction's amount
+func (n NewAmountTransaction) GetTotalAmountInCents() uint {
+	return uint(n.AmountInCents)
 }

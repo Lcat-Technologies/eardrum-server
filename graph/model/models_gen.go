@@ -94,6 +94,12 @@ type IntFilterInput struct {
 type Mutation struct {
 }
 
+type NewAmountTransaction struct {
+	AmountInCents int    `json:"amount_in_cents"`
+	QRCode        string `json:"qr_code"`
+	PinCode       string `json:"pin_code"`
+}
+
 type NewCategory struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -104,16 +110,16 @@ type NewProduct struct {
 	PricePerUnitInCents int    `json:"price_per_unit_in_cents"`
 }
 
+type NewProductTransaction struct {
+	PurchasedProducts []*PurchasedProduct `json:"purchased_products"`
+	QRCode            string              `json:"qr_code"`
+	PinCode           string              `json:"pin_code"`
+}
+
 type NewShop struct {
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phone_number"`
 	Password    string `json:"password"`
-}
-
-type NewTransaction struct {
-	PurchasedProducts []*PurchasedProduct `json:"purchased_products"`
-	PhoneNumber       string              `json:"phone_number"`
-	PinCode           string              `json:"pin_code"`
 }
 
 type NewUser struct {
@@ -244,12 +250,22 @@ type TimeFilterInput struct {
 }
 
 type Transaction struct {
-	ID                     int         `json:"id"`
-	CreatedAt              time.Time   `json:"createdAt"`
-	UpdatedAt              time.Time   `json:"updatedAt"`
-	TotalAmountInCents     int         `json:"total_amount_in_cents"`
-	TransactionCostInCents int         `json:"transaction_cost_in_cents"`
-	Purchases              []*Purchase `json:"purchases"`
+	ID                     int              `json:"id"`
+	CreatedAt              time.Time        `json:"createdAt"`
+	UpdatedAt              time.Time        `json:"updatedAt"`
+	TotalAmountInCents     int              `json:"total_amount_in_cents"`
+	TransactionCostInCents int              `json:"transaction_cost_in_cents"`
+	Purchases              []*Purchase      `json:"purchases"`
+	User                   *TransactionUser `json:"user"`
+	Shop                   *TransactionShop `json:"shop"`
+}
+
+type TransactionShop struct {
+	Name string `json:"name"`
+}
+
+type TransactionUser struct {
+	Name string `json:"name"`
 }
 
 type User struct {
