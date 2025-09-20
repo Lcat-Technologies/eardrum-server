@@ -125,6 +125,10 @@ models:
     fields:
       purchases:
         resolver: true
+      shop:
+        resolver: true
+      user:
+        resolver: true
   User:
     fields:
       transactions:
