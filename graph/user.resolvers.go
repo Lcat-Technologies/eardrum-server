@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/GigaDesk/eardrum-graph/neo4jtransaction"
-	"github.com/GigaDesk/eardrum-postgres/postgresuser"
+	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-prefix/validate"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/encrypt"
@@ -18,7 +18,6 @@ import (
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/GigaDesk/eardrum-server/shutdown"
-	"github.com/GigaDesk/eardrum-sync/user"
 	"github.com/rs/zerolog/log"
 )
 

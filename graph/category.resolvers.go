@@ -9,11 +9,10 @@ import (
 	"errors"
 
 	"github.com/GigaDesk/eardrum-graph/neo4jproduct"
-	"github.com/GigaDesk/eardrum-postgres/postgresproduct"
+	"github.com/GigaDesk/eardrum-postgres/product"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/shutdown"
-	"github.com/GigaDesk/eardrum-sync/product"
 )
 
 // Products is the resolver for the products field.

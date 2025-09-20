@@ -13,7 +13,7 @@ import (
 	"github.com/GigaDesk/eardrum-server/encrypt"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/shutdown"
-	"github.com/GigaDesk/eardrum-sync/transaction"
+	"github.com/GigaDesk/eardrum-postgres/transaction"
 )
 
 // CreateTransaction is the resolver for the createTransaction field.

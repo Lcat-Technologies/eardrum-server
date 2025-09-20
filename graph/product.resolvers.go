@@ -11,7 +11,6 @@ import (
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/shutdown"
-	"github.com/GigaDesk/eardrum-sync/product"
 )
 
 // CreateProduct is the resolver for the createProduct field.
