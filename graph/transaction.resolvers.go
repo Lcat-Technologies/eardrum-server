@@ -8,16 +8,15 @@ import (
 	"context"
 	"errors"
 
-	"github.com/GigaDesk/eardrum-graph/neo4jpurchase"
+	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/encrypt"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/shutdown"
-	"github.com/GigaDesk/eardrum-postgres/transaction"
 )
 
-// CreateTransaction is the resolver for the createTransaction field.
-func (r *mutationResolver) CreateTransaction(ctx context.Context, input model.NewTransaction) (*model.Transaction, error) {
+// CreateProductTransaction is the resolver for the createProductTransaction field.
+func (r *mutationResolver) CreateProductTransaction(ctx context.Context, input model.NewProductTransaction) (*model.Transaction, error) {
 	//check if system is in shutdown mode
 	if *shutdown.IsShutdown {
 		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
@@ -39,14 +38,61 @@ func (r *mutationResolver) CreateTransaction(ctx context.Context, input model.Ne
 		errors.New("could not access shop's id!")
 	}
 
-	t, err := transaction.CreateTransaction(input, id, func(hashedPIN, PIN string) error {
+	t, err := transaction.ProcessOrder(r.Sql.Db, uint(id), input, func(hashedPIN, PIN string) error {
 		err := encrypt.CheckPassword(hashedPIN, PIN)
 
 		if err != nil {
 			return err
 		}
 		return nil
-	}, r.Sql.Db, r.Neo4j)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	p := model.Transaction{
+		ID:                     int(t.GetID()),
+		CreatedAt:              t.GetCreatedAt(),
+		UpdatedAt:              t.GetUpdatedAt(),
+		TotalAmountInCents:     int(t.GetTotalAmountInCents()),
+		TransactionCostInCents: int(t.GetTransactionCostInCents()),
+	}
+
+	return &p, nil
+}
+
+// CreateAmountTransaction is the resolver for the createAmountTransaction field.
+func (r *mutationResolver) CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error) {
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil {
+		return nil, errors.New("access to create transaction denied!")
+	}
+	role := s.GetRole()
+	if role != "shop" {
+		return nil, errors.New("access to create transaction denied. Only available for registered and logged in shops")
+	}
+	id, err := s.GetID()
+
+	if err != nil {
+		errors.New("could not access shop's id!")
+	}
+
+	t, err := transaction.ProcessTransaction(r.Sql.Db, uint(id), input, func(hashedPIN, PIN string) error {
+		err := encrypt.CheckPassword(hashedPIN, PIN)
+
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 
 	if err != nil {
 		return nil, err
@@ -65,7 +111,7 @@ func (r *mutationResolver) CreateTransaction(ctx context.Context, input model.Ne
 
 // Purchases is the resolver for the purchases field.
 func (r *transactionResolver) Purchases(ctx context.Context, obj *model.Transaction) ([]*model.Purchase, error) {
-	purchases, err := neo4jpurchase.RetrieveTransactionPurchases(r.Neo4j, obj.ID)
+	purchases, err := transaction.GetPurchasesForTransaction(r.Sql.Db, uint(obj.ID))
 
 	if err != nil {
 		return nil, errors.New("could not access transactions' purchases!")
@@ -83,6 +129,40 @@ func (r *transactionResolver) Purchases(ctx context.Context, obj *model.Transact
 	}
 
 	return purchaseslist, nil
+}
+
+// User is the resolver for the user field.
+func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) (*model.TransactionUser, error) {
+	var transaction transaction.Transaction
+	// The .Preload() method tells GORM to load the associated User data
+	// in the same query.
+	if err := r.Sql.Db.
+		Preload("User").
+		First(&transaction, obj.ID).Error; err != nil {
+		return nil, err
+	}
+
+	user := &model.TransactionUser{
+		Name: transaction.User.Name,
+	}
+	return user, nil
+}
+
+// Shop is the resolver for the shop field.
+func (r *transactionResolver) Shop(ctx context.Context, obj *model.Transaction) (*model.TransactionShop, error) {
+	var transaction transaction.Transaction
+	// The .Preload() method tells GORM to load the associated Shop data
+	// in the same query.
+	if err := r.Sql.Db.
+		Preload("Shop").
+		First(&transaction, obj.ID).Error; err != nil {
+		return nil, err
+	}
+
+	shop := &model.TransactionShop{
+		Name: transaction.Shop.Name,
+	}
+	return shop, nil
 }
 
 // Transaction returns TransactionResolver implementation.
