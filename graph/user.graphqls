@@ -1,0 +1,32 @@
+#returns a user's data
+type User {
+  id: Int!
+  createdAt: Time!
+  updatedAt: Time!
+  name: String!
+  phone_number: String!
+  account_balance_in_cents: Int!
+  transactions: [Transaction!]
+}
+
+#fields required for adding a new user to the system
+input NewUser {
+  name: String!
+  phone_number: String!
+  password: String!
+}
+
+extend type Query {
+  getUser: User
+  getUsers: [User!]
+}
+
+extend type Mutation {
+  createUser(input: NewUser!): User
+  verifyUser(phone_number: String!, otp: String!): String
+  userLogin(phone_number: String!, password: String!): String
+  forgotUserPassword(phone_number: String!): SendCodeStatus
+  requestUserPasswordReset(phone_number: String!, otp: String!): String
+  resetUserPassword(new_password: String!): User
+  updateUserPinCode(new_pincode: String!): User
+}

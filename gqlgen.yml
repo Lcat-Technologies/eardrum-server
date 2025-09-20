@@ -103,3 +103,29 @@ models:
     fields:
       school:
         resolver: true
+  Shop:
+    fields:
+      products:
+        resolver: true
+      categories:
+        resolver: true
+      transactions:
+        resolver: true
+      category:
+        resolver: true
+  Category:
+    fields:
+      products:
+        resolver: true
+  Purchase:
+    fields:
+      product:
+        resolver: true
+  Transaction:
+    fields:
+      purchases:
+        resolver: true
+  User:
+    fields:
+      transactions:
+        resolver: true

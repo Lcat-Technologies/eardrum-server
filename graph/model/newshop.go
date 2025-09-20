@@ -1,12 +1,12 @@
 package model
 
 import (
-	"github.com/AlekSi/pointer"
 	"github.com/GigaDesk/eardrum-prefix/validate"
 )
 
-// validates Newschool input data
-func (n NewSchool) Validate() error {
+// validates NewShop input data
+func (n NewShop) Validate() error {
+
 	//validate name
 	if err := validate.ValidateName(n.Name); err != nil {
 		return err
@@ -22,18 +22,20 @@ func (n NewSchool) Validate() error {
 		return err
 	}
 
-	//validate badge
-	if n.Badge != nil {
-		if err := validate.ValidateBadge(pointer.GetString(n.Badge)); err != nil {
-			return err
-		}
-	}
-
-	//validate website
-	if n.Website != nil {
-		if err := validate.ValidateWebsite(pointer.GetString(n.Website)); err != nil {
-			return err
-		}
-	}
 	return nil
+}
+
+// returns the shop's name
+func (n NewShop) GetName() string {
+	return n.Name
+}
+
+// returns the shop's phone number
+func (n NewShop) GetPhoneNumber() string {
+	return n.PhoneNumber
+}
+
+// returns the shop's password
+func (n NewShop) GetPassword() string {
+	return n.Password
 }

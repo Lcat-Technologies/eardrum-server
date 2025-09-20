@@ -3,31 +3,8 @@
 package model
 
 import (
-	"fmt"
-	"io"
-	"strconv"
 	"time"
-
-	"github.com/fasibio/autogql/runtimehelper"
 )
-
-// AddSchool result with filterable data and affected rows
-type AddSchoolPayload struct {
-	School   *SchoolQueryResult `json:"school"`
-	Affected []*School          `json:"affected"`
-}
-
-// AddStudent result with filterable data and affected rows
-type AddStudentPayload struct {
-	Student  *StudentQueryResult `json:"student"`
-	Affected []*Student          `json:"affected"`
-}
-
-// AddUnverifiedSchool result with filterable data and affected rows
-type AddUnverifiedSchoolPayload struct {
-	UnverifiedSchool *UnverifiedSchoolQueryResult `json:"unverifiedSchool"`
-	Affected         []*UnverifiedSchool          `json:"affected"`
-}
 
 // Boolean Filter simple datatypes
 type BooleanFilterInput struct {
@@ -39,28 +16,13 @@ type BooleanFilterInput struct {
 	NotNull *bool               `json:"notNull,omitempty"`
 }
 
-// DeleteSchool result with filterable data and count of affected entries
-type DeleteSchoolPayload struct {
-	School *SchoolQueryResult `json:"school"`
-	// Count of deleted School entities
-	Count int     `json:"count"`
-	Msg   *string `json:"msg,omitempty"`
-}
-
-// DeleteStudent result with filterable data and count of affected entries
-type DeleteStudentPayload struct {
-	Student *StudentQueryResult `json:"student"`
-	// Count of deleted Student entities
-	Count int     `json:"count"`
-	Msg   *string `json:"msg,omitempty"`
-}
-
-// DeleteUnverifiedSchool result with filterable data and count of affected entries
-type DeleteUnverifiedSchoolPayload struct {
-	UnverifiedSchool *UnverifiedSchoolQueryResult `json:"unverifiedSchool"`
-	// Count of deleted UnverifiedSchool entities
-	Count int     `json:"count"`
-	Msg   *string `json:"msg,omitempty"`
+type Category struct {
+	ID          int        `json:"id"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Products    []*Product `json:"products,omitempty"`
 }
 
 type Dummy struct {
@@ -132,114 +94,73 @@ type IntFilterInput struct {
 type Mutation struct {
 }
 
-type NewSchool struct {
-	Name        string  `json:"name"`
-	PhoneNumber string  `json:"phone_number"`
-	Password    string  `json:"password"`
-	Badge       *string `json:"badge,omitempty"`
-	Website     *string `json:"Website,omitempty"`
+type NewCategory struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
-type NewStudent struct {
-	RegistrationNumber string     `json:"registration_number"`
-	Name               string     `json:"name"`
-	PhoneNumber        string     `json:"phone_number"`
-	Password           string     `json:"password"`
-	DateOfAdmission    *time.Time `json:"date_of_admission,omitempty"`
-	DateOfBirth        *time.Time `json:"date_of_birth,omitempty"`
-	ProfilePicture     *string    `json:"profile_picture,omitempty"`
+type NewProduct struct {
+	Name                string `json:"name"`
+	PricePerUnitInCents int    `json:"price_per_unit_in_cents"`
 }
 
-type PhoneNumberExists struct {
-	Verified   bool `json:"verified"`
-	Unverified bool `json:"unverified"`
+type NewShop struct {
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
+}
+
+type NewTransaction struct {
+	PurchasedProducts []*PurchasedProduct `json:"purchased_products"`
+	PhoneNumber       string              `json:"phone_number"`
+	PinCode           string              `json:"pin_code"`
+}
+
+type NewUser struct {
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
+}
+
+type Product struct {
+	ID                  int       `json:"id"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	Name                string    `json:"name"`
+	PricePerUnitInCents int       `json:"price_per_unit_in_cents"`
+}
+
+type Purchase struct {
+	ID                 int      `json:"id"`
+	UnitsBought        int      `json:"units_bought"`
+	TotalAmountInCents int      `json:"total_amount_in_cents"`
+	Product            *Product `json:"product"`
+}
+
+type PurchasedProduct struct {
+	ProductID   int `json:"product_id"`
+	UnitsBought int `json:"units_bought"`
 }
 
 type Query struct {
 }
 
-type RefreshTokenInput struct {
-	Token string `json:"Token"`
-}
-
-type School struct {
-	ID          int                       `json:"id" gorm:"primaryKey;autoIncrement;"`
-	CreatedAt   time.Time                 `json:"createdAt"`
-	UpdatedAt   time.Time                 `json:"updatedAt"`
-	DeletedAt   *runtimehelper.SoftDelete `json:"deletedAt,omitempty" gorm:"index;"`
-	Name        string                    `json:"name"`
-	PhoneNumber string                    `json:"phone_number"`
-	Password    string                    `json:"password"`
-	Badge       *string                   `json:"badge,omitempty"`
-	Website     *string                   `json:"Website,omitempty"`
-}
-
-// Filter input selection for School
-// Can be used f.e.: by querySchool
-type SchoolFiltersInput struct {
-	ID          *IntFilterInput       `json:"id,omitempty"`
-	CreatedAt   *TimeFilterInput      `json:"createdAt,omitempty"`
-	UpdatedAt   *TimeFilterInput      `json:"updatedAt,omitempty"`
-	Name        *StringFilterInput    `json:"name,omitempty"`
-	PhoneNumber *StringFilterInput    `json:"phone_number,omitempty"`
-	Password    *StringFilterInput    `json:"password,omitempty"`
-	Badge       *StringFilterInput    `json:"badge,omitempty"`
-	Website     *StringFilterInput    `json:"Website,omitempty"`
-	And         []*SchoolFiltersInput `json:"and,omitempty"`
-	Or          []*SchoolFiltersInput `json:"or,omitempty"`
-	Not         *SchoolFiltersInput   `json:"not,omitempty"`
-}
-
-// School Input value to add new School
-type SchoolInput struct {
-	Name        string  `json:"name"`
-	PhoneNumber string  `json:"phone_number"`
-	Password    string  `json:"password"`
-	Badge       *string `json:"badge,omitempty"`
-	Website     *string `json:"Website,omitempty"`
-}
-
-type SchoolLogin struct {
-	PhoneNumber string `json:"phone_number"`
-	Password    string `json:"password"`
-}
-
-// Order School by asc or desc
-type SchoolOrder struct {
-	Asc  *SchoolOrderable `json:"asc,omitempty"`
-	Desc *SchoolOrderable `json:"desc,omitempty"`
-}
-
-// School Patch value all values are optional to update School entities
-type SchoolPatch struct {
-	Name        *string `json:"name,omitempty"`
-	PhoneNumber *string `json:"phone_number,omitempty"`
-	Password    *string `json:"password,omitempty"`
-	Badge       *string `json:"badge,omitempty"`
-	Website     *string `json:"Website,omitempty"`
-}
-
-type SchoolProfile struct {
-	ID          int               `json:"id"`
-	CreatedAt   time.Time         `json:"createdAt"`
-	UpdatedAt   time.Time         `json:"updatedAt"`
-	Name        string            `json:"name"`
-	PhoneNumber string            `json:"phone_number"`
-	Badge       *string           `json:"badge,omitempty"`
-	Website     *string           `json:"Website,omitempty"`
-	Students    []*StudentProfile `json:"students,omitempty"`
-}
-
-// School result
-type SchoolQueryResult struct {
-	Data       []*School `json:"data"`
-	Count      int       `json:"count"`
-	TotalCount int       `json:"totalCount"`
-}
-
 type SendCodeStatus struct {
 	PhoneNumber string `json:"phone_number"`
 	Success     bool   `json:"success"`
+}
+
+type Shop struct {
+	ID                    int            `json:"id"`
+	CreatedAt             time.Time      `json:"createdAt"`
+	UpdatedAt             time.Time      `json:"updatedAt"`
+	Name                  string         `json:"name"`
+	PhoneNumber           string         `json:"phone_number"`
+	AccountBalanceInCents int            `json:"account_balance_in_cents"`
+	Products              []*Product     `json:"products,omitempty"`
+	Categories            []*Category    `json:"categories,omitempty"`
+	Category              *Category      `json:"category,omitempty"`
+	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
 
 // SoftDelete Filter simple datatypes
@@ -298,94 +219,6 @@ type StringFilterInput struct {
 	NotIn        []*string          `json:"notIn,omitempty"`
 }
 
-type Student struct {
-	ID                 int                       `json:"id" gorm:"primaryKey;autoIncrement;"`
-	CreatedAt          time.Time                 `json:"createdAt"`
-	UpdatedAt          time.Time                 `json:"updatedAt"`
-	DeletedAt          *runtimehelper.SoftDelete `json:"deletedAt,omitempty" gorm:"index;"`
-	RegistrationNumber string                    `json:"registration_number"`
-	Name               string                    `json:"name"`
-	PhoneNumber        string                    `json:"phone_number"`
-	Password           string                    `json:"password"`
-	DateOfAdmission    *time.Time                `json:"date_of_admission,omitempty"`
-	DateOfBirth        *time.Time                `json:"date_of_birth,omitempty"`
-	ProfilePicture     *string                   `json:"profile_picture,omitempty"`
-}
-
-// Filter input selection for Student
-// Can be used f.e.: by queryStudent
-type StudentFiltersInput struct {
-	ID                 *IntFilterInput        `json:"id,omitempty"`
-	CreatedAt          *TimeFilterInput       `json:"createdAt,omitempty"`
-	UpdatedAt          *TimeFilterInput       `json:"updatedAt,omitempty"`
-	RegistrationNumber *StringFilterInput     `json:"registration_number,omitempty"`
-	Name               *StringFilterInput     `json:"name,omitempty"`
-	PhoneNumber        *StringFilterInput     `json:"phone_number,omitempty"`
-	Password           *StringFilterInput     `json:"password,omitempty"`
-	DateOfAdmission    *TimeFilterInput       `json:"date_of_admission,omitempty"`
-	DateOfBirth        *TimeFilterInput       `json:"date_of_birth,omitempty"`
-	ProfilePicture     *StringFilterInput     `json:"profile_picture,omitempty"`
-	And                []*StudentFiltersInput `json:"and,omitempty"`
-	Or                 []*StudentFiltersInput `json:"or,omitempty"`
-	Not                *StudentFiltersInput   `json:"not,omitempty"`
-}
-
-// Student Input value to add new Student
-type StudentInput struct {
-	RegistrationNumber string     `json:"registration_number"`
-	Name               string     `json:"name"`
-	PhoneNumber        string     `json:"phone_number"`
-	Password           string     `json:"password"`
-	DateOfAdmission    *time.Time `json:"date_of_admission,omitempty"`
-	DateOfBirth        *time.Time `json:"date_of_birth,omitempty"`
-	ProfilePicture     *string    `json:"profile_picture,omitempty"`
-}
-
-type StudentLogin struct {
-	Schoolid           int    `json:"schoolid"`
-	RegistrationNumber string `json:"registration_number"`
-	Password           string `json:"password"`
-}
-
-// Order Student by asc or desc
-type StudentOrder struct {
-	Asc  *StudentOrderable `json:"asc,omitempty"`
-	Desc *StudentOrderable `json:"desc,omitempty"`
-}
-
-// Student Patch value all values are optional to update Student entities
-type StudentPatch struct {
-	RegistrationNumber *string    `json:"registration_number,omitempty"`
-	Name               *string    `json:"name,omitempty"`
-	PhoneNumber        *string    `json:"phone_number,omitempty"`
-	Password           *string    `json:"password,omitempty"`
-	DateOfAdmission    *time.Time `json:"date_of_admission,omitempty"`
-	DateOfBirth        *time.Time `json:"date_of_birth,omitempty"`
-	ProfilePicture     *string    `json:"profile_picture,omitempty"`
-}
-
-type StudentProfile struct {
-	ID                 int                       `json:"id"`
-	CreatedAt          time.Time                 `json:"createdAt"`
-	UpdatedAt          time.Time                 `json:"updatedAt"`
-	DeletedAt          *runtimehelper.SoftDelete `json:"deletedAt,omitempty"`
-	RegistrationNumber string                    `json:"registration_number"`
-	Name               string                    `json:"name"`
-	PhoneNumber        string                    `json:"phone_number"`
-	Password           string                    `json:"password"`
-	DateOfAdmission    *time.Time                `json:"date_of_admission,omitempty"`
-	DateOfBirth        *time.Time                `json:"date_of_birth,omitempty"`
-	ProfilePicture     *string                   `json:"profile_picture,omitempty"`
-	School             *SchoolProfile            `json:"school"`
-}
-
-// Student result
-type StudentQueryResult struct {
-	Data       []*Student `json:"data"`
-	Count      int        `json:"count"`
-	TotalCount int        `json:"totalCount"`
-}
-
 // Filter between start and end (start > value < end)
 type TimeFilterBetween struct {
 	Start time.Time `json:"start"`
@@ -410,430 +243,21 @@ type TimeFilterInput struct {
 	Between *TimeFilterBetween `json:"between,omitempty"`
 }
 
-type UnverifiedSchool struct {
-	ID          int                       `json:"id" gorm:"primaryKey;autoIncrement;"`
-	CreatedAt   time.Time                 `json:"createdAt"`
-	UpdatedAt   time.Time                 `json:"updatedAt"`
-	DeletedAt   *runtimehelper.SoftDelete `json:"deletedAt,omitempty" gorm:"index;"`
-	Name        string                    `json:"name"`
-	PhoneNumber string                    `json:"phone_number"`
-	Password    string                    `json:"password"`
-	Badge       *string                   `json:"badge,omitempty"`
-	Website     *string                   `json:"Website,omitempty"`
+type Transaction struct {
+	ID                     int         `json:"id"`
+	CreatedAt              time.Time   `json:"createdAt"`
+	UpdatedAt              time.Time   `json:"updatedAt"`
+	TotalAmountInCents     int         `json:"total_amount_in_cents"`
+	TransactionCostInCents int         `json:"transaction_cost_in_cents"`
+	Purchases              []*Purchase `json:"purchases"`
 }
 
-// Filter input selection for UnverifiedSchool
-// Can be used f.e.: by queryUnverifiedSchool
-type UnverifiedSchoolFiltersInput struct {
-	ID          *IntFilterInput                 `json:"id,omitempty"`
-	CreatedAt   *TimeFilterInput                `json:"createdAt,omitempty"`
-	UpdatedAt   *TimeFilterInput                `json:"updatedAt,omitempty"`
-	Name        *StringFilterInput              `json:"name,omitempty"`
-	PhoneNumber *StringFilterInput              `json:"phone_number,omitempty"`
-	Password    *StringFilterInput              `json:"password,omitempty"`
-	Badge       *StringFilterInput              `json:"badge,omitempty"`
-	Website     *StringFilterInput              `json:"Website,omitempty"`
-	And         []*UnverifiedSchoolFiltersInput `json:"and,omitempty"`
-	Or          []*UnverifiedSchoolFiltersInput `json:"or,omitempty"`
-	Not         *UnverifiedSchoolFiltersInput   `json:"not,omitempty"`
-}
-
-// UnverifiedSchool Input value to add new UnverifiedSchool
-type UnverifiedSchoolInput struct {
-	Name        string  `json:"name"`
-	PhoneNumber string  `json:"phone_number"`
-	Password    string  `json:"password"`
-	Badge       *string `json:"badge,omitempty"`
-	Website     *string `json:"Website,omitempty"`
-}
-
-// Order UnverifiedSchool by asc or desc
-type UnverifiedSchoolOrder struct {
-	Asc  *UnverifiedSchoolOrderable `json:"asc,omitempty"`
-	Desc *UnverifiedSchoolOrderable `json:"desc,omitempty"`
-}
-
-// UnverifiedSchool Patch value all values are optional to update UnverifiedSchool entities
-type UnverifiedSchoolPatch struct {
-	Name        *string `json:"name,omitempty"`
-	PhoneNumber *string `json:"phone_number,omitempty"`
-	Password    *string `json:"password,omitempty"`
-	Badge       *string `json:"badge,omitempty"`
-	Website     *string `json:"Website,omitempty"`
-}
-
-// UnverifiedSchool result
-type UnverifiedSchoolQueryResult struct {
-	Data       []*UnverifiedSchool `json:"data"`
-	Count      int                 `json:"count"`
-	TotalCount int                 `json:"totalCount"`
-}
-
-// Update rules for School multiupdates simple possible by global filtervalue
-type UpdateSchoolInput struct {
-	Filter *SchoolFiltersInput `json:"filter"`
-	Set    *SchoolPatch        `json:"set"`
-}
-
-// UpdateSchool result with filterable data and affected rows
-type UpdateSchoolPayload struct {
-	School *SchoolQueryResult `json:"school"`
-	// Count of affected updates
-	Count    int       `json:"count"`
-	Affected []*School `json:"affected"`
-}
-
-// Update rules for Student multiupdates simple possible by global filtervalue
-type UpdateStudentInput struct {
-	Filter *StudentFiltersInput `json:"filter"`
-	Set    *StudentPatch        `json:"set"`
-}
-
-// UpdateStudent result with filterable data and affected rows
-type UpdateStudentPayload struct {
-	Student *StudentQueryResult `json:"student"`
-	// Count of affected updates
-	Count    int        `json:"count"`
-	Affected []*Student `json:"affected"`
-}
-
-// Update rules for UnverifiedSchool multiupdates simple possible by global filtervalue
-type UpdateUnverifiedSchoolInput struct {
-	Filter *UnverifiedSchoolFiltersInput `json:"filter"`
-	Set    *UnverifiedSchoolPatch        `json:"set"`
-}
-
-// UpdateUnverifiedSchool result with filterable data and affected rows
-type UpdateUnverifiedSchoolPayload struct {
-	UnverifiedSchool *UnverifiedSchoolQueryResult `json:"unverifiedSchool"`
-	// Count of affected updates
-	Count    int                 `json:"count"`
-	Affected []*UnverifiedSchool `json:"affected"`
-}
-
-type Verificationinfo struct {
-	PhoneNumber string `json:"phone_number"`
-	Otp         string `json:"otp"`
-}
-
-// Groupable data for  School
-// Can be used f.e.: by querySchool
-type SchoolGroup string
-
-const (
-	SchoolGroupID          SchoolGroup = "id"
-	SchoolGroupCreatedAt   SchoolGroup = "createdAt"
-	SchoolGroupUpdatedAt   SchoolGroup = "updatedAt"
-	SchoolGroupName        SchoolGroup = "name"
-	SchoolGroupPhoneNumber SchoolGroup = "phone_number"
-	SchoolGroupPassword    SchoolGroup = "password"
-	SchoolGroupBadge       SchoolGroup = "badge"
-	SchoolGroupWebsite     SchoolGroup = "Website"
-)
-
-var AllSchoolGroup = []SchoolGroup{
-	SchoolGroupID,
-	SchoolGroupCreatedAt,
-	SchoolGroupUpdatedAt,
-	SchoolGroupName,
-	SchoolGroupPhoneNumber,
-	SchoolGroupPassword,
-	SchoolGroupBadge,
-	SchoolGroupWebsite,
-}
-
-func (e SchoolGroup) IsValid() bool {
-	switch e {
-	case SchoolGroupID, SchoolGroupCreatedAt, SchoolGroupUpdatedAt, SchoolGroupName, SchoolGroupPhoneNumber, SchoolGroupPassword, SchoolGroupBadge, SchoolGroupWebsite:
-		return true
-	}
-	return false
-}
-
-func (e SchoolGroup) String() string {
-	return string(e)
-}
-
-func (e *SchoolGroup) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = SchoolGroup(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid SchoolGroup", str)
-	}
-	return nil
-}
-
-func (e SchoolGroup) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// for School a enum of all orderable entities
-// can be used f.e.: querySchool
-type SchoolOrderable string
-
-const (
-	SchoolOrderableID          SchoolOrderable = "id"
-	SchoolOrderableName        SchoolOrderable = "name"
-	SchoolOrderablePhoneNumber SchoolOrderable = "phone_number"
-	SchoolOrderablePassword    SchoolOrderable = "password"
-	SchoolOrderableBadge       SchoolOrderable = "badge"
-	SchoolOrderableWebsite     SchoolOrderable = "Website"
-)
-
-var AllSchoolOrderable = []SchoolOrderable{
-	SchoolOrderableID,
-	SchoolOrderableName,
-	SchoolOrderablePhoneNumber,
-	SchoolOrderablePassword,
-	SchoolOrderableBadge,
-	SchoolOrderableWebsite,
-}
-
-func (e SchoolOrderable) IsValid() bool {
-	switch e {
-	case SchoolOrderableID, SchoolOrderableName, SchoolOrderablePhoneNumber, SchoolOrderablePassword, SchoolOrderableBadge, SchoolOrderableWebsite:
-		return true
-	}
-	return false
-}
-
-func (e SchoolOrderable) String() string {
-	return string(e)
-}
-
-func (e *SchoolOrderable) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = SchoolOrderable(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid SchoolOrderable", str)
-	}
-	return nil
-}
-
-func (e SchoolOrderable) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// Groupable data for  Student
-// Can be used f.e.: by queryStudent
-type StudentGroup string
-
-const (
-	StudentGroupID                 StudentGroup = "id"
-	StudentGroupCreatedAt          StudentGroup = "createdAt"
-	StudentGroupUpdatedAt          StudentGroup = "updatedAt"
-	StudentGroupRegistrationNumber StudentGroup = "registration_number"
-	StudentGroupName               StudentGroup = "name"
-	StudentGroupPhoneNumber        StudentGroup = "phone_number"
-	StudentGroupPassword           StudentGroup = "password"
-	StudentGroupDateOfAdmission    StudentGroup = "date_of_admission"
-	StudentGroupDateOfBirth        StudentGroup = "date_of_birth"
-	StudentGroupProfilePicture     StudentGroup = "profile_picture"
-)
-
-var AllStudentGroup = []StudentGroup{
-	StudentGroupID,
-	StudentGroupCreatedAt,
-	StudentGroupUpdatedAt,
-	StudentGroupRegistrationNumber,
-	StudentGroupName,
-	StudentGroupPhoneNumber,
-	StudentGroupPassword,
-	StudentGroupDateOfAdmission,
-	StudentGroupDateOfBirth,
-	StudentGroupProfilePicture,
-}
-
-func (e StudentGroup) IsValid() bool {
-	switch e {
-	case StudentGroupID, StudentGroupCreatedAt, StudentGroupUpdatedAt, StudentGroupRegistrationNumber, StudentGroupName, StudentGroupPhoneNumber, StudentGroupPassword, StudentGroupDateOfAdmission, StudentGroupDateOfBirth, StudentGroupProfilePicture:
-		return true
-	}
-	return false
-}
-
-func (e StudentGroup) String() string {
-	return string(e)
-}
-
-func (e *StudentGroup) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = StudentGroup(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid StudentGroup", str)
-	}
-	return nil
-}
-
-func (e StudentGroup) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// for Student a enum of all orderable entities
-// can be used f.e.: queryStudent
-type StudentOrderable string
-
-const (
-	StudentOrderableID                 StudentOrderable = "id"
-	StudentOrderableRegistrationNumber StudentOrderable = "registration_number"
-	StudentOrderableName               StudentOrderable = "name"
-	StudentOrderablePhoneNumber        StudentOrderable = "phone_number"
-	StudentOrderablePassword           StudentOrderable = "password"
-	StudentOrderableProfilePicture     StudentOrderable = "profile_picture"
-)
-
-var AllStudentOrderable = []StudentOrderable{
-	StudentOrderableID,
-	StudentOrderableRegistrationNumber,
-	StudentOrderableName,
-	StudentOrderablePhoneNumber,
-	StudentOrderablePassword,
-	StudentOrderableProfilePicture,
-}
-
-func (e StudentOrderable) IsValid() bool {
-	switch e {
-	case StudentOrderableID, StudentOrderableRegistrationNumber, StudentOrderableName, StudentOrderablePhoneNumber, StudentOrderablePassword, StudentOrderableProfilePicture:
-		return true
-	}
-	return false
-}
-
-func (e StudentOrderable) String() string {
-	return string(e)
-}
-
-func (e *StudentOrderable) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = StudentOrderable(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid StudentOrderable", str)
-	}
-	return nil
-}
-
-func (e StudentOrderable) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// Groupable data for  UnverifiedSchool
-// Can be used f.e.: by queryUnverifiedSchool
-type UnverifiedSchoolGroup string
-
-const (
-	UnverifiedSchoolGroupID          UnverifiedSchoolGroup = "id"
-	UnverifiedSchoolGroupCreatedAt   UnverifiedSchoolGroup = "createdAt"
-	UnverifiedSchoolGroupUpdatedAt   UnverifiedSchoolGroup = "updatedAt"
-	UnverifiedSchoolGroupName        UnverifiedSchoolGroup = "name"
-	UnverifiedSchoolGroupPhoneNumber UnverifiedSchoolGroup = "phone_number"
-	UnverifiedSchoolGroupPassword    UnverifiedSchoolGroup = "password"
-	UnverifiedSchoolGroupBadge       UnverifiedSchoolGroup = "badge"
-	UnverifiedSchoolGroupWebsite     UnverifiedSchoolGroup = "Website"
-)
-
-var AllUnverifiedSchoolGroup = []UnverifiedSchoolGroup{
-	UnverifiedSchoolGroupID,
-	UnverifiedSchoolGroupCreatedAt,
-	UnverifiedSchoolGroupUpdatedAt,
-	UnverifiedSchoolGroupName,
-	UnverifiedSchoolGroupPhoneNumber,
-	UnverifiedSchoolGroupPassword,
-	UnverifiedSchoolGroupBadge,
-	UnverifiedSchoolGroupWebsite,
-}
-
-func (e UnverifiedSchoolGroup) IsValid() bool {
-	switch e {
-	case UnverifiedSchoolGroupID, UnverifiedSchoolGroupCreatedAt, UnverifiedSchoolGroupUpdatedAt, UnverifiedSchoolGroupName, UnverifiedSchoolGroupPhoneNumber, UnverifiedSchoolGroupPassword, UnverifiedSchoolGroupBadge, UnverifiedSchoolGroupWebsite:
-		return true
-	}
-	return false
-}
-
-func (e UnverifiedSchoolGroup) String() string {
-	return string(e)
-}
-
-func (e *UnverifiedSchoolGroup) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = UnverifiedSchoolGroup(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid UnverifiedSchoolGroup", str)
-	}
-	return nil
-}
-
-func (e UnverifiedSchoolGroup) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// for UnverifiedSchool a enum of all orderable entities
-// can be used f.e.: queryUnverifiedSchool
-type UnverifiedSchoolOrderable string
-
-const (
-	UnverifiedSchoolOrderableID          UnverifiedSchoolOrderable = "id"
-	UnverifiedSchoolOrderableName        UnverifiedSchoolOrderable = "name"
-	UnverifiedSchoolOrderablePhoneNumber UnverifiedSchoolOrderable = "phone_number"
-	UnverifiedSchoolOrderablePassword    UnverifiedSchoolOrderable = "password"
-	UnverifiedSchoolOrderableBadge       UnverifiedSchoolOrderable = "badge"
-	UnverifiedSchoolOrderableWebsite     UnverifiedSchoolOrderable = "Website"
-)
-
-var AllUnverifiedSchoolOrderable = []UnverifiedSchoolOrderable{
-	UnverifiedSchoolOrderableID,
-	UnverifiedSchoolOrderableName,
-	UnverifiedSchoolOrderablePhoneNumber,
-	UnverifiedSchoolOrderablePassword,
-	UnverifiedSchoolOrderableBadge,
-	UnverifiedSchoolOrderableWebsite,
-}
-
-func (e UnverifiedSchoolOrderable) IsValid() bool {
-	switch e {
-	case UnverifiedSchoolOrderableID, UnverifiedSchoolOrderableName, UnverifiedSchoolOrderablePhoneNumber, UnverifiedSchoolOrderablePassword, UnverifiedSchoolOrderableBadge, UnverifiedSchoolOrderableWebsite:
-		return true
-	}
-	return false
-}
-
-func (e UnverifiedSchoolOrderable) String() string {
-	return string(e)
-}
-
-func (e *UnverifiedSchoolOrderable) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = UnverifiedSchoolOrderable(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid UnverifiedSchoolOrderable", str)
-	}
-	return nil
-}
-
-func (e UnverifiedSchoolOrderable) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
+type User struct {
+	ID                    int            `json:"id"`
+	CreatedAt             time.Time      `json:"createdAt"`
+	UpdatedAt             time.Time      `json:"updatedAt"`
+	Name                  string         `json:"name"`
+	PhoneNumber           string         `json:"phone_number"`
+	AccountBalanceInCents int            `json:"account_balance_in_cents"`
+	Transactions          []*Transaction `json:"transactions,omitempty"`
 }

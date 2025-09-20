@@ -1,0 +1,42 @@
+#returns a shop's data
+type Shop {
+  id: Int!
+  createdAt: Time!
+  updatedAt: Time!
+  name: String!
+  phone_number: String!
+  account_balance_in_cents: Int!
+  products: [Product!]
+  categories: [Category!]
+  category(id: Int!): Category
+  transactions: [Transaction!]
+}
+
+#fields required for adding a new shop to the system
+input NewShop {
+  name: String!
+  phone_number: String!
+  password: String!
+}
+
+#returns the status of sending an OTP code to a specific number
+type SendCodeStatus {
+  phone_number: String!
+  success: Boolean!
+}
+
+extend type Query {
+  getShop: Shop
+  getShops: [Shop!]
+}
+
+extend type Mutation {
+  createShop(input: NewShop!): Shop
+  verifyShop(phone_number: String!, otp: String!): String
+  sendCode(phone_number: String!): SendCodeStatus
+  shopLogin(phone_number: String!, password: String!): String
+  forgotShopPassword(phone_number: String!): SendCodeStatus
+  requestShopPasswordReset(phone_number: String!, otp: String!): String
+  resetShopPassword(new_password: String!): Shop
+  refreshToken(token: String!): String
+}

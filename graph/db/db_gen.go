@@ -3,7 +3,6 @@
 package db
 
 import (
-	"github.com/GigaDesk/eardrum-server/graph/model"
 	"gorm.io/gorm"
 )
 
@@ -18,9 +17,4 @@ func NewAutoGqlDB(db *gorm.DB) AutoGqlDB {
 		Db:    db,
 		Hooks: make(map[string]any),
 	}
-}
-
-// execute Gorm AutoMigrate with all @SQL Graphql Types
-func (db *AutoGqlDB) Init() error {
-	return db.Db.AutoMigrate(&model.Student{}, &model.UnverifiedSchool{}, &model.School{})
 }

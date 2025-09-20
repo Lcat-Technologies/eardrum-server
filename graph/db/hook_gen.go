@@ -5,7 +5,6 @@ package db
 import (
 	"context"
 
-	"github.com/GigaDesk/eardrum-server/graph/model"
 	"gorm.io/gorm"
 )
 
@@ -17,32 +16,14 @@ type DeleteName string
 type Many2ManyAddName string
 type Many2ManyDeleteName string
 
-const (
-	GetSchool              GetName    = "GetSchool"
-	QuerySchool            QueryName  = "QuerySchool"
-	AddSchool              AddName    = "AddSchool"
-	UpdateSchool           UpdateName = "UpdateSchool"
-	DeleteSchool           DeleteName = "DeleteSchool"
-	GetStudent             GetName    = "GetStudent"
-	QueryStudent           QueryName  = "QueryStudent"
-	AddStudent             AddName    = "AddStudent"
-	UpdateStudent          UpdateName = "UpdateStudent"
-	DeleteStudent          DeleteName = "DeleteStudent"
-	GetUnverifiedSchool    GetName    = "GetUnverifiedSchool"
-	QueryUnverifiedSchool  QueryName  = "QueryUnverifiedSchool"
-	AddUnverifiedSchool    AddName    = "AddUnverifiedSchool"
-	UpdateUnverifiedSchool UpdateName = "UpdateUnverifiedSchool"
-	DeleteUnverifiedSchool DeleteName = "DeleteUnverifiedSchool"
-)
+const ()
 
 // Modelhooks
 type AutoGqlHookM interface {
-	model.School | model.Student | model.UnverifiedSchool
 }
 
 // Filter Hooks
 type AutoGqlHookF interface {
-	model.SchoolFiltersInput | model.StudentFiltersInput | model.UnverifiedSchoolFiltersInput
 }
 
 // Many2Many Hooks
@@ -51,66 +32,48 @@ type AutoGqlHookM2M interface {
 
 // Order Hooks
 type AutoGqlHookQueryO interface {
-	model.SchoolOrder | model.StudentOrder | model.UnverifiedSchoolOrder
 }
 
 // Input Hooks
 type AutoGqlHookI interface {
-	model.SchoolInput | model.StudentInput | model.UnverifiedSchoolInput
 }
 
 // Update Hooks
 type AutoGqlHookU interface {
-	model.UpdateSchoolInput | model.UpdateStudentInput | model.UpdateUnverifiedSchoolInput
 }
 
 // Update Payload Hooks
 type AutoGqlHookUP interface {
-	model.UpdateSchoolPayload | model.UpdateStudentPayload | model.UpdateUnverifiedSchoolPayload
 }
 
 // Delete Payload Hooks
 type AutoGqlHookDP interface {
-	model.DeleteSchoolPayload | model.DeleteStudentPayload | model.DeleteUnverifiedSchoolPayload
 }
 
 // Add Payload Hooks
 type AutoGqlHookAP interface {
-	model.AddSchoolPayload | model.AddStudentPayload | model.AddUnverifiedSchoolPayload
 }
 
 // Add a getHook
 // useable for
-//   - GetSchool
-//   - GetStudent
-//   - GetUnverifiedSchool
 func AddGetHook[T AutoGqlHookM, I any](db *AutoGqlDB, name GetName, implementation AutoGqlHookGet[T, I]) {
 	db.Hooks[string(name)] = implementation
 }
 
 // Add a queryHook
 // useable for
-//   - QuerySchool
-//   - QueryStudent
-//   - QueryUnverifiedSchool
 func AddQueryHook[M AutoGqlHookM, F AutoGqlHookF, O AutoGqlHookQueryO](db *AutoGqlDB, name QueryName, implementation AutoGqlHookQuery[M, F, O]) {
 	db.Hooks[string(name)] = implementation
 }
 
 // Add a addHook
 // useable for
-//   - AddSchool
-//   - AddStudent
-//   - AddUnverifiedSchool
 func AddAddHook[M AutoGqlHookM, I AutoGqlHookI, AP AutoGqlHookAP](db *AutoGqlDB, name AddName, implementation AutoGqlHookAdd[M, I, AP]) {
 	db.Hooks[string(name)] = implementation
 }
 
 // Add a updateHook
 // useable for
-//   - UpdateSchool
-//   - UpdateStudent
-//   - UpdateUnverifiedSchool
 func AddUpdateHook[M AutoGqlHookM, U AutoGqlHookU, UP AutoGqlHookUP](db *AutoGqlDB, name UpdateName, implementation AutoGqlHookUpdate[U, UP]) {
 	db.Hooks[string(name)] = implementation
 }
@@ -129,9 +92,6 @@ func AddMany2ManyDeleteHook[U AutoGqlHookM2M, DP AutoGqlHookDP](db *AutoGqlDB, n
 
 // Add a updateHook
 // useable for
-//   - DeleteSchool
-//   - DeleteStudent
-//   - DeleteUnverifiedSchool
 func AddDeleteHook[F AutoGqlHookF, DP AutoGqlHookDP](db *AutoGqlDB, name DeleteName, implementation AutoGqlHookDelete[F, DP]) {
 	db.Hooks[string(name)] = implementation
 }

@@ -1,0 +1,18 @@
+#returns a product's data
+type Product {
+  id: Int!
+  createdAt: Time!
+  updatedAt: Time!
+  name: String!
+  price_per_unit_in_cents: Int!
+}
+
+#fields required for adding a new product to the system
+input NewProduct {
+  name: String!
+  price_per_unit_in_cents: Int!
+}
+
+extend type Mutation {
+  createProduct(input: NewProduct!): Product
+}
