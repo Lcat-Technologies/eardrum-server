@@ -1,4 +1,12 @@
 #returns a transaction's data
+type TransactionShop{
+  name: String!
+}
+
+type TransactionUser{
+  name: String!
+}
+
 type Transaction {
   id: Int!
   createdAt: Time!
@@ -6,6 +14,8 @@ type Transaction {
   total_amount_in_cents: Int!
   transaction_cost_in_cents: Int!
   purchases: [Purchase!]!
+  user: TransactionUser!
+  shop: TransactionShop!
 }
 
 input PurchasedProduct {
@@ -13,13 +23,21 @@ input PurchasedProduct {
    units_bought: Int!
 }
 
-#fields required for adding a new transaction to the system
-input NewTransaction {
+#fields required for adding a new product based transaction to the system
+input NewProductTransaction {
   purchased_products: [PurchasedProduct!]!
-  phone_number: String!
+  qr_code: String!
+  pin_code: String!
+}
+
+#fields required for adding a new amount based transaction to the system
+input NewAmountTransaction {
+  amount_in_cents: Int!
+  qr_code: String!
   pin_code: String!
 }
 
 extend type Mutation {
-  createTransaction(input: NewTransaction!): Transaction
+  createProductTransaction(input: NewProductTransaction!): Transaction
+  createAmountTransaction(input: NewAmountTransaction!): Transaction
 }
