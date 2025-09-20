@@ -84,6 +84,7 @@ type ComplexityRoot struct {
 		ResetUserPassword        func(childComplexity int, newPassword string) int
 		SendCode                 func(childComplexity int, phoneNumber string) int
 		ShopLogin                func(childComplexity int, phoneNumber string, password string) int
+		UpdateUserPinCode        func(childComplexity int, newPincode string) int
 		UserLogin                func(childComplexity int, phoneNumber string, password string) int
 		VerifyShop               func(childComplexity int, phoneNumber string, otp string) int
 		VerifyUser               func(childComplexity int, phoneNumber string, otp string) int
@@ -174,6 +175,7 @@ type MutationResolver interface {
 	ForgotUserPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error)
 	RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error)
 	ResetUserPassword(ctx context.Context, newPassword string) (*model.User, error)
+	UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error)
 }
 type PurchaseResolver interface {
 	Product(ctx context.Context, obj *model.Purchase) (*model.Product, error)
@@ -465,6 +467,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ShopLogin(childComplexity, args["phone_number"].(string), args["password"].(string)), true
+
+	case "Mutation.updateUserPinCode":
+		if e.complexity.Mutation.UpdateUserPinCode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUserPinCode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUserPinCode(childComplexity, args["new_pincode"].(string)), true
 
 	case "Mutation.userLogin":
 		if e.complexity.Mutation.UserLogin == nil {
@@ -1566,6 +1580,29 @@ func (ec *executionContext) field_Mutation_shopLogin_argsPassword(
 ) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 	if tmp, ok := rawArgs["password"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserPinCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_updateUserPinCode_argsNewPincode(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["new_pincode"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateUserPinCode_argsNewPincode(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("new_pincode"))
+	if tmp, ok := rawArgs["new_pincode"]; ok {
 		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
@@ -3316,6 +3353,74 @@ func (ec *executionContext) fieldContext_Mutation_resetUserPassword(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_resetUserPassword_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateUserPinCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateUserPinCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUserPinCode(rctx, fc.Args["new_pincode"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateUserPinCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "phone_number":
+				return ec.fieldContext_User_phone_number(ctx, field)
+			case "account_balance_in_cents":
+				return ec.fieldContext_User_account_balance_in_cents(ctx, field)
+			case "transactions":
+				return ec.fieldContext_User_transactions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateUserPinCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8591,6 +8696,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "resetUserPassword":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_resetUserPassword(ctx, field)
+			})
+		case "updateUserPinCode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateUserPinCode(ctx, field)
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

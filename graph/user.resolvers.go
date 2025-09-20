@@ -262,6 +262,54 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 	return &user1, nil
 }
 
+// UpdateUserPinCode is the resolver for the updateUserPinCode field.
+func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error) {
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	u, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if u == nil {
+		return nil, errors.New("access to UpdateUserPinCode denied!")
+	}
+	role := u.GetRole()
+	if role != "user" {
+		return nil, errors.New("access to UpdateUserPassword denied. Only available for registered and logged in users")
+	}
+	id, err := u.GetID()
+
+	if err != nil {
+		errors.New("could not access user's id!")
+	}
+
+	encryptedpincode, err := encrypt.HashPassword(newPincode)
+
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := user.UpdatePinCode(r.Sql.Db, encryptedpincode, id, r.Neo4j)
+	if err != nil {
+		log.Error().Int("id", id).Str("path", "UpdateUserPinCode").Msg(err.Error())
+		return nil, err
+	}
+
+	user1 := model.User{
+		ID:                    int(user.GetID()),
+		CreatedAt:             user.GetCreatedAt(),
+		UpdatedAt:             user.GetUpdatedAt(),
+		Name:                  user.GetName(),
+		PhoneNumber:           user.GetPhoneNumber(),
+		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
+	}
+
+	//return the updated record
+	return &user1, nil
+}
+
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 	//check if system is in shutdown mode
