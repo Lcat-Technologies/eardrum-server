@@ -137,3 +137,5 @@ models:
     fields:
       purchases:
         resolver: true
+      category:
+        resolver: true

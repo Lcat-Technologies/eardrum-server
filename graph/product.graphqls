@@ -6,6 +6,7 @@ type Product {
   name: String!
   pricePerUnitInCents: Int!
   purchases: [Purchase!]
+  category: Category!
 }
 
 # Fields required for adding a new product to the system.
