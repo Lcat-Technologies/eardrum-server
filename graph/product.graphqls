@@ -1,18 +1,31 @@
-#returns a product's data
+# Defines the Product type.
 type Product {
   id: Int!
   createdAt: Time!
   updatedAt: Time!
   name: String!
-  price_per_unit_in_cents: Int!
+  pricePerUnitInCents: Int!
+  purchases: [Purchase!]
 }
 
-#fields required for adding a new product to the system
+# Fields required for adding a new product to the system.
 input NewProduct {
   name: String!
-  price_per_unit_in_cents: Int!
+  pricePerUnitInCents: Int!
+}
+
+# A new input type is created to handle the mutation for editing a product's price.
+# It requires both the product's ID and the new price.
+input EditProductPriceInput {
+  id: Int!
+  newPricePerUnitInCents: Int!
 }
 
 extend type Mutation {
-  createProduct(input: NewProduct!): Product
+  createProduct(input: NewProduct!): Product!
+  editProductPrice(input: EditProductPriceInput!): Product!
+  blockProduct(input: Int!): Boolean!
+  deleteProduct(input: Int!): Boolean!
+  unblockProduct(input: Int!): Boolean!
+  restoreProduct(input: Int!): Boolean!
 }
