@@ -6,29 +6,30 @@ package graph
 
 import (
 	"context"
-	"errors"
 
-	"github.com/GigaDesk/eardrum-graph/neo4jproduct"
+	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 )
 
 // Product is the resolver for the product field.
 func (r *purchaseResolver) Product(ctx context.Context, obj *model.Purchase) (*model.Product, error) {
-	product, err := neo4jproduct.RetrievePurchaseProduct(r.Neo4j, obj.ID)
-
-	if err != nil {
-		return nil, errors.New("could not access purchase's product!")
+	var purchase transaction.Purchase
+	// The .Preload() method tells GORM to load the associated Product data
+	// in the same query.
+	if err := r.Sql.Db.
+		Preload("Product").
+		First(&purchase, obj.ID).Error; err != nil {
+		return nil, err
 	}
 
-	p := model.Product{
-		ID:                  int(product.GetID()),
-		CreatedAt:           product.GetCreatedAt(),
-		UpdatedAt:           product.GetUpdatedAt(),
-		Name:                product.GetName(),
-		PricePerUnitInCents: int(product.GetPricePerUnitInCents()),
+	product := &model.Product{
+		ID: int(purchase.Product.ID),
+		CreatedAt: purchase.Product.CreatedAt,
+		UpdatedAt: purchase.Product.UpdatedAt,
+		Name: purchase.Product.Name,
+		PricePerUnitInCents: int(purchase.Product.PricePerUnitInCents),
 	}
-
-	return &p, nil
+	return product, nil
 }
 
 // Purchase returns PurchaseResolver implementation.
