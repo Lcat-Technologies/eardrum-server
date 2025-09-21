@@ -23,10 +23,10 @@ func (r *purchaseResolver) Product(ctx context.Context, obj *model.Purchase) (*m
 	}
 
 	product := &model.Product{
-		ID: int(purchase.Product.ID),
-		CreatedAt: purchase.Product.CreatedAt,
-		UpdatedAt: purchase.Product.UpdatedAt,
-		Name: purchase.Product.Name,
+		ID:                  int(purchase.Product.ID),
+		CreatedAt:           purchase.Product.CreatedAt,
+		UpdatedAt:           purchase.Product.UpdatedAt,
+		Name:                purchase.Product.Name,
 		PricePerUnitInCents: int(purchase.Product.PricePerUnitInCents),
 	}
 	return product, nil

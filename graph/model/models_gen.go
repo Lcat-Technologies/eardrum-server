@@ -30,6 +30,11 @@ type Dummy struct {
 	Name string `json:"name"`
 }
 
+type EditProductPriceInput struct {
+	ID                     int `json:"id"`
+	NewPricePerUnitInCents int `json:"newPricePerUnitInCents"`
+}
+
 // Filter between start and end (start > value < end)
 type FloatFilterBetween struct {
 	Start float64 `json:"start"`
@@ -107,7 +112,7 @@ type NewCategory struct {
 
 type NewProduct struct {
 	Name                string `json:"name"`
-	PricePerUnitInCents int    `json:"price_per_unit_in_cents"`
+	PricePerUnitInCents int    `json:"pricePerUnitInCents"`
 }
 
 type NewProductTransaction struct {
@@ -129,11 +134,12 @@ type NewUser struct {
 }
 
 type Product struct {
-	ID                  int       `json:"id"`
-	CreatedAt           time.Time `json:"createdAt"`
-	UpdatedAt           time.Time `json:"updatedAt"`
-	Name                string    `json:"name"`
-	PricePerUnitInCents int       `json:"price_per_unit_in_cents"`
+	ID                  int         `json:"id"`
+	CreatedAt           time.Time   `json:"createdAt"`
+	UpdatedAt           time.Time   `json:"updatedAt"`
+	Name                string      `json:"name"`
+	PricePerUnitInCents int         `json:"pricePerUnitInCents"`
+	Purchases           []*Purchase `json:"purchases,omitempty"`
 }
 
 type Purchase struct {

@@ -8,6 +8,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/GigaDesk/eardrum-postgres/transaction"
+	"github.com/GigaDesk/eardrum-postgres/product"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/shutdown"
@@ -36,7 +38,7 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.NewPro
 		errors.New("could not access shop's id!")
 	}
 
-	product, err := product.CreateProduct(input, id, r.Sql.Db, r.Neo4j)
+	product, err := product.CreateProduct(input, r.Sql.Db, uint(id))
 
 	if err != nil {
 		return nil, errors.New("error creating product")
@@ -52,3 +54,231 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.NewPro
 
 	return &p, nil
 }
+
+// EditProductPrice is the resolver for the editProductPrice field.
+func (r *mutationResolver) EditProductPrice(ctx context.Context, input model.EditProductPriceInput) (*model.Product, error) {
+		//check if system is in shutdown mode
+		if *shutdown.IsShutdown {
+			return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+		}
+		s, err := auth.ForContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if s == nil {
+			return nil, errors.New("access to edit shop product denied!")
+		}
+		role := s.GetRole()
+		if role != "shop" {
+			return nil, errors.New("access to edit shop product denied. Only available for registered and logged in shops")
+		}
+		id, err := s.GetID()
+	
+		if err != nil {
+			errors.New("could not access shop's id!")
+		}
+	
+		err = product.UpdateProductPrice(r.Sql.Db, uint(id), uint(input.ID), uint(input.NewPricePerUnitInCents))
+
+	
+		if err != nil {
+			return nil, errors.New("error editing product price")
+		}
+
+		product, err := product.GetProductWithId(r.Sql.Db, input.ID)
+
+		if err != nil {
+			return nil, errors.New("something went wrong")
+		}
+	
+		p := model.Product{
+			ID:                  int(product.GetID()),
+			CreatedAt:           product.GetCreatedAt(),
+			UpdatedAt:           product.GetUpdatedAt(),
+			Name:                product.GetName(),
+			PricePerUnitInCents: int(product.GetPricePerUnitInCents()),
+		}
+	
+		return &p, nil
+}
+
+// BlockProduct is the resolver for the blockProduct field.
+func (r *mutationResolver) BlockProduct(ctx context.Context, input int) (bool, error) {
+			//check if system is in shutdown mode
+			if *shutdown.IsShutdown {
+				return false, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+			}
+			s, err := auth.ForContext(ctx)
+			if err != nil {
+				return false, err
+			}
+			if s == nil {
+				return false, errors.New("access to block shop product denied!")
+			}
+			role := s.GetRole()
+			if role != "shop" {
+				return false, errors.New("access to block shop product denied. Only available for registered and logged in shops")
+			}
+			id, err := s.GetID()
+		
+			if err != nil {
+				errors.New("could not access shop's id!")
+			}
+		
+			err = product.BlockProduct(r.Sql.Db, uint(id), uint(input))
+	
+		
+			if err != nil {
+				return false, errors.New("error blocking product")
+			}
+		
+			return true, nil
+}
+
+// DeleteProduct is the resolver for the deleteProduct field.
+func (r *mutationResolver) DeleteProduct(ctx context.Context, input int) (bool, error) {
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return false, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	if s == nil {
+		return false, errors.New("access to delete shop product denied!")
+	}
+	role := s.GetRole()
+	if role != "shop" {
+		return false, errors.New("access to delete shop product denied. Only available for registered and logged in shops")
+	}
+	id, err := s.GetID()
+
+	if err != nil {
+		errors.New("could not access shop's id!")
+	}
+
+	err = product.DeleteProduct(r.Sql.Db, uint(id), uint(input))
+
+
+	if err != nil {
+		return false, errors.New("error deleting product")
+	}
+
+	return true, nil
+}
+
+// UnblockProduct is the resolver for the unblockProduct field.
+func (r *mutationResolver) UnblockProduct(ctx context.Context, input int) (bool, error) {
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return false, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	if s == nil {
+		return false, errors.New("access to unblock shop product denied!")
+	}
+	role := s.GetRole()
+	if role != "shop" {
+		return false, errors.New("access to unblock shop product denied. Only available for registered and logged in shops")
+	}
+	id, err := s.GetID()
+
+	if err != nil {
+		errors.New("could not access shop's id!")
+	}
+
+	err = product.UnblockProduct(r.Sql.Db, uint(id), uint(input))
+
+
+	if err != nil {
+		return false, errors.New("error unblocking product")
+	}
+
+	return true, nil
+}
+
+// RestoreProduct is the resolver for the restoreProduct field.
+func (r *mutationResolver) RestoreProduct(ctx context.Context, input int) (bool, error) {
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return false, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	if s == nil {
+		return false, errors.New("access to restore shop product denied!")
+	}
+	role := s.GetRole()
+	if role != "shop" {
+		return false, errors.New("access to restore shop product denied. Only available for registered and logged in shops")
+	}
+	id, err := s.GetID()
+
+	if err != nil {
+		errors.New("could not access shop's id!")
+	}
+
+	err = product.RestoreProduct(r.Sql.Db, uint(id), uint(input))
+
+
+	if err != nil {
+		return false, errors.New("error restoring product")
+	}
+
+	return true, nil
+}
+
+// Purchases is the resolver for the purchases field.
+func (r *productResolver) Purchases(ctx context.Context, obj *model.Product) ([]*model.Purchase, error) {
+		//check if system is in shutdown mode
+		if *shutdown.IsShutdown {
+			return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+		}
+		s, err := auth.ForContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if s == nil {
+			return nil, errors.New("access to product purchases denied!")
+		}
+		role := s.GetRole()
+		if role != "shop" {
+			return nil, errors.New("access to product purchases denied. Only available for registered and logged in shops")
+		}
+		_, err = s.GetID()
+	
+		if err != nil {
+			errors.New("could not access shop's id!")
+		}
+	
+		purchases, err := transaction.GetPurchasesForProduct(r.Sql.Db, uint(obj.ID))
+	
+	
+		if err != nil {
+			return nil, errors.New("error retrieving product purchases")
+		}
+	
+		var purchaseslist []*model.Purchase
+
+		for _, purchase := range purchases {
+			p := &model.Purchase{
+				ID:                 int(purchase.GetID()),
+				UnitsBought:        purchase.GetUnitsBought(),
+				TotalAmountInCents: int(purchase.GetTotalAmountInCents()),
+			}
+			purchaseslist = append(purchaseslist, p)
+		}
+	
+		return purchaseslist, nil
+}
+
+// Product returns ProductResolver implementation.
+func (r *Resolver) Product() ProductResolver { return &productResolver{r} }
+
+type productResolver struct{ *Resolver }
