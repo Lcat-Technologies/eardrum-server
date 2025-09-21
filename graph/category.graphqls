@@ -15,6 +15,8 @@ input NewCategory {
 }
 
 extend type Mutation {
-  createCategory(input: NewCategory!): Category
-  addProductToCategory(productid: Int!, categoryid: Int!): Category
+  createCategory(input: NewCategory!): Category!
+  addProductToCategory(productids: [Int!]!, categoryid: Int!): Category!
+  deleteCategory(categoryid: Int!): Boolean!
+  removeProductsFromCategory(productids: [Int!]!, categoryid: Int!): Category!
 }
