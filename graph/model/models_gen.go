@@ -140,6 +140,7 @@ type Product struct {
 	Name                string      `json:"name"`
 	PricePerUnitInCents int         `json:"pricePerUnitInCents"`
 	Purchases           []*Purchase `json:"purchases,omitempty"`
+	Category            *Category   `json:"category"`
 }
 
 type Purchase struct {

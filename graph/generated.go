@@ -98,6 +98,7 @@ type ComplexityRoot struct {
 	}
 
 	Product struct {
+		Category            func(childComplexity int) int
 		CreatedAt           func(childComplexity int) int
 		ID                  func(childComplexity int) int
 		Name                func(childComplexity int) int
@@ -203,6 +204,7 @@ type MutationResolver interface {
 }
 type ProductResolver interface {
 	Purchases(ctx context.Context, obj *model.Product) ([]*model.Purchase, error)
+	Category(ctx context.Context, obj *model.Product) (*model.Category, error)
 }
 type PurchaseResolver interface {
 	Product(ctx context.Context, obj *model.Purchase) (*model.Product, error)
@@ -616,6 +618,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.VerifyUser(childComplexity, args["phone_number"].(string), args["otp"].(string)), true
+
+	case "Product.category":
+		if e.complexity.Product.Category == nil {
+			break
+		}
+
+		return e.complexity.Product.Category(childComplexity), true
 
 	case "Product.createdAt":
 		if e.complexity.Product.CreatedAt == nil {
@@ -2400,6 +2409,8 @@ func (ec *executionContext) fieldContext_Category_products(_ context.Context, fi
 				return ec.fieldContext_Product_pricePerUnitInCents(ctx, field)
 			case "purchases":
 				return ec.fieldContext_Product_purchases(ctx, field)
+			case "category":
+				return ec.fieldContext_Product_category(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -2736,6 +2747,8 @@ func (ec *executionContext) fieldContext_Mutation_createProduct(ctx context.Cont
 				return ec.fieldContext_Product_pricePerUnitInCents(ctx, field)
 			case "purchases":
 				return ec.fieldContext_Product_purchases(ctx, field)
+			case "category":
+				return ec.fieldContext_Product_category(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -2805,6 +2818,8 @@ func (ec *executionContext) fieldContext_Mutation_editProductPrice(ctx context.C
 				return ec.fieldContext_Product_pricePerUnitInCents(ctx, field)
 			case "purchases":
 				return ec.fieldContext_Product_purchases(ctx, field)
+			case "category":
+				return ec.fieldContext_Product_category(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -4344,6 +4359,64 @@ func (ec *executionContext) fieldContext_Product_purchases(_ context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Product_category(ctx context.Context, field graphql.CollectedField, obj *model.Product) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Product_category(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Product().Category(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Category)
+	fc.Result = res
+	return ec.marshalNCategory2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Product_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Product",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Category_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Category_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Category_updatedAt(ctx, field)
+			case "name":
+				return ec.fieldContext_Category_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Category_description(ctx, field)
+			case "products":
+				return ec.fieldContext_Category_products(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Category", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Purchase_id(ctx context.Context, field graphql.CollectedField, obj *model.Purchase) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Purchase_id(ctx, field)
 	if err != nil {
@@ -4527,6 +4600,8 @@ func (ec *executionContext) fieldContext_Purchase_product(_ context.Context, fie
 				return ec.fieldContext_Product_pricePerUnitInCents(ctx, field)
 			case "purchases":
 				return ec.fieldContext_Product_purchases(ctx, field)
+			case "category":
+				return ec.fieldContext_Product_category(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -5411,6 +5486,8 @@ func (ec *executionContext) fieldContext_Shop_products(_ context.Context, field 
 				return ec.fieldContext_Product_pricePerUnitInCents(ctx, field)
 			case "purchases":
 				return ec.fieldContext_Product_purchases(ctx, field)
+			case "category":
+				return ec.fieldContext_Product_category(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -9803,6 +9880,42 @@ func (ec *executionContext) _Product(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "category":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Product_category(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10999,6 +11112,10 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNCategory2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐCategory(ctx context.Context, sel ast.SelectionSet, v model.Category) graphql.Marshaler {
+	return ec._Category(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNCategory2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐCategory(ctx context.Context, sel ast.SelectionSet, v *model.Category) graphql.Marshaler {
