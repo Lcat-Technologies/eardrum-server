@@ -133,3 +133,7 @@ models:
     fields:
       transactions:
         resolver: true
+  Product:
+    fields:
+      purchases:
+        resolver: true
