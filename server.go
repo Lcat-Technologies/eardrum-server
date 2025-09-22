@@ -16,7 +16,7 @@ import (
 	"github.com/GigaDesk/eardrum-server/shutdown"
 	"github.com/go-chi/chi"
 
-	//"github.com/joho/godotenv"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
 )
@@ -29,12 +29,12 @@ var (
 
 func main() {
 
-	// Find .env file
+	//Find .env file
 	
-	/*err := godotenv.Load(".env")
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal().Msg(fmt.Sprintf("Error loading .env file: %s", err))
-	}*/
+	}
 
 	go phoneutils.InitializeTwilio()
 	go jwt.InitializeJwtSecretKey()
@@ -46,11 +46,6 @@ func main() {
 	defaultPort := os.Getenv("DEFAULT_PORT")
 
 	postgresInstance.Init(os.Getenv("POSTGRES_DBURL"))
-	neo4jerr:=neo4jInstance.Init(os.Getenv("NEO4J_DBURI"), os.Getenv("NEO4J_DBUSER"), os.Getenv("NEO4J_DBPASSWORD"))
-
-	if neo4jerr !=nil {
-		log.Fatal().Msg(fmt.Sprintf("problem initializing neo4j database: %s", neo4jerr))
-	}
 	
 	defer neo4jInstance.Driver.Close(neo4jInstance.Ctx)
 
@@ -65,7 +60,7 @@ func main() {
 	router.Use(c.Handler)
 	router.Use(auth.Middleware())
 
-	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Sql: &postgresInstance, Neo4j: &neo4jInstance }}))
+	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Sql: &postgresInstance}}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", server)

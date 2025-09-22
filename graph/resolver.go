@@ -11,5 +11,4 @@ import (
 
 type Resolver struct {
 	Sql   *postgresutils.PostgresInstance
-	Neo4j *neo4jutils.Neo4jInstance
 }
