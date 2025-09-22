@@ -285,6 +285,7 @@ type User struct {
 	Name                  string         `json:"name"`
 	PhoneNumber           string         `json:"phone_number"`
 	MpesaNumber           string         `json:"mpesa_number"`
+	QRCode                string         `json:"qr_code"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`
 }

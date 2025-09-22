@@ -60,6 +60,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 		Name:                  user.GetName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		MpesaNumber:           user.GetMpesaNumber(),
+		QRCode:                user.GetQrCodeBase64(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
 	}
 
@@ -255,6 +256,7 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 		UpdatedAt:             user.GetUpdatedAt(),
 		Name:                  user.GetName(),
 		PhoneNumber:           user.GetPhoneNumber(),
+		QRCode:                user.GetQrCodeBase64(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
 	}
 
@@ -303,11 +305,65 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 		UpdatedAt:             user.GetUpdatedAt(),
 		Name:                  user.GetName(),
 		PhoneNumber:           user.GetPhoneNumber(),
+		QRCode:                user.GetQrCodeBase64(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
 	}
 
 	//return the updated record
 	return &user1, nil
+}
+
+// RegenerateUserQRCode is the resolver for the regenerateUserQrCode field.
+func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context, otp string) (*model.User, error) {
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	u, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if u == nil {
+		return nil, errors.New("access to UpdateUserPinCode denied!")
+	}
+	role := u.GetRole()
+	if role != "user" {
+		return nil, errors.New("access to UpdateUserPassword denied. Only available for registered and logged in users")
+	}
+	id, err := u.GetID()
+
+	if err != nil {
+		errors.New("could not access user's id!")
+	}
+
+	//get the user's phone number
+
+	user1, err := user.GetUserWithId(r.Sql.Db, id)
+
+	if err != nil {
+		return nil, errors.New("something went wrong")
+	}
+
+	//Check the validity of an OTP code
+	if err := phoneutils.CheckOtp(user1.GetPhoneNumber(), otp); err != nil {
+		return nil, err
+	}
+
+	user1, err = user.RegenerateQrCode(r.Sql.Db, id)
+	if err != nil {
+		return nil, errors.New("something went wrong")
+	}
+
+	userprofile := model.User{
+		ID:                    int(user1.GetID()),
+		CreatedAt:             user1.GetCreatedAt(),
+		UpdatedAt:             user1.GetUpdatedAt(),
+		Name:                  user1.GetName(),
+		PhoneNumber:           user1.GetPhoneNumber(),
+		QRCode:                user1.GetQrCodeBase64(),
+		AccountBalanceInCents: int(user1.GetAccountBalanceInCents()),
+	}
+	return &userprofile, nil
 }
 
 // GetUser is the resolver for the getUser field.
@@ -346,6 +402,7 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 		UpdatedAt:             u.GetUpdatedAt(),
 		Name:                  u.GetName(),
 		PhoneNumber:           u.GetPhoneNumber(),
+		QRCode:                u.GetQrCodeBase64(),
 		AccountBalanceInCents: int(u.GetAccountBalanceInCents()),
 	}
 	return &userprofile, nil
@@ -374,6 +431,7 @@ func (r *queryResolver) GetUsers(ctx context.Context) ([]*model.User, error) {
 			UpdatedAt:             user.GetUpdatedAt(),
 			Name:                  user.GetName(),
 			PhoneNumber:           user.GetPhoneNumber(),
+			QRCode:                user.GetQrCodeBase64(),
 			AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
 		}
 		usersprofile = append(usersprofile, userprofile)
