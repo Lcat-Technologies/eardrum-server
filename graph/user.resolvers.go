@@ -9,7 +9,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/GigaDesk/eardrum-graph/neo4jtransaction"
+	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-prefix/validate"
 	"github.com/GigaDesk/eardrum-server/auth"
@@ -46,7 +46,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 		return nil, err
 	}
 
-	user, err := postgresuser.CreateUser(input, r.Sql.Db)
+	user, err := user.CreateUser(input, r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("name", input.Name).Str("path", "CreateUser").Msg(err.Error())
@@ -59,6 +59,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 		UpdatedAt:             user.GetUpdatedAt(),
 		Name:                  user.GetName(),
 		PhoneNumber:           user.GetPhoneNumber(),
+		MpesaNumber:           user.GetMpesaNumber(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
 	}
 
@@ -83,7 +84,7 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
 		return nil, err
 	}
-	user, err := user.VerifyUser(phoneNumber, r.Sql.Db, r.Neo4j)
+	user, err := user.VerifyUser(phoneNumber, r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("phone_number", phoneNumber).Str("path", "VerifyUser").Msg(err.Error())
@@ -112,7 +113,7 @@ func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, pa
 	}
 
 	// Find the user that matches the input phone number
-	user, err := postgresuser.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
+	user, err := user.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
 
 	if err != nil {
 		log.Info().Str("phone_number", phoneNumber).Str("path", "UserLogin").Msg(err.Error())
@@ -149,7 +150,7 @@ func (r *mutationResolver) ForgotUserPassword(ctx context.Context, phoneNumber s
 	}
 
 	//check if the phone number exists in the database
-	phoneexists, err := postgresuser.CheckUserPhoneNumber(r.Sql.Db, phoneNumber)
+	phoneexists, err := user.CheckUserPhoneNumber(r.Sql.Db, phoneNumber)
 
 	//return any error that might be associated with checking the phone number's existence in the database
 	if err != nil {
@@ -189,7 +190,7 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 		return nil, err
 	}
 
-	user, err := postgresuser.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
+	user, err := user.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
 
 	if err != nil {
 		log.Info().Str("phone_number", phoneNumber).Str("path", "RequestUserPasswordReset").Msg(err.Error())
@@ -242,7 +243,7 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 		return nil, err
 	}
 
-	user, err := user.UpdatePassword(r.Sql.Db, encryptedpassword, id, r.Neo4j)
+	user, err := user.UpdatePassword(r.Sql.Db, encryptedpassword, id)
 	if err != nil {
 		log.Error().Int("id", id).Str("path", "ResetUserPassword").Msg(err.Error())
 		return nil, err
@@ -290,7 +291,7 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 		return nil, err
 	}
 
-	user, err := user.UpdatePinCode(r.Sql.Db, encryptedpincode, id, r.Neo4j)
+	user, err := user.UpdatePinCode(r.Sql.Db, encryptedpincode, id)
 	if err != nil {
 		log.Error().Int("id", id).Str("path", "UpdateUserPinCode").Msg(err.Error())
 		return nil, err
@@ -315,24 +316,24 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 	if *shutdown.IsShutdown {
 		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
 	}
-	user, err := auth.ForContext(ctx)
+	user1, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if user == nil {
+	if user1 == nil {
 		return nil, errors.New("access to get user profile denied!")
 	}
-	role := user.GetRole()
+	role := user1.GetRole()
 	if role != "user" {
 		return nil, errors.New("access to get user profile denied. Only available for registered and logged in users.")
 	}
-	id, err := user.GetID()
+	id, err := user1.GetID()
 
 	if err != nil {
 		errors.New("could not access user's id!")
 	}
 
-	u, err := postgresuser.GetUserWithId(r.Sql.Db, id)
+	u, err := user.GetUserWithId(r.Sql.Db, id)
 	if err != nil {
 		log.Error().Int("id", id).Str("path", "GetUser").Msg(err.Error())
 		return nil, errors.New("could not access user's profile!")
@@ -357,7 +358,7 @@ func (r *queryResolver) GetUsers(ctx context.Context) ([]*model.User, error) {
 		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
 	}
 
-	users, err := postgresuser.GetUsers(r.Sql.Db)
+	users, err := user.GetUsers(r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("path", "GetUsers").Msg(err.Error())
@@ -383,7 +384,7 @@ func (r *queryResolver) GetUsers(ctx context.Context) ([]*model.User, error) {
 
 // Transactions is the resolver for the transactions field.
 func (r *userResolver) Transactions(ctx context.Context, obj *model.User) ([]*model.Transaction, error) {
-	transactions, err := neo4jtransaction.RetrieveUserTransactions(r.Neo4j, obj.ID)
+	transactions, err := transaction.GetTransactionsForUser(r.Sql.Db, uint(obj.ID))
 
 	if err != nil {
 		return nil, errors.New("could not access users' transactions!")
