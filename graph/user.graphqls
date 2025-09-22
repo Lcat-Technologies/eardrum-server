@@ -6,6 +6,7 @@ type User {
   name: String!
   phone_number: String!
   mpesa_number: String!
+  qr_code: String!
   account_balance_in_cents: Int!
   transactions: [Transaction!]
 }
@@ -24,11 +25,12 @@ extend type Query {
 }
 
 extend type Mutation {
-  createUser(input: NewUser!): User
+  createUser(input: NewUser!): User!
   verifyUser(phone_number: String!, otp: String!): String
   userLogin(phone_number: String!, password: String!): String
-  forgotUserPassword(phone_number: String!): SendCodeStatus
+  forgotUserPassword(phone_number: String!): SendCodeStatus!
   requestUserPasswordReset(phone_number: String!, otp: String!): String
-  resetUserPassword(new_password: String!): User
-  updateUserPinCode(new_pincode: String!): User
+  resetUserPassword(new_password: String!): User!
+  updateUserPinCode(new_pincode: String!): User!
+  regenerateUserQrCode(otp: String!): User!
 }
