@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/GigaDesk/eardrum-graph/neo4jproduct"
-	"github.com/GigaDesk/eardrum-graph/neo4jtransaction"
+	"github.com/GigaDesk/eardrum-postgres/product"
 	"github.com/GigaDesk/eardrum-postgres/shop"
+	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-prefix/validate"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/encrypt"
@@ -48,7 +48,7 @@ func (r *mutationResolver) CreateShop(ctx context.Context, input model.NewShop) 
 		return nil, err
 	}
 
-	shop, err := postgresshop.CreateShop(input, r.Sql.Db)
+	shop, err := shop.CreateShop(input, r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("name", input.Name).Str("path", "CreateShop").Msg(err.Error())
@@ -85,7 +85,7 @@ func (r *mutationResolver) VerifyShop(ctx context.Context, phoneNumber string, o
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
 		return nil, err
 	}
-	shop, err := shop.VerifyShop(phoneNumber, r.Sql.Db, r.Neo4j)
+	shop, err := shop.VerifyShop(phoneNumber, r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("phone_number", phoneNumber).Str("path", "VerifyShop").Msg(err.Error())
@@ -136,7 +136,7 @@ func (r *mutationResolver) ShopLogin(ctx context.Context, phoneNumber string, pa
 	}
 
 	// Find the shop that matches the input phone number
-	shop, err := postgresshop.GetShopWithPhoneNumber(r.Sql.Db, phoneNumber)
+	shop, err := shop.GetShopWithPhoneNumber(r.Sql.Db, phoneNumber)
 
 	if err != nil {
 		log.Info().Str("phone_number", phoneNumber).Str("path", "ShopLogin").Msg(err.Error())
@@ -173,7 +173,7 @@ func (r *mutationResolver) ForgotShopPassword(ctx context.Context, phoneNumber s
 	}
 
 	//check if the phone number exists in the database
-	phoneexists, err := postgresshop.CheckShopPhoneNumber(r.Sql.Db, phoneNumber)
+	phoneexists, err := shop.CheckShopPhoneNumber(r.Sql.Db, phoneNumber)
 
 	//return any error that might be associated with checking the phone number's existence in the database
 	if err != nil {
@@ -213,7 +213,7 @@ func (r *mutationResolver) RequestShopPasswordReset(ctx context.Context, phoneNu
 		return nil, err
 	}
 
-	shop, err := postgresshop.GetShopWithPhoneNumber(r.Sql.Db, phoneNumber)
+	shop, err := shop.GetShopWithPhoneNumber(r.Sql.Db, phoneNumber)
 
 	if err != nil {
 		log.Info().Str("phone_number", phoneNumber).Str("path", "RequestShopPasswordReset").Msg(err.Error())
@@ -266,7 +266,7 @@ func (r *mutationResolver) ResetShopPassword(ctx context.Context, newPassword st
 		return nil, err
 	}
 
-	shop, err := shop.UpdatePassword(r.Sql.Db, encryptedpassword, id, r.Neo4j)
+	shop, err := shop.UpdatePassword(r.Sql.Db, encryptedpassword, id)
 	if err != nil {
 		log.Error().Int("id", id).Str("path", "ResetShopPassword").Msg(err.Error())
 		return nil, err
@@ -326,7 +326,7 @@ func (r *queryResolver) GetShop(ctx context.Context) (*model.Shop, error) {
 		errors.New("could not access shop's id!")
 	}
 
-	s, err := postgresshop.GetShopWithId(r.Sql.Db, id)
+	s, err := shop.GetShopWithId(r.Sql.Db, id)
 	if err != nil {
 		log.Error().Int("id", id).Str("path", "GetShop").Msg(err.Error())
 		return nil, errors.New("could not access shop's profile!")
@@ -339,6 +339,7 @@ func (r *queryResolver) GetShop(ctx context.Context) (*model.Shop, error) {
 		UpdatedAt:             s.GetUpdatedAt(),
 		Name:                  s.GetName(),
 		PhoneNumber:           s.GetPhoneNumber(),
+		MpesaNumber:           s.GetMpesaNumber(),
 		AccountBalanceInCents: int(s.GetAccountBalanceInCents()),
 	}
 	return &shopprofile, nil
@@ -351,7 +352,7 @@ func (r *queryResolver) GetShops(ctx context.Context) ([]*model.Shop, error) {
 		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
 	}
 
-	shops, err := postgresshop.GetShops(r.Sql.Db)
+	shops, err := shop.GetShops(r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("path", "GetShops").Msg(err.Error())
@@ -377,7 +378,7 @@ func (r *queryResolver) GetShops(ctx context.Context) ([]*model.Shop, error) {
 
 // Products is the resolver for the products field.
 func (r *shopResolver) Products(ctx context.Context, obj *model.Shop) ([]*model.Product, error) {
-	products, err := neo4jproduct.RetrieveShopProducts(r.Neo4j, obj.ID)
+	products, err := product.GetProductsForShop(r.Sql.Db, uint(obj.ID))
 
 	if err != nil {
 		return nil, errors.New("could not access shops' products!")
@@ -401,7 +402,7 @@ func (r *shopResolver) Products(ctx context.Context, obj *model.Shop) ([]*model.
 
 // Categories is the resolver for the categories field.
 func (r *shopResolver) Categories(ctx context.Context, obj *model.Shop) ([]*model.Category, error) {
-	categories, err := neo4jproduct.RetrieveShopCategories(r.Neo4j, obj.ID)
+	categories, err := product.GetCategoriesForShop(r.Sql.Db, uint(obj.ID))
 
 	if err != nil {
 		return nil, errors.New("could not access shops' categories!")
@@ -425,7 +426,7 @@ func (r *shopResolver) Categories(ctx context.Context, obj *model.Shop) ([]*mode
 
 // Category is the resolver for the category field.
 func (r *shopResolver) Category(ctx context.Context, obj *model.Shop, id int) (*model.Category, error) {
-	category, err := postgresproduct.GetCategoryWithId(r.Sql.Db, id)
+	category, err := product.GetCategoryWithId(r.Sql.Db, id)
 
 	if err != nil {
 		return nil, errors.New("could not access shop's category")
@@ -444,7 +445,7 @@ func (r *shopResolver) Category(ctx context.Context, obj *model.Shop, id int) (*
 
 // Transactions is the resolver for the transactions field.
 func (r *shopResolver) Transactions(ctx context.Context, obj *model.Shop) ([]*model.Transaction, error) {
-	transactions, err := neo4jtransaction.RetrieveShopTransactions(r.Neo4j, obj.ID)
+	transactions, err := transaction.GetTransactionsForShop(r.Sql.Db, uint(obj.ID))
 
 	if err != nil {
 		return nil, errors.New("could not access shops' transactions!")
