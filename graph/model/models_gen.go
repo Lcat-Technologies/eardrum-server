@@ -132,6 +132,7 @@ type NewUser struct {
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phone_number"`
 	Password    string `json:"password"`
+	MpesaNumber string `json:"mpesa_number"`
 }
 
 type Product struct {
@@ -283,6 +284,7 @@ type User struct {
 	UpdatedAt             time.Time      `json:"updatedAt"`
 	Name                  string         `json:"name"`
 	PhoneNumber           string         `json:"phone_number"`
+	MpesaNumber           string         `json:"mpesa_number"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
