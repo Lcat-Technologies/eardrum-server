@@ -17,6 +17,11 @@ func (n NewShop) Validate() error {
 		return err
 	}
 
+	//validate phone number in kenyan conditions
+	if err := validate.ValidateKenyanPhoneNumber(n.MpesaNumber); err != nil {
+		return err
+	}
+
 	//validate password
 	if err := validate.ValidatePassword(n.Password); err != nil {
 		return err
@@ -38,4 +43,9 @@ func (n NewShop) GetPhoneNumber() string {
 // returns the shop's password
 func (n NewShop) GetPassword() string {
 	return n.Password
+}
+
+// returns the shop's mpesa number
+func (n NewShop) GetMpesaNumber() string {
+	return n.MpesaNumber
 }

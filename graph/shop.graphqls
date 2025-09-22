@@ -5,6 +5,7 @@ type Shop {
   updatedAt: Time!
   name: String!
   phone_number: String!
+  mpesa_number: String!
   account_balance_in_cents: Int!
   products: [Product!]
   categories: [Category!]
@@ -17,6 +18,7 @@ input NewShop {
   name: String!
   phone_number: String!
   password: String!
+  mpesa_number: String!
 }
 
 #returns the status of sending an OTP code to a specific number
