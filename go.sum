@@ -4,6 +4,8 @@ github.com/GigaDesk/eardrum-graph v1.0.3 h1:rjIU4ktiavUHrRXo8L4X9fCN1tskoR4YE8qr
 github.com/GigaDesk/eardrum-graph v1.0.3/go.mod h1:HJY4TqlpsDIZPfYQMx4w49tIiFXOIIG3IU0uUK2srnM=
 github.com/GigaDesk/eardrum-interfaces v1.1.3 h1:yIdSCc5lf+FBG4drF/1dRWG6KhOfrwaBeHImTA1+bis=
 github.com/GigaDesk/eardrum-interfaces v1.1.3/go.mod h1:JdB9+C5wRwNXu15R2wlenwhT1UzbRkQknSKgyptTL8Q=
+github.com/GigaDesk/eardrum-interfaces v1.1.4 h1:nbgai6mzfeVm8Clj1fu+dOqWYzVuWVQBJ5S8Tu8ROso=
+github.com/GigaDesk/eardrum-interfaces v1.1.4/go.mod h1:JdB9+C5wRwNXu15R2wlenwhT1UzbRkQknSKgyptTL8Q=
 github.com/GigaDesk/eardrum-postgres v1.0.3 h1:Z91pv1uzm0kzxu9D0yOBJqIEpyxDoiuXhel9jJkfCw0=
 github.com/GigaDesk/eardrum-postgres v1.0.3/go.mod h1:Y0sVKQARgB0dYwh0YGr/GSV2l1hXf9m7BfqkBm6fnsY=
 github.com/GigaDesk/eardrum-prefix v1.0.2 h1:GsLn7fuQ+N8UehBKbS0ZdcAzudEJ4+Gc1gSrDoziLx0=
