@@ -5,6 +5,7 @@ type User {
   updatedAt: Time!
   name: String!
   phone_number: String!
+  mpesa_number: String!
   account_balance_in_cents: Int!
   transactions: [Transaction!]
 }
@@ -14,6 +15,7 @@ input NewUser {
   name: String!
   phone_number: String!
   password: String!
+  mpesa_number: String!
 }
 
 extend type Query {
