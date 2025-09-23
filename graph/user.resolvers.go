@@ -314,7 +314,7 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 }
 
 // RegenerateUserQRCode is the resolver for the regenerateUserQrCode field.
-func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context, otp string) (*model.User, error) {
+func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.User, error) {
 	//check if system is in shutdown mode
 	if *shutdown.IsShutdown {
 		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
@@ -339,15 +339,6 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context, otp string)
 	//get the user's phone number
 
 	user1, err := user.GetUserWithId(r.Sql.Db, id)
-
-	if err != nil {
-		return nil, errors.New("something went wrong")
-	}
-
-	//Check the validity of an OTP code
-	if err := phoneutils.CheckOtp(user1.GetPhoneNumber(), otp); err != nil {
-		return nil, err
-	}
 
 	user1, err = user.RegenerateQrCode(r.Sql.Db, id)
 	if err != nil {

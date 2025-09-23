@@ -84,7 +84,7 @@ type ComplexityRoot struct {
 		ForgotShopPassword         func(childComplexity int, phoneNumber string) int
 		ForgotUserPassword         func(childComplexity int, phoneNumber string) int
 		RefreshToken               func(childComplexity int, token string) int
-		RegenerateUserQRCode       func(childComplexity int, otp string) int
+		RegenerateUserQRCode       func(childComplexity int) int
 		RemoveProductsFromCategory func(childComplexity int, productids []int, categoryid int) int
 		RequestShopPasswordReset   func(childComplexity int, phoneNumber string, otp string) int
 		RequestUserPasswordReset   func(childComplexity int, phoneNumber string, otp string) int
@@ -209,7 +209,7 @@ type MutationResolver interface {
 	RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error)
 	ResetUserPassword(ctx context.Context, newPassword string) (*model.User, error)
 	UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error)
-	RegenerateUserQRCode(ctx context.Context, otp string) (*model.User, error)
+	RegenerateUserQRCode(ctx context.Context) (*model.User, error)
 }
 type ProductResolver interface {
 	Purchases(ctx context.Context, obj *model.Product) ([]*model.Purchase, error)
@@ -501,12 +501,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_regenerateUserQrCode_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RegenerateUserQRCode(childComplexity, args["otp"].(string)), true
+		return e.complexity.Mutation.RegenerateUserQRCode(childComplexity), true
 
 	case "Mutation.removeProductsFromCategory":
 		if e.complexity.Mutation.RemoveProductsFromCategory == nil {
@@ -1716,29 +1711,6 @@ func (ec *executionContext) field_Mutation_refreshToken_argsToken(
 ) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
 	if tmp, ok := rawArgs["token"]; ok {
-		return ec.unmarshalNString2string(ctx, tmp)
-	}
-
-	var zeroVal string
-	return zeroVal, nil
-}
-
-func (ec *executionContext) field_Mutation_regenerateUserQrCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	arg0, err := ec.field_Mutation_regenerateUserQrCode_argsOtp(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["otp"] = arg0
-	return args, nil
-}
-func (ec *executionContext) field_Mutation_regenerateUserQrCode_argsOtp(
-	ctx context.Context,
-	rawArgs map[string]interface{},
-) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
-	if tmp, ok := rawArgs["otp"]; ok {
 		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
@@ -4413,7 +4385,7 @@ func (ec *executionContext) _Mutation_regenerateUserQrCode(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RegenerateUserQRCode(rctx, fc.Args["otp"].(string))
+		return ec.resolvers.Mutation().RegenerateUserQRCode(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4430,7 +4402,7 @@ func (ec *executionContext) _Mutation_regenerateUserQrCode(ctx context.Context, 
 	return ec.marshalNUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_regenerateUserQrCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_regenerateUserQrCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -4459,17 +4431,6 @@ func (ec *executionContext) fieldContext_Mutation_regenerateUserQrCode(ctx conte
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_regenerateUserQrCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }
