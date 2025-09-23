@@ -51,7 +51,7 @@ func main() {
 	postgresInstance.Init(os.Getenv("POSTGRES_DBURL"))
 
 	// Perform auto-migration for multiple models
-	err = postgresInstance.Db.AutoMigrate(&user.User{}, &shop.Shop{}, &product.Product{}, &product.Category{}, &transaction.Transaction{}, &transaction.Purchase{})
+	err = postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &shop.Shop{}, &shop.UnverifiedShop{}, &product.Product{}, &product.Category{}, &transaction.Transaction{}, &transaction.Purchase{})
 	if err != nil {
 		log.Fatal().Msg(fmt.Sprintf("Failed to auto-migrate database: %s", err))
 	}
