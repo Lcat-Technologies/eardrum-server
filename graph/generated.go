@@ -94,7 +94,8 @@ type ComplexityRoot struct {
 		SendCode                   func(childComplexity int, phoneNumber string) int
 		ShopLogin                  func(childComplexity int, phoneNumber string, password string) int
 		UnblockProduct             func(childComplexity int, input int) int
-		UpdateUserPinCode          func(childComplexity int, newPincode string) int
+		UpdateShopPinCode          func(childComplexity int, newPincode string, otp string) int
+		UpdateUserPinCode          func(childComplexity int, newPincode string, otp string) int
 		UserLogin                  func(childComplexity int, phoneNumber string, password string) int
 		VerifyShop                 func(childComplexity int, phoneNumber string, otp string) int
 		VerifyUser                 func(childComplexity int, phoneNumber string, otp string) int
@@ -200,6 +201,7 @@ type MutationResolver interface {
 	RequestShopPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error)
 	ResetShopPassword(ctx context.Context, newPassword string) (*model.Shop, error)
 	RefreshToken(ctx context.Context, token string) (*string, error)
+	UpdateShopPinCode(ctx context.Context, newPincode string, otp string) (*model.Shop, error)
 	CreateProductTransaction(ctx context.Context, input model.NewProductTransaction) (*model.Transaction, error)
 	CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error)
 	CreateUser(ctx context.Context, input model.NewUser) (*model.User, error)
@@ -208,7 +210,7 @@ type MutationResolver interface {
 	ForgotUserPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error)
 	RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error)
 	ResetUserPassword(ctx context.Context, newPassword string) (*model.User, error)
-	UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error)
+	UpdateUserPinCode(ctx context.Context, newPincode string, otp string) (*model.User, error)
 	RegenerateUserQRCode(ctx context.Context) (*model.User, error)
 }
 type ProductResolver interface {
@@ -611,6 +613,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UnblockProduct(childComplexity, args["input"].(int)), true
 
+	case "Mutation.updateShopPinCode":
+		if e.complexity.Mutation.UpdateShopPinCode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateShopPinCode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateShopPinCode(childComplexity, args["new_pincode"].(string), args["otp"].(string)), true
+
 	case "Mutation.updateUserPinCode":
 		if e.complexity.Mutation.UpdateUserPinCode == nil {
 			break
@@ -621,7 +635,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUserPinCode(childComplexity, args["new_pincode"].(string)), true
+		return e.complexity.Mutation.UpdateUserPinCode(childComplexity, args["new_pincode"].(string), args["otp"].(string)), true
 
 	case "Mutation.userLogin":
 		if e.complexity.Mutation.UserLogin == nil {
@@ -1997,6 +2011,47 @@ func (ec *executionContext) field_Mutation_unblockProduct_argsInput(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Mutation_updateShopPinCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_updateShopPinCode_argsNewPincode(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["new_pincode"] = arg0
+	arg1, err := ec.field_Mutation_updateShopPinCode_argsOtp(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["otp"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateShopPinCode_argsNewPincode(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("new_pincode"))
+	if tmp, ok := rawArgs["new_pincode"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateShopPinCode_argsOtp(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
+	if tmp, ok := rawArgs["otp"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Mutation_updateUserPinCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2005,6 +2060,11 @@ func (ec *executionContext) field_Mutation_updateUserPinCode_args(ctx context.Co
 		return nil, err
 	}
 	args["new_pincode"] = arg0
+	arg1, err := ec.field_Mutation_updateUserPinCode_argsOtp(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["otp"] = arg1
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_updateUserPinCode_argsNewPincode(
@@ -2013,6 +2073,19 @@ func (ec *executionContext) field_Mutation_updateUserPinCode_argsNewPincode(
 ) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("new_pincode"))
 	if tmp, ok := rawArgs["new_pincode"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserPinCode_argsOtp(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
+	if tmp, ok := rawArgs["otp"]; ok {
 		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
@@ -3789,6 +3862,85 @@ func (ec *executionContext) fieldContext_Mutation_refreshToken(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_updateShopPinCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateShopPinCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateShopPinCode(rctx, fc.Args["new_pincode"].(string), fc.Args["otp"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Shop)
+	fc.Result = res
+	return ec.marshalNShop2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐShop(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateShopPinCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Shop_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Shop_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Shop_updatedAt(ctx, field)
+			case "name":
+				return ec.fieldContext_Shop_name(ctx, field)
+			case "phone_number":
+				return ec.fieldContext_Shop_phone_number(ctx, field)
+			case "mpesa_number":
+				return ec.fieldContext_Shop_mpesa_number(ctx, field)
+			case "account_balance_in_cents":
+				return ec.fieldContext_Shop_account_balance_in_cents(ctx, field)
+			case "products":
+				return ec.fieldContext_Shop_products(ctx, field)
+			case "categories":
+				return ec.fieldContext_Shop_categories(ctx, field)
+			case "category":
+				return ec.fieldContext_Shop_category(ctx, field)
+			case "transactions":
+				return ec.fieldContext_Shop_transactions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Shop", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateShopPinCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createProductTransaction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createProductTransaction(ctx, field)
 	if err != nil {
@@ -4310,7 +4462,7 @@ func (ec *executionContext) _Mutation_updateUserPinCode(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserPinCode(rctx, fc.Args["new_pincode"].(string))
+		return ec.resolvers.Mutation().UpdateUserPinCode(rctx, fc.Args["new_pincode"].(string), fc.Args["otp"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10277,6 +10429,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_refreshToken(ctx, field)
 			})
+		case "updateShopPinCode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateShopPinCode(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createProductTransaction":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createProductTransaction(ctx, field)
@@ -11924,6 +12083,10 @@ func (ec *executionContext) marshalNSendCodeStatus2ᚖgithubᚗcomᚋGigaDeskᚋ
 		return graphql.Null
 	}
 	return ec._SendCodeStatus(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNShop2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐShop(ctx context.Context, sel ast.SelectionSet, v model.Shop) graphql.Marshaler {
+	return ec._Shop(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNShop2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐShop(ctx context.Context, sel ast.SelectionSet, v *model.Shop) graphql.Marshaler {

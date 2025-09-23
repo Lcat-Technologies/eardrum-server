@@ -303,6 +303,63 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*str
 	return &token, nil
 }
 
+// UpdateShopPinCode is the resolver for the updateShopPinCode field.
+func (r *mutationResolver) UpdateShopPinCode(ctx context.Context, newPincode string, otp string) (*model.Shop, error) {
+	//check if system is in shutdown mode
+	if *shutdown.IsShutdown {
+		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
+	}
+	u, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if u == nil {
+		return nil, errors.New("access to Update Shop PinCode denied!")
+	}
+	role := u.GetRole()
+	if role != "shop" {
+		return nil, errors.New("access to Update Shop PinCode denied. Only available for registered and logged in shops")
+	}
+	id, err := u.GetID()
+
+	if err != nil {
+		errors.New("could not access shop's id!")
+	}
+
+	user2, err := shop.GetShopWithId(r.Sql.Db, id)
+
+	err = phoneutils.CheckOtp(user2.GetPhoneNumber(), otp)
+
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedpincode, err := encrypt.HashPassword(newPincode)
+
+	if err != nil {
+		return nil, err
+	}
+
+	user2, err = shop.UpdatePinCode(r.Sql.Db, encryptedpincode, id)
+	if err != nil {
+		log.Error().Int("id", id).Str("path", "UpdateShopPinCode").Msg(err.Error())
+		return nil, err
+	}
+
+	shop := model.Shop{
+		ID:                    int(user2.GetID()),
+		CreatedAt:             user2.GetCreatedAt(),
+		UpdatedAt:             user2.GetUpdatedAt(),
+		Name:                  user2.GetName(),
+		PhoneNumber:           user2.GetPhoneNumber(),
+		MpesaNumber:           user2.GetMpesaNumber(),
+		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
+	}
+
+	//return the updated record
+	return &shop, nil
+}
+
 // GetShop is the resolver for the getShop field.
 func (r *queryResolver) GetShop(ctx context.Context) (*model.Shop, error) {
 	//check if system is in shutdown mode

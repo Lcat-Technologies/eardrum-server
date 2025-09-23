@@ -41,4 +41,5 @@ extend type Mutation {
   requestShopPasswordReset(phone_number: String!, otp: String!): String
   resetShopPassword(new_password: String!): Shop
   refreshToken(token: String!): String
+  updateShopPinCode(new_pincode: String!, otp: String!): Shop!
 }
