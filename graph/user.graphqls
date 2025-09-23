@@ -31,6 +31,6 @@ extend type Mutation {
   forgotUserPassword(phone_number: String!): SendCodeStatus!
   requestUserPasswordReset(phone_number: String!, otp: String!): String
   resetUserPassword(new_password: String!): User!
-  updateUserPinCode(new_pincode: String!): User!
+  updateUserPinCode(new_pincode: String!, otp: String!): User!
   regenerateUserQrCode: User!
 }

@@ -265,7 +265,7 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 }
 
 // UpdateUserPinCode is the resolver for the updateUserPinCode field.
-func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error) {
+func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode string, otp string) (*model.User, error) {
 	//check if system is in shutdown mode
 	if *shutdown.IsShutdown {
 		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
@@ -279,12 +279,20 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 	}
 	role := u.GetRole()
 	if role != "user" {
-		return nil, errors.New("access to UpdateUserPassword denied. Only available for registered and logged in users")
+		return nil, errors.New("access to UpdateUserPinCode denied. Only available for registered and logged in users")
 	}
 	id, err := u.GetID()
 
 	if err != nil {
 		errors.New("could not access user's id!")
+	}
+
+	user2, err := user.GetUserWithId(r.Sql.Db, id)
+
+	err = phoneutils.CheckOtp(user2.GetPhoneNumber(), otp)
+
+	if err != nil {
+		return nil, err
 	}
 
 	encryptedpincode, err := encrypt.HashPassword(newPincode)
@@ -293,20 +301,20 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 		return nil, err
 	}
 
-	user, err := user.UpdatePinCode(r.Sql.Db, encryptedpincode, id)
+	user2, err = user.UpdatePinCode(r.Sql.Db, encryptedpincode, id)
 	if err != nil {
 		log.Error().Int("id", id).Str("path", "UpdateUserPinCode").Msg(err.Error())
 		return nil, err
 	}
 
 	user1 := model.User{
-		ID:                    int(user.GetID()),
-		CreatedAt:             user.GetCreatedAt(),
-		UpdatedAt:             user.GetUpdatedAt(),
-		Name:                  user.GetName(),
-		PhoneNumber:           user.GetPhoneNumber(),
-		QRCode:                user.GetQrCodeBase64(),
-		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
+		ID:                    int(user2.GetID()),
+		CreatedAt:             user2.GetCreatedAt(),
+		UpdatedAt:             user2.GetUpdatedAt(),
+		Name:                  user2.GetName(),
+		PhoneNumber:           user2.GetPhoneNumber(),
+		QRCode:                user2.GetQrCodeBase64(),
+		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
 	}
 
 	//return the updated record
