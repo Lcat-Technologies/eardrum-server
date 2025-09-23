@@ -324,11 +324,11 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 		return nil, err
 	}
 	if u == nil {
-		return nil, errors.New("access to UpdateUserPinCode denied!")
+		return nil, errors.New("access to regenerate qr code denied!")
 	}
 	role := u.GetRole()
 	if role != "user" {
-		return nil, errors.New("access to UpdateUserPassword denied. Only available for registered and logged in users")
+		return nil, errors.New("access to regenerate qr code denied. Only available for registered and logged in users")
 	}
 	id, err := u.GetID()
 
