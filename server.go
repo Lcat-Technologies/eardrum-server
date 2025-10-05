@@ -20,7 +20,7 @@ import (
 	"github.com/GigaDesk/eardrum-server/shutdown"
 	"github.com/go-chi/chi"
 
-	"github.com/joho/godotenv"
+	//"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
 )
@@ -33,11 +33,11 @@ var (
 func main() {
 
 	//Find .env file
-
+    /*
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal().Msg(fmt.Sprintf("Error loading .env file: %s", err))
-	}
+	}*/
 
 	go phoneutils.InitializeTwilio()
 	go jwt.InitializeJwtSecretKey()
@@ -51,7 +51,7 @@ func main() {
 	postgresInstance.Init(os.Getenv("POSTGRES_DBURL"))
 
 	// Perform auto-migration for multiple models
-	err = postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &shop.Shop{}, &shop.UnverifiedShop{}, &product.Product{}, &product.Category{}, &transaction.Transaction{}, &transaction.Purchase{})
+	err := postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &shop.Shop{}, &shop.UnverifiedShop{}, &product.Product{}, &product.Category{}, &transaction.Transaction{}, &transaction.Purchase{})
 	if err != nil {
 		log.Fatal().Msg(fmt.Sprintf("Failed to auto-migrate database: %s", err))
 	}
