@@ -1,10 +1,10 @@
 #returns a transaction's data
-type TransactionShop{
-  name: String!
+type TransactionMerchant{
+  username: String!
 }
 
 type TransactionUser{
-  name: String!
+  username: String!
 }
 
 type Transaction {
@@ -15,7 +15,7 @@ type Transaction {
   transaction_cost_in_cents: Int!
   purchases: [Purchase!]!
   user: TransactionUser!
-  shop: TransactionShop!
+  merchant: TransactionMerchant!
 }
 
 input PurchasedProduct {

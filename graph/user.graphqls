@@ -3,9 +3,9 @@ type User {
   id: Int!
   createdAt: Time!
   updatedAt: Time!
-  name: String!
+  user_name: String!
   phone_number: String!
-  mpesa_number: String!
+  mpesa_number: String
   qr_code: String!
   account_balance_in_cents: Int!
   transactions: [Transaction!]
@@ -13,10 +13,10 @@ type User {
 
 #fields required for adding a new user to the system
 input NewUser {
-  name: String!
+  user_name: String!
   phone_number: String!
   password: String!
-  mpesa_number: String!
+  mpesa_number: String
 }
 
 extend type Query {

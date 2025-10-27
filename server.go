@@ -10,7 +10,7 @@ import (
 	"github.com/GigaDesk/eardrum-graph/neo4jutils"
 	"github.com/GigaDesk/eardrum-postgres/postgresutils"
 	"github.com/GigaDesk/eardrum-postgres/product"
-	"github.com/GigaDesk/eardrum-postgres/shop"
+	"github.com/GigaDesk/eardrum-postgres/merchant"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-server/auth"
@@ -51,7 +51,7 @@ func main() {
 	postgresInstance.Init(os.Getenv("POSTGRES_DBURL"))
 
 	// Perform auto-migration for multiple models
-	err := postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &shop.Shop{}, &shop.UnverifiedShop{}, &product.Product{}, &product.Category{}, &transaction.Transaction{}, &transaction.Purchase{})
+	err := postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &merchant.Merchant{}, &merchant.UnverifiedMerchant{}, &product.Product{}, &product.Category{}, &transaction.Transaction{}, &transaction.Purchase{})
 	if err != nil {
 		log.Fatal().Msg(fmt.Sprintf("Failed to auto-migrate database: %s", err))
 	}

@@ -12,15 +12,10 @@ import (
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/encrypt"
 	"github.com/GigaDesk/eardrum-server/graph/model"
-	"github.com/GigaDesk/eardrum-server/shutdown"
 )
 
 // CreateProductTransaction is the resolver for the createProductTransaction field.
 func (r *mutationResolver) CreateProductTransaction(ctx context.Context, input model.NewProductTransaction) (*model.Transaction, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
@@ -29,13 +24,13 @@ func (r *mutationResolver) CreateProductTransaction(ctx context.Context, input m
 		return nil, errors.New("access to create transaction denied!")
 	}
 	role := s.GetRole()
-	if role != "shop" {
-		return nil, errors.New("access to create transaction denied. Only available for registered and logged in shops")
+	if role != "merchant" {
+		return nil, errors.New("access to create transaction denied. Only available for registered and logged in merchants")
 	}
 	id, err := s.GetID()
 
 	if err != nil {
-		errors.New("could not access shop's id!")
+		errors.New("could not access merchant's id!")
 	}
 
 	t, err := transaction.ProcessOrder(r.Sql.Db, uint(id), input, func(hashedPIN, PIN string) error {
@@ -64,10 +59,6 @@ func (r *mutationResolver) CreateProductTransaction(ctx context.Context, input m
 
 // CreateAmountTransaction is the resolver for the createAmountTransaction field.
 func (r *mutationResolver) CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
@@ -76,13 +67,13 @@ func (r *mutationResolver) CreateAmountTransaction(ctx context.Context, input mo
 		return nil, errors.New("access to create transaction denied!")
 	}
 	role := s.GetRole()
-	if role != "shop" {
-		return nil, errors.New("access to create transaction denied. Only available for registered and logged in shops")
+	if role != "merchant" {
+		return nil, errors.New("access to create transaction denied. Only available for registered and logged in merchants")
 	}
 	id, err := s.GetID()
 
 	if err != nil {
-		errors.New("could not access shop's id!")
+		errors.New("could not access merchant's id!")
 	}
 
 	t, err := transaction.ProcessTransaction(r.Sql.Db, uint(id), input, func(hashedPIN, PIN string) error {
@@ -143,26 +134,26 @@ func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) 
 	}
 
 	user := &model.TransactionUser{
-		Name: transaction.User.Name,
+		Username: transaction.User.UserName,
 	}
 	return user, nil
 }
 
-// Shop is the resolver for the shop field.
-func (r *transactionResolver) Shop(ctx context.Context, obj *model.Transaction) (*model.TransactionShop, error) {
+// Merchant is the resolver for the merchant field.
+func (r *transactionResolver) Merchant(ctx context.Context, obj *model.Transaction) (*model.TransactionMerchant, error) {
 	var transaction transaction.Transaction
 	// The .Preload() method tells GORM to load the associated Shop data
 	// in the same query.
 	if err := r.Sql.Db.
-		Preload("Shop").
+		Preload("Merchant").
 		First(&transaction, obj.ID).Error; err != nil {
 		return nil, err
 	}
 
-	shop := &model.TransactionShop{
-		Name: transaction.Shop.Name,
+	merchant := &model.TransactionMerchant{
+		Username: transaction.User.UserName,
 	}
-	return shop, nil
+	return merchant, nil
 }
 
 // Transaction returns TransactionResolver implementation.
