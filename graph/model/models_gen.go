@@ -96,6 +96,20 @@ type IntFilterInput struct {
 	Between *IntFilterBetween `json:"between,omitempty"`
 }
 
+type Merchant struct {
+	ID                    int            `json:"id"`
+	CreatedAt             time.Time      `json:"createdAt"`
+	UpdatedAt             time.Time      `json:"updatedAt"`
+	Username              string         `json:"username"`
+	PhoneNumber           string         `json:"phone_number"`
+	MpesaNumber           *string        `json:"mpesa_number,omitempty"`
+	AccountBalanceInCents int            `json:"account_balance_in_cents"`
+	Products              []*Product     `json:"products,omitempty"`
+	Categories            []*Category    `json:"categories,omitempty"`
+	Category              *Category      `json:"category,omitempty"`
+	Transactions          []*Transaction `json:"transactions,omitempty"`
+}
+
 type Mutation struct {
 }
 
@@ -110,6 +124,13 @@ type NewCategory struct {
 	Description string `json:"description"`
 }
 
+type NewMerchant struct {
+	Username    string  `json:"username"`
+	PhoneNumber string  `json:"phone_number"`
+	Password    string  `json:"password"`
+	MpesaNumber *string `json:"mpesa_number,omitempty"`
+}
+
 type NewProduct struct {
 	Name                string `json:"name"`
 	PricePerUnitInCents int    `json:"pricePerUnitInCents"`
@@ -121,18 +142,11 @@ type NewProductTransaction struct {
 	PinCode           string              `json:"pin_code"`
 }
 
-type NewShop struct {
-	Name        string `json:"name"`
-	PhoneNumber string `json:"phone_number"`
-	Password    string `json:"password"`
-	MpesaNumber string `json:"mpesa_number"`
-}
-
 type NewUser struct {
-	Name        string `json:"name"`
-	PhoneNumber string `json:"phone_number"`
-	Password    string `json:"password"`
-	MpesaNumber string `json:"mpesa_number"`
+	UserName    string  `json:"user_name"`
+	PhoneNumber string  `json:"phone_number"`
+	Password    string  `json:"password"`
+	MpesaNumber *string `json:"mpesa_number,omitempty"`
 }
 
 type Product struct {
@@ -163,20 +177,6 @@ type Query struct {
 type SendCodeStatus struct {
 	PhoneNumber string `json:"phone_number"`
 	Success     bool   `json:"success"`
-}
-
-type Shop struct {
-	ID                    int            `json:"id"`
-	CreatedAt             time.Time      `json:"createdAt"`
-	UpdatedAt             time.Time      `json:"updatedAt"`
-	Name                  string         `json:"name"`
-	PhoneNumber           string         `json:"phone_number"`
-	MpesaNumber           string         `json:"mpesa_number"`
-	AccountBalanceInCents int            `json:"account_balance_in_cents"`
-	Products              []*Product     `json:"products,omitempty"`
-	Categories            []*Category    `json:"categories,omitempty"`
-	Category              *Category      `json:"category,omitempty"`
-	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
 
 // SoftDelete Filter simple datatypes
@@ -260,31 +260,31 @@ type TimeFilterInput struct {
 }
 
 type Transaction struct {
-	ID                     int              `json:"id"`
-	CreatedAt              time.Time        `json:"createdAt"`
-	UpdatedAt              time.Time        `json:"updatedAt"`
-	TotalAmountInCents     int              `json:"total_amount_in_cents"`
-	TransactionCostInCents int              `json:"transaction_cost_in_cents"`
-	Purchases              []*Purchase      `json:"purchases"`
-	User                   *TransactionUser `json:"user"`
-	Shop                   *TransactionShop `json:"shop"`
+	ID                     int                  `json:"id"`
+	CreatedAt              time.Time            `json:"createdAt"`
+	UpdatedAt              time.Time            `json:"updatedAt"`
+	TotalAmountInCents     int                  `json:"total_amount_in_cents"`
+	TransactionCostInCents int                  `json:"transaction_cost_in_cents"`
+	Purchases              []*Purchase          `json:"purchases"`
+	User                   *TransactionUser     `json:"user"`
+	Merchant               *TransactionMerchant `json:"merchant"`
 }
 
-type TransactionShop struct {
-	Name string `json:"name"`
+type TransactionMerchant struct {
+	Username string `json:"username"`
 }
 
 type TransactionUser struct {
-	Name string `json:"name"`
+	Username string `json:"username"`
 }
 
 type User struct {
 	ID                    int            `json:"id"`
 	CreatedAt             time.Time      `json:"createdAt"`
 	UpdatedAt             time.Time      `json:"updatedAt"`
-	Name                  string         `json:"name"`
+	UserName              string         `json:"user_name"`
 	PhoneNumber           string         `json:"phone_number"`
-	MpesaNumber           string         `json:"mpesa_number"`
+	MpesaNumber           *string        `json:"mpesa_number,omitempty"`
 	QRCode                string         `json:"qr_code"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`

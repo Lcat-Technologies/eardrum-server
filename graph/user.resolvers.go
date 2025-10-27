@@ -17,16 +17,11 @@ import (
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
-	"github.com/GigaDesk/eardrum-server/shutdown"
 	"github.com/rs/zerolog/log"
 )
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	//validate inputs
 	if err := input.Validate(); err != nil {
 		return nil, err
@@ -49,15 +44,15 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	user, err := user.CreateUser(input, r.Sql.Db)
 
 	if err != nil {
-		log.Error().Str("name", input.Name).Str("path", "CreateUser").Msg(err.Error())
-		return nil, errors.New("an unexpected error occurred while creating the user account. please try again later or contact support")
+		log.Error().Str("name", input.UserName).Str("path", "CreateUser").Msg(err.Error())
+		return nil, err
 	}
 
 	u := model.User{
 		ID:                    int(user.GetID()),
 		CreatedAt:             user.GetCreatedAt(),
 		UpdatedAt:             user.GetUpdatedAt(),
-		Name:                  user.GetName(),
+		UserName:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		MpesaNumber:           user.GetMpesaNumber(),
 		QRCode:                user.GetQrCodeBase64(),
@@ -69,10 +64,6 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 
 // VerifyUser is the resolver for the verifyUser field.
 func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, otp string) (*string, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	//Check the validity of the phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
 		return nil, err
@@ -89,7 +80,7 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 
 	if err != nil {
 		log.Error().Str("phone_number", phoneNumber).Str("path", "VerifyUser").Msg(err.Error())
-		return nil, errors.New("an unexpected error occurred while verifying the user account. please try again later or contact support")
+		return nil, err
 	}
 
 	credentials := jwt.TokenCredentials{
@@ -108,17 +99,13 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 
 // UserLogin is the resolver for the userLogin field.
 func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, password string) (*string, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 
 	// Find the user that matches the input phone number
 	user, err := user.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
 
 	if err != nil {
 		log.Info().Str("phone_number", phoneNumber).Str("path", "UserLogin").Msg(err.Error())
-		return nil, errors.New("phone number does not exist")
+		return nil, err
 	}
 	//check if the password of the user matches the input password
 	if err := encrypt.CheckPassword(user.GetPassword(), password); err != nil {
@@ -141,9 +128,6 @@ func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, pa
 
 // ForgotUserPassword is the resolver for the forgotUserPassword field.
 func (r *mutationResolver) ForgotUserPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error) {
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 
 	//validate phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
@@ -181,10 +165,6 @@ func (r *mutationResolver) ForgotUserPassword(ctx context.Context, phoneNumber s
 
 // RequestUserPasswordReset is the resolver for the requestUserPasswordReset field.
 func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 
 	//Check the validity of an OTP code
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
@@ -195,7 +175,7 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 
 	if err != nil {
 		log.Info().Str("phone_number", phoneNumber).Str("path", "RequestUserPasswordReset").Msg(err.Error())
-		return nil, errors.New("phone number does not exist")
+		return nil, err
 	}
 
 	credentials := jwt.TokenCredentials{
@@ -212,10 +192,7 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 
 // ResetUserPassword is the resolver for the resetUserPassword field.
 func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword string) (*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
+
 	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
@@ -254,7 +231,7 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 		ID:                    int(user.GetID()),
 		CreatedAt:             user.GetCreatedAt(),
 		UpdatedAt:             user.GetUpdatedAt(),
-		Name:                  user.GetName(),
+		UserName:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		QRCode:                user.GetQrCodeBase64(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
@@ -266,10 +243,7 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 
 // UpdateUserPinCode is the resolver for the updateUserPinCode field.
 func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode string, otp string) (*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
+
 	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
@@ -311,7 +285,7 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 		ID:                    int(user2.GetID()),
 		CreatedAt:             user2.GetCreatedAt(),
 		UpdatedAt:             user2.GetUpdatedAt(),
-		Name:                  user2.GetName(),
+		UserName:              user2.GetUserName(),
 		PhoneNumber:           user2.GetPhoneNumber(),
 		QRCode:                user2.GetQrCodeBase64(),
 		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
@@ -323,10 +297,7 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 
 // RegenerateUserQRCode is the resolver for the regenerateUserQrCode field.
 func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
+
 	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
@@ -350,14 +321,14 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 
 	user1, err = user.RegenerateQrCode(r.Sql.Db, id)
 	if err != nil {
-		return nil, errors.New("something went wrong")
+		return nil, err
 	}
 
 	userprofile := model.User{
 		ID:                    int(user1.GetID()),
 		CreatedAt:             user1.GetCreatedAt(),
 		UpdatedAt:             user1.GetUpdatedAt(),
-		Name:                  user1.GetName(),
+		UserName:              user1.GetUserName(),
 		PhoneNumber:           user1.GetPhoneNumber(),
 		QRCode:                user1.GetQrCodeBase64(),
 		AccountBalanceInCents: int(user1.GetAccountBalanceInCents()),
@@ -367,10 +338,7 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
+
 	user1, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
@@ -391,7 +359,7 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 	u, err := user.GetUserWithId(r.Sql.Db, id)
 	if err != nil {
 		log.Error().Int("id", id).Str("path", "GetUser").Msg(err.Error())
-		return nil, errors.New("could not access user's profile!")
+		return nil, err
 	}
 	log.Info().Int("id", id).Str("role", role).Str("path", "GetUser").Msg("getting user's profile")
 
@@ -399,7 +367,7 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 		ID:                    int(u.GetID()),
 		CreatedAt:             u.GetCreatedAt(),
 		UpdatedAt:             u.GetUpdatedAt(),
-		Name:                  u.GetName(),
+		UserName:              u.GetUserName(),
 		PhoneNumber:           u.GetPhoneNumber(),
 		QRCode:                u.GetQrCodeBase64(),
 		AccountBalanceInCents: int(u.GetAccountBalanceInCents()),
@@ -409,16 +377,12 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 
 // GetUsers is the resolver for the getUsers field.
 func (r *queryResolver) GetUsers(ctx context.Context) ([]*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 
 	users, err := user.GetUsers(r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("path", "GetUsers").Msg(err.Error())
-		return nil, errors.New("could not access users' profile!")
+		return nil, err
 	}
 
 	var usersprofile []*model.User
@@ -428,7 +392,7 @@ func (r *queryResolver) GetUsers(ctx context.Context) ([]*model.User, error) {
 			ID:                    int(user.GetID()),
 			CreatedAt:             user.GetCreatedAt(),
 			UpdatedAt:             user.GetUpdatedAt(),
-			Name:                  user.GetName(),
+			UserName:              user.GetUserName(),
 			PhoneNumber:           user.GetPhoneNumber(),
 			QRCode:                user.GetQrCodeBase64(),
 			AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
@@ -444,7 +408,7 @@ func (r *userResolver) Transactions(ctx context.Context, obj *model.User) ([]*mo
 	transactions, err := transaction.GetTransactionsForUser(r.Sql.Db, uint(obj.ID))
 
 	if err != nil {
-		return nil, errors.New("could not access users' transactions!")
+		return nil, err
 	}
 
 	var transactionslist []*model.Transaction
