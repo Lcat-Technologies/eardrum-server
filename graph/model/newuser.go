@@ -9,7 +9,7 @@ import (
 func (n NewUser) Validate() error {
 
 	//validate name
-	if err := validate.ValidateName(n.Name); err != nil {
+	if err := validate.ValidateName(n.UserName); err != nil {
 		return err
 	}
 
@@ -36,7 +36,7 @@ func (n NewUser) Validate() error {
 
 // returns the user's name
 func (n NewUser) GetUserName() string {
-	return n.Name
+	return n.UserName
 }
 
 // returns the user's phone number
