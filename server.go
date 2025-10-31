@@ -22,7 +22,6 @@ import (
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/GigaDesk/eardrum-server/shutdown"
 	"github.com/go-chi/chi"
-	"github.com/joho/godotenv"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	//"github.com/joho/godotenv"
@@ -59,12 +58,12 @@ func CustomErrorPresenter(ctx context.Context, e error) *gqlerror.Error {
 func main() {
 
 	//Find .env file
-    
+    /*
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal().Msg(fmt.Sprintf("Error loading .env file: %s", err))
 	}
-
+ */
 	go phoneutils.InitializeTwilio()
 	go jwt.InitializeJwtSecretKey()
 
@@ -77,7 +76,7 @@ func main() {
 	postgresInstance.Init(os.Getenv("POSTGRES_DBURL"))
 
 	// Perform auto-migration for multiple models
-	err = postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &merchant.Merchant{}, &merchant.UnverifiedMerchant{}, &product.Product{}, &product.Category{}, &transaction.Transaction{}, &transaction.Purchase{})
+	err := postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &merchant.Merchant{}, &merchant.UnverifiedMerchant{}, &product.Product{}, &product.Category{}, &transaction.Transaction{}, &transaction.Purchase{})
 	if err != nil {
 		log.Fatal().Msg(fmt.Sprintf("Failed to auto-migrate database: %s", err))
 	}
