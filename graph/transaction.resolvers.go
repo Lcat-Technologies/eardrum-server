@@ -6,31 +6,31 @@ package graph
 
 import (
 	"context"
-	"errors"
 
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/encrypt"
 	"github.com/GigaDesk/eardrum-server/graph/model"
+	"github.com/GigaDesk/eardrum-server/errors"
 )
 
 // CreateProductTransaction is the resolver for the createProductTransaction field.
 func (r *mutationResolver) CreateProductTransaction(ctx context.Context, input model.NewProductTransaction) (*model.Transaction, error) {
 	s, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 	if s == nil {
-		return nil, errors.New("access to create transaction denied!")
+		return nil, errors.NewUnauthorizedError("access to create transaction denied!")
 	}
 	role := s.GetRole()
 	if role != "merchant" {
-		return nil, errors.New("access to create transaction denied. Only available for registered and logged in merchants")
+		return nil, errors.NewUnauthorizedError("access to create transaction denied. Only available for registered and logged in merchants")
 	}
 	id, err := s.GetID()
 
 	if err != nil {
-		errors.New("could not access merchant's id!")
+		errors.ErrPersistenceFailure("could not access merchant's id!")
 	}
 
 	t, err := transaction.ProcessOrder(r.Sql.Db, uint(id), input, func(hashedPIN, PIN string) error {
@@ -61,19 +61,19 @@ func (r *mutationResolver) CreateProductTransaction(ctx context.Context, input m
 func (r *mutationResolver) CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error) {
 	s, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 	if s == nil {
-		return nil, errors.New("access to create transaction denied!")
+		return nil, errors.NewUnauthorizedError("access to create transaction denied!")
 	}
 	role := s.GetRole()
 	if role != "merchant" {
-		return nil, errors.New("access to create transaction denied. Only available for registered and logged in merchants")
+		return nil, errors.NewUnauthorizedError("access to create transaction denied. Only available for registered and logged in merchants")
 	}
 	id, err := s.GetID()
 
 	if err != nil {
-		errors.New("could not access merchant's id!")
+		errors.ErrPersistenceFailure("could not access merchant's id!")
 	}
 
 	t, err := transaction.ProcessTransaction(r.Sql.Db, uint(id), input, func(hashedPIN, PIN string) error {
@@ -105,7 +105,7 @@ func (r *transactionResolver) Purchases(ctx context.Context, obj *model.Transact
 	purchases, err := transaction.GetPurchasesForTransaction(r.Sql.Db, uint(obj.ID))
 
 	if err != nil {
-		return nil, errors.New("could not access transactions' purchases!")
+		return nil, err
 	}
 
 	var purchaseslist []*model.Purchase
@@ -130,7 +130,7 @@ func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) 
 	if err := r.Sql.Db.
 		Preload("User").
 		First(&transaction, obj.ID).Error; err != nil {
-		return nil, err
+		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 
 	user := &model.TransactionUser{
@@ -147,7 +147,7 @@ func (r *transactionResolver) Merchant(ctx context.Context, obj *model.Transacti
 	if err := r.Sql.Db.
 		Preload("Merchant").
 		First(&transaction, obj.ID).Error; err != nil {
-		return nil, err
+		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 
 	merchant := &model.TransactionMerchant{

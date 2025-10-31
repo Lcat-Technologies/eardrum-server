@@ -174,7 +174,7 @@ type ComplexityRoot struct {
 		QRCode                func(childComplexity int) int
 		Transactions          func(childComplexity int) int
 		UpdatedAt             func(childComplexity int) int
-		UserName              func(childComplexity int) int
+		Username              func(childComplexity int) int
 	}
 }
 
@@ -1019,12 +1019,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.UpdatedAt(childComplexity), true
 
-	case "User.user_name":
-		if e.complexity.User.UserName == nil {
+	case "User.username":
+		if e.complexity.User.Username == nil {
 			break
 		}
 
-		return e.complexity.User.UserName(childComplexity), true
+		return e.complexity.User.Username(childComplexity), true
 
 	}
 	return 0, false
@@ -4668,8 +4668,8 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "user_name":
-				return ec.fieldContext_User_user_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
 			case "phone_number":
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "mpesa_number":
@@ -4960,8 +4960,8 @@ func (ec *executionContext) fieldContext_Mutation_resetUserPassword(ctx context.
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "user_name":
-				return ec.fieldContext_User_user_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
 			case "phone_number":
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "mpesa_number":
@@ -5035,8 +5035,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUserPinCode(ctx context.
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "user_name":
-				return ec.fieldContext_User_user_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
 			case "phone_number":
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "mpesa_number":
@@ -5110,8 +5110,8 @@ func (ec *executionContext) fieldContext_Mutation_regenerateUserQrCode(_ context
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "user_name":
-				return ec.fieldContext_User_user_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
 			case "phone_number":
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "mpesa_number":
@@ -5930,8 +5930,8 @@ func (ec *executionContext) fieldContext_Query_getUser(_ context.Context, field 
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "user_name":
-				return ec.fieldContext_User_user_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
 			case "phone_number":
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "mpesa_number":
@@ -5991,8 +5991,8 @@ func (ec *executionContext) fieldContext_Query_getUsers(_ context.Context, field
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "user_name":
-				return ec.fieldContext_User_user_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
 			case "phone_number":
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "mpesa_number":
@@ -6817,8 +6817,8 @@ func (ec *executionContext) fieldContext_User_updatedAt(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _User_user_name(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_user_name(ctx, field)
+func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_username(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6831,7 +6831,7 @@ func (ec *executionContext) _User_user_name(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UserName, nil
+		return obj.Username, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6848,7 +6848,7 @@ func (ec *executionContext) _User_user_name(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_user_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_username(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -9554,20 +9554,20 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"user_name", "phone_number", "password", "mpesa_number"}
+	fieldsInOrder := [...]string{"username", "phone_number", "password", "mpesa_number"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "user_name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_name"))
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.UserName = data
+			it.Username = data
 		case "phone_number":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone_number"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -11401,8 +11401,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "user_name":
-			out.Values[i] = ec._User_user_name(ctx, field, obj)
+		case "username":
+			out.Values[i] = ec._User_username(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

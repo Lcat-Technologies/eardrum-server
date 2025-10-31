@@ -143,7 +143,7 @@ type NewProductTransaction struct {
 }
 
 type NewUser struct {
-	UserName    string  `json:"user_name"`
+	Username    string  `json:"username"`
 	PhoneNumber string  `json:"phone_number"`
 	Password    string  `json:"password"`
 	MpesaNumber *string `json:"mpesa_number,omitempty"`
@@ -282,7 +282,7 @@ type User struct {
 	ID                    int            `json:"id"`
 	CreatedAt             time.Time      `json:"createdAt"`
 	UpdatedAt             time.Time      `json:"updatedAt"`
-	UserName              string         `json:"user_name"`
+	Username              string         `json:"username"`
 	PhoneNumber           string         `json:"phone_number"`
 	MpesaNumber           *string        `json:"mpesa_number,omitempty"`
 	QRCode                string         `json:"qr_code"`
