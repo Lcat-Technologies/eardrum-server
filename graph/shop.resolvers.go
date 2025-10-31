@@ -6,8 +6,6 @@ package graph
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/GigaDesk/eardrum-postgres/merchant"
@@ -20,6 +18,7 @@ import (
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
+	"github.com/GigaDesk/eardrum-server/errors"
 )
 
 // Products is the resolver for the products field.
@@ -117,21 +116,21 @@ func (r *merchantResolver) Transactions(ctx context.Context, obj *model.Merchant
 func (r *mutationResolver) CreateMerchant(ctx context.Context, input model.NewMerchant) (*model.Merchant, error) {
 	//validate inputs
 	if err := input.Validate(); err != nil {
-		return nil, err
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 
 	//encrypt input password
 	encryptedpassword, err := encrypt.HashPassword(input.Password)
 	if err != nil {
 		log.Error().Str("password", input.Password).Str("path", "CreateMerchant").Msg(err.Error())
-		return nil, err
+		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 
 	input.Password = encryptedpassword
 
 	if err := phoneutils.SendOtp(input.PhoneNumber); err != nil {
 		log.Error().Str("phone_number", input.PhoneNumber).Str("path", "CreateMerchant").Msg(err.Error())
-		return nil, err
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 
 	merchant, err := merchant.CreateMerchant(input, r.Sql.Db)
@@ -157,21 +156,21 @@ func (r *mutationResolver) CreateMerchant(ctx context.Context, input model.NewMe
 func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber string, otp string) (*string, error) {
 	//Check the validity of the phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
-		return nil, err
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 
 	//Check the validity of an OTP code
 	if err := validate.ValidateOtp(otp); err != nil {
-		return nil, err
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 	merchant, err := merchant.VerifyMerchant(phoneNumber, r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("phone_number", phoneNumber).Str("path", "VerifyMerchant").Msg(err.Error())
-		return nil, errors.New("an unexpected error occurred while verifying the merchant account. please try again later or contact support")
+		return nil, err
 	}
 
 	credentials := jwt.TokenCredentials{
@@ -181,7 +180,7 @@ func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber strin
 	token, err := jwt.GenerateToken(credentials)
 	if err != nil {
 		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyMerchant").Msg(err.Error())
-		return nil, err
+		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyMerchant").Msg("merchant verified successfully!")
 
@@ -192,12 +191,12 @@ func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber strin
 func (r *mutationResolver) SendCode(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error) {
 	//validate phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
-		return nil, err
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 
 	if err := phoneutils.SendOtp(phoneNumber); err != nil {
 		log.Error().Str("phone_number", phoneNumber).Str("path", "SendCode").Msg(err.Error())
-		return nil, err
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 	sendcodestatus := &model.SendCodeStatus{
 		PhoneNumber: phoneNumber,
@@ -209,26 +208,26 @@ func (r *mutationResolver) SendCode(ctx context.Context, phoneNumber string) (*m
 // MerchantLogin is the resolver for the merchantLogin field.
 func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string, password string) (*string, error) {
 	// Find the merchant that matches the input phone number
-	shop, err := merchant.GetMerchantWithPhoneNumber(r.Sql.Db, phoneNumber)
+	merchant, err := merchant.GetMerchantWithPhoneNumber(r.Sql.Db, phoneNumber)
 
 	if err != nil {
 		log.Info().Str("phone_number", phoneNumber).Str("path", "MerchantLogin").Msg(err.Error())
 		return nil, err
 	}
 	//check if the password of the merchant matches the input password
-	if err := encrypt.CheckPassword(shop.GetPassword(), password); err != nil {
+	if err := encrypt.CheckPassword(merchant.GetPassword(), password); err != nil {
 		log.Info().Str("path", "MerchantLogin").Msg(err.Error())
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 
 	credentials := jwt.TokenCredentials{
-		Id:   strconv.Itoa(int(shop.GetID())),
+		Id:   strconv.Itoa(int(merchant.GetID())),
 		Role: "merchant",
 	}
 	token, err := jwt.GenerateToken(credentials)
 	if err != nil {
 		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "MerchantLogin").Msg(err.Error())
-		return nil, err
+		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "MerchantLogin").Msg("merchant logged in successfully!")
 	return &token, nil
@@ -238,7 +237,7 @@ func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string
 func (r *mutationResolver) ForgotMerchantPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error) {
 	//validate phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
-		return nil, err
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 
 	//check if the phone number exists in the database
@@ -251,16 +250,16 @@ func (r *mutationResolver) ForgotMerchantPassword(ctx context.Context, phoneNumb
 	}
 	//return an error if phone number exists in the unverified table
 	if phoneexists.Verified != true && phoneexists.Unverified == true {
-		return nil, errors.New("phone number has been registered but is yet to be verified")
+		return nil, errors.NewForbiddenError("phone number has been registered but is yet to be verified")
 	}
 	//return an error if phone number is neither registered nor verified
 	if phoneexists.Verified != true && phoneexists.Unverified != true {
-		return nil, errors.New("phone number does not exist")
+		return nil, errors.NewNotFoundError("phone number does not exist")
 	}
 	//send an OTP code to the phone number provided, return error if there is any
 	if err := phoneutils.SendOtp(phoneNumber); err != nil {
 		log.Error().Str("phone_number", phoneNumber).Str("path", "ForgotMerchantPassword").Msg(err.Error())
-		return nil, err
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 	//return status on success
 	sendcodestatus := &model.SendCodeStatus{
@@ -274,7 +273,7 @@ func (r *mutationResolver) ForgotMerchantPassword(ctx context.Context, phoneNumb
 func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error) {
 	//Check the validity of an OTP code
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 
 	merchant, err := merchant.GetMerchantWithPhoneNumber(r.Sql.Db, phoneNumber)
@@ -291,7 +290,7 @@ func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, pho
 	token, err := jwt.GenerateToken(credentials)
 	if err != nil {
 		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "RequestMerchantPasswordReset").Msg(err.Error())
-		return nil, err
+		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 	return &token, nil
 }
@@ -300,30 +299,30 @@ func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, pho
 func (r *mutationResolver) ResetMerchantPassword(ctx context.Context, newPassword string) (*model.Merchant, error) {
 	s, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 	if s == nil {
-		return nil, errors.New("access to reset merchant password denied!")
+		return nil, errors.NewUnauthorizedError("access to reset merchant password denied!")
 	}
 	role := s.GetRole()
 	if role != "merchant" {
-		return nil, errors.New("access to reset merchant password denied. Only available for registered and logged in merchants")
+		return nil, errors.NewUnauthorizedError("access to reset merchant password denied. Only available for registered and logged in merchants")
 	}
 	id, err := s.GetID()
 
 	if err != nil {
-		errors.New("could not access merchant's id!")
+		return nil, errors.ErrPersistenceFailure("could not access merchant's id!")
 	}
 
 	//validate inputs
 	if err := validate.ValidatePassword(newPassword); err != nil {
-		return nil, err
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 
 	encryptedpassword, err := encrypt.HashPassword(newPassword)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 
 	merchant, err := merchant.UpdatePassword(r.Sql.Db, encryptedpassword, id)
@@ -349,12 +348,12 @@ func (r *mutationResolver) ResetMerchantPassword(ctx context.Context, newPasswor
 func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*string, error) {
 	credentials, err := jwt.ParseToken(token)
 	if err != nil {
-		return nil, fmt.Errorf("access denied")
+		return nil, errors.NewUnauthorizedError("access denied")
 	}
 	token, error := jwt.GenerateToken(*credentials)
 	if error != nil {
 		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "RefreshToken").Msg(err.Error())
-		return nil, error
+		return nil, errors.ErrPersistenceFailure(error.Error())
 	}
 	return &token, nil
 }
@@ -363,33 +362,37 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*str
 func (r *mutationResolver) UpdateMerchantPinCode(ctx context.Context, newPincode string, otp string) (*model.Merchant, error) {
 	u, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 	if u == nil {
-		return nil, errors.New("access to Update merchant PinCode denied!")
+		return nil, errors.NewUnauthorizedError("access to Update merchant PinCode denied!")
 	}
 	role := u.GetRole()
 	if role != "merchant" {
-		return nil, errors.New("access to Update merchant PinCode denied. Only available for registered and logged in merchants")
+		return nil, errors.NewUnauthorizedError("access to Update merchant PinCode denied. Only available for registered and logged in merchants")
 	}
 	id, err := u.GetID()
 
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrPersistenceFailure("could not access merchant id")
 	}
 
 	user2, err := merchant.GetMerchantWithId(r.Sql.Db, id)
 
+	if err != nil {
+		return nil, err
+	}
+
 	err = phoneutils.CheckOtp(user2.GetPhoneNumber(), otp)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 
 	encryptedpincode, err := encrypt.HashPassword(newPincode)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 
 	user2, err = merchant.UpdatePinCode(r.Sql.Db, encryptedpincode, id)
@@ -416,25 +419,25 @@ func (r *mutationResolver) UpdateMerchantPinCode(ctx context.Context, newPincode
 func (r *queryResolver) GetMerchant(ctx context.Context) (*model.Merchant, error) {
 	user, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 	if user == nil {
-		return nil, errors.New("access to get merchant profile denied!")
+		return nil, errors.NewUnauthorizedError("access to get merchant profile denied!")
 	}
 	role := user.GetRole()
 	if role != "merchant" {
-		return nil, errors.New("access to get merchant profile denied. Only available for registered and logged in merchants.")
+		return nil, errors.NewUnauthorizedError("access to get merchant profile denied. Only available for registered and logged in merchants.")
 	}
 	id, err := user.GetID()
 
 	if err != nil {
-		errors.New("could not access merchant's id!")
+		errors.ErrPersistenceFailure("could not access merchant's id!")
 	}
 
 	s, err := merchant.GetMerchantWithId(r.Sql.Db, id)
 	if err != nil {
 		log.Error().Int("id", id).Str("path", "GetMerchant").Msg(err.Error())
-		return nil, errors.New("could not access merchant's profile!")
+		return nil, err
 	}
 	log.Info().Int("id", id).Str("role", role).Str("path", "GetMerchant").Msg("getting merchant's profile")
 
@@ -456,7 +459,7 @@ func (r *queryResolver) GetMerchants(ctx context.Context) ([]*model.Merchant, er
 
 	if err != nil {
 		log.Error().Str("path", "GetMerchants").Msg(err.Error())
-		return nil, errors.New("could not access merchants' profile!")
+		return nil, err
 	}
 
 	var merchantsprofile []*model.Merchant

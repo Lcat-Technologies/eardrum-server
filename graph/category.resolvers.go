@@ -6,12 +6,11 @@ package graph
 
 import (
 	"context"
-	"errors"
 
 	"github.com/GigaDesk/eardrum-postgres/product"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/graph/model"
-	"github.com/GigaDesk/eardrum-server/shutdown"
+	"github.com/GigaDesk/eardrum-server/errors"
 )
 
 // Products is the resolver for the products field.
@@ -21,7 +20,7 @@ func (r *categoryResolver) Products(ctx context.Context, obj *model.Category) ([
 	products, err := product.GetProductsForCategory(r.Sql.Db, &id)
 
 	if err != nil {
-		return nil, errors.New("could not access category's products!")
+		return nil, err
 	}
 
 	var productslist []*model.Product
@@ -42,31 +41,28 @@ func (r *categoryResolver) Products(ctx context.Context, obj *model.Category) ([
 
 // CreateCategory is the resolver for the createCategory field.
 func (r *mutationResolver) CreateCategory(ctx context.Context, input model.NewCategory) (*model.Category, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
+
 	s, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 	if s == nil {
-		return nil, errors.New("access to create shop product category denied!")
+		return nil, errors.NewUnauthorizedError("access to create shop product category denied!")
 	}
 	role := s.GetRole()
-	if role != "shop" {
-		return nil, errors.New("access to create shop product category denied. Only available for registered and logged in shops")
+	if role != "merchant" {
+		return nil, errors.NewUnauthorizedError("access to create merchant product category denied. Only available for registered and logged in merchants")
 	}
 	id, err := s.GetID()
 
 	if err != nil {
-		errors.New("could not access shop's id!")
+		errors.ErrPersistenceFailure("could not access merchant's id!")
 	}
 
 	category, err := product.CreateCategory(input, r.Sql.Db, uint(id))
 
 	if err != nil {
-		return nil, errors.New("error creating category")
+		return nil, err
 	}
 
 	c := model.Category{
@@ -82,26 +78,22 @@ func (r *mutationResolver) CreateCategory(ctx context.Context, input model.NewCa
 
 // AddProductToCategory is the resolver for the addProductToCategory field.
 func (r *mutationResolver) AddProductToCategory(ctx context.Context, productids []int, categoryid int) (*model.Category, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	s, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 	if s == nil {
-		return nil, errors.New("access to add shop product to category denied!")
+		return nil, errors.NewUnauthorizedError("access to add merchant product to category denied!")
 	}
 	role := s.GetRole()
-	if role != "shop" {
-		return nil, errors.New("access to add shop product to category denied. Only available for registered and logged in shops")
+	if role != "merchant" {
+		return nil, errors.NewUnauthorizedError("access to add merchant product to category denied. Only available for registered and logged in merchants")
 	}
 
 	id, err := s.GetID()
 
 	if err != nil {
-		errors.New("could not access shop's id!")
+		errors.ErrPersistenceFailure("could not access merchant's id!")
 	}
 
 	var productslist []uint
@@ -113,10 +105,14 @@ func (r *mutationResolver) AddProductToCategory(ctx context.Context, productids 
 	err = product.AddProductsToCategory(r.Sql.Db, uint(id), uint(categoryid), productslist)
 
 	if err != nil {
-		return nil, errors.New("error adding product to category")
+		return nil, err
 	}
 
 	category, err := product.GetCategoryWithId(r.Sql.Db, categoryid)
+
+	if err != nil {
+		return nil, err
+	}
 
 	c := model.Category{
 		ID:          int(category.GetID()),
@@ -131,31 +127,27 @@ func (r *mutationResolver) AddProductToCategory(ctx context.Context, productids 
 
 // DeleteCategory is the resolver for the deleteCategory field.
 func (r *mutationResolver) DeleteCategory(ctx context.Context, categoryid int) (bool, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return false, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	s, err := auth.ForContext(ctx)
 	if err != nil {
-		return false, err
+		return false, errors.NewUnauthorizedError(err.Error())
 	}
 	if s == nil {
-		return false, errors.New("access to delete shop product category denied!")
+		return false, errors.NewUnauthorizedError("access to delete merchant product category denied!")
 	}
 	role := s.GetRole()
-	if role != "shop" {
-		return false, errors.New("access to delete shop product category denied. Only available for registered and logged in shops")
+	if role != "merchant" {
+		return false, errors.NewUnauthorizedError("access to delete merchant product category denied. Only available for registered and logged in merchants")
 	}
 	id, err := s.GetID()
 
 	if err != nil {
-		errors.New("could not access shop's id!")
+		errors.ErrPersistenceFailure("could not access merchant's id!")
 	}
 
 	err = product.DeleteCategory(r.Sql.Db, uint(id), uint(categoryid))
 
 	if err != nil {
-		return false, errors.New("error deleting product category")
+		return false, err
 	}
 
 	return true, nil
@@ -163,26 +155,22 @@ func (r *mutationResolver) DeleteCategory(ctx context.Context, categoryid int) (
 
 // RemoveProductsFromCategory is the resolver for the removeProductsFromCategory field.
 func (r *mutationResolver) RemoveProductsFromCategory(ctx context.Context, productids []int, categoryid int) (*model.Category, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	s, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 	if s == nil {
-		return nil, errors.New("access to remove shop product to category denied!")
+		return nil, errors.NewUnauthorizedError("access to remove merchant product to category denied!")
 	}
 	role := s.GetRole()
-	if role != "shop" {
-		return nil, errors.New("access to remove shop product to category denied. Only available for registered and logged in shops")
+	if role != "merchant" {
+		return nil, errors.NewUnauthorizedError("access to remove merchant product to category denied. Only available for registered and logged in merchants")
 	}
 
 	id, err := s.GetID()
 
 	if err != nil {
-		errors.New("could not access shop's id!")
+		errors.ErrPersistenceFailure("could not access merchant's id!")
 	}
 
 	var productslist []uint
@@ -194,10 +182,14 @@ func (r *mutationResolver) RemoveProductsFromCategory(ctx context.Context, produ
 	err = product.RemoveProductsFromCategory(r.Sql.Db, uint(id), productslist)
 
 	if err != nil {
-		return nil, errors.New("error removing products from category")
+		return nil, err
 	}
 
 	category, err := product.GetCategoryWithId(r.Sql.Db, categoryid)
+
+	if err != nil{
+		return nil, err
+	}
 
 	c := model.Category{
 		ID:          int(category.GetID()),

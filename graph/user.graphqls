@@ -3,7 +3,7 @@ type User {
   id: Int!
   createdAt: Time!
   updatedAt: Time!
-  user_name: String!
+  username: String!
   phone_number: String!
   mpesa_number: String
   qr_code: String!
@@ -13,7 +13,7 @@ type User {
 
 #fields required for adding a new user to the system
 input NewUser {
-  user_name: String!
+  username: String!
   phone_number: String!
   password: String!
   mpesa_number: String
