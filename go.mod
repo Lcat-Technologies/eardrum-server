@@ -31,7 +31,7 @@ require (
 )
 
 require (
-	github.com/GigaDesk/eardrum-postgres v1.0.5
+	github.com/GigaDesk/eardrum-postgres v1.0.6
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
@@ -48,6 +48,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/joho/godotenv v1.5.1
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/neo4j/neo4j-go-driver/v5 v5.26.0 // indirect
