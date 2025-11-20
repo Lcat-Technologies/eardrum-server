@@ -54,6 +54,10 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Authorization struct {
+		Token func(childComplexity int) int
+	}
+
 	Category struct {
 		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
@@ -200,21 +204,21 @@ type MutationResolver interface {
 	UnblockProduct(ctx context.Context, input int) (bool, error)
 	RestoreProduct(ctx context.Context, input int) (bool, error)
 	CreateMerchant(ctx context.Context, input model.NewMerchant) (*model.Merchant, error)
-	VerifyMerchant(ctx context.Context, phoneNumber string, otp string) (*string, error)
+	VerifyMerchant(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error)
 	SendCode(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error)
-	MerchantLogin(ctx context.Context, phoneNumber string, password string) (*string, error)
+	MerchantLogin(ctx context.Context, phoneNumber string, password string) (*model.Authorization, error)
 	ForgotMerchantPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error)
-	RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error)
+	RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error)
 	ResetMerchantPassword(ctx context.Context, newPassword string) (*model.Merchant, error)
-	RefreshToken(ctx context.Context, token string) (*string, error)
+	RefreshToken(ctx context.Context, token string) (*model.Authorization, error)
 	UpdateMerchantPinCode(ctx context.Context, newPincode string) (*model.Merchant, error)
 	CreateProductTransaction(ctx context.Context, input model.NewProductTransaction) (*model.Transaction, error)
 	CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error)
 	CreateUser(ctx context.Context, input model.NewUser) (*model.User, error)
-	VerifyUser(ctx context.Context, phoneNumber string, otp string) (*string, error)
-	UserLogin(ctx context.Context, phoneNumber string, password string) (*string, error)
+	VerifyUser(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error)
+	UserLogin(ctx context.Context, phoneNumber string, password string) (*model.Authorization, error)
 	ForgotUserPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error)
-	RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error)
+	RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error)
 	ResetUserPassword(ctx context.Context, newPassword string) (*model.User, error)
 	UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error)
 	RegenerateUserQRCode(ctx context.Context) (*model.User, error)
@@ -261,6 +265,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Authorization.token":
+		if e.complexity.Authorization.Token == nil {
+			break
+		}
+
+		return e.complexity.Authorization.Token(childComplexity), true
 
 	case "Category.createdAt":
 		if e.complexity.Category.CreatedAt == nil {
@@ -2303,6 +2314,50 @@ func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _Authorization_token(ctx context.Context, field graphql.CollectedField, obj *model.Authorization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Authorization_token(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Token, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Authorization_token(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Authorization",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Category_id(ctx context.Context, field graphql.CollectedField, obj *model.Category) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Category_id(ctx, field)
 	if err != nil {
@@ -3989,11 +4044,14 @@ func (ec *executionContext) _Mutation_verifyMerchant(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_verifyMerchant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4003,7 +4061,11 @@ func (ec *executionContext) fieldContext_Mutation_verifyMerchant(ctx context.Con
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_Authorization_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
 	}
 	defer func() {
@@ -4099,11 +4161,14 @@ func (ec *executionContext) _Mutation_merchantLogin(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_merchantLogin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4113,7 +4178,11 @@ func (ec *executionContext) fieldContext_Mutation_merchantLogin(ctx context.Cont
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_Authorization_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
 	}
 	defer func() {
@@ -4209,11 +4278,14 @@ func (ec *executionContext) _Mutation_requestMerchantPasswordReset(ctx context.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_requestMerchantPasswordReset(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4223,7 +4295,11 @@ func (ec *executionContext) fieldContext_Mutation_requestMerchantPasswordReset(c
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_Authorization_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
 	}
 	defer func() {
@@ -4337,11 +4413,14 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4351,7 +4430,11 @@ func (ec *executionContext) fieldContext_Mutation_refreshToken(ctx context.Conte
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_Authorization_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
 	}
 	defer func() {
@@ -4683,11 +4766,14 @@ func (ec *executionContext) _Mutation_verifyUser(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_verifyUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4697,7 +4783,11 @@ func (ec *executionContext) fieldContext_Mutation_verifyUser(ctx context.Context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_Authorization_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
 	}
 	defer func() {
@@ -4735,11 +4825,14 @@ func (ec *executionContext) _Mutation_userLogin(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_userLogin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4749,7 +4842,11 @@ func (ec *executionContext) fieldContext_Mutation_userLogin(ctx context.Context,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_Authorization_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
 	}
 	defer func() {
@@ -4848,11 +4945,14 @@ func (ec *executionContext) _Mutation_requestUserPasswordReset(ctx context.Conte
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_requestUserPasswordReset(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4862,7 +4962,11 @@ func (ec *executionContext) fieldContext_Mutation_requestUserPasswordReset(ctx c
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_Authorization_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
 	}
 	defer func() {
@@ -10126,6 +10230,45 @@ func (ec *executionContext) unmarshalInputTimeFilterInput(ctx context.Context, o
 
 // region    **************************** object.gotpl ****************************
 
+var authorizationImplementors = []string{"Authorization"}
+
+func (ec *executionContext) _Authorization(ctx context.Context, sel ast.SelectionSet, obj *model.Authorization) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authorizationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Authorization")
+		case "token":
+			out.Values[i] = ec._Authorization_token(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var categoryImplementors = []string{"Category"}
 
 func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet, obj *model.Category) graphql.Marshaler {
@@ -10561,6 +10704,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_verifyMerchant(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "sendCode":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_sendCode(ctx, field)
@@ -10569,6 +10715,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_merchantLogin(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "forgotMerchantPassword":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_forgotMerchantPassword(ctx, field)
@@ -10577,6 +10726,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_requestMerchantPasswordReset(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "resetMerchantPassword":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_resetMerchantPassword(ctx, field)
@@ -10585,6 +10737,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_refreshToken(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "updateMerchantPinCode":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateMerchantPinCode(ctx, field)
@@ -10611,10 +10766,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_verifyUser(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "userLogin":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_userLogin(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "forgotUserPassword":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_forgotUserPassword(ctx, field)
@@ -10626,6 +10787,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_requestUserPasswordReset(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "resetUserPassword":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_resetUserPassword(ctx, field)
@@ -11768,6 +11932,20 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNAuthorization2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx context.Context, sel ast.SelectionSet, v model.Authorization) graphql.Marshaler {
+	return ec._Authorization(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx context.Context, sel ast.SelectionSet, v *model.Authorization) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Authorization(ctx, sel, v)
+}
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)

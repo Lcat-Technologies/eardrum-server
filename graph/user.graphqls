@@ -26,10 +26,10 @@ extend type Query {
 
 extend type Mutation {
   createUser(input: NewUser!): User!
-  verifyUser(phone_number: String!, otp: String!): String
-  userLogin(phone_number: String!, password: String!): String
+  verifyUser(phone_number: String!, otp: String!): Authorization!
+  userLogin(phone_number: String!, password: String!): Authorization!
   forgotUserPassword(phone_number: String!): SendCodeStatus!
-  requestUserPasswordReset(phone_number: String!, otp: String!): String
+  requestUserPasswordReset(phone_number: String!, otp: String!): Authorization!
   resetUserPassword(new_password: String!): User!
   updateUserPinCode(new_pincode: String!): User!
   regenerateUserQrCode: User!

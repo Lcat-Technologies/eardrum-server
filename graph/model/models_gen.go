@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+type Authorization struct {
+	Token string `json:"token"`
+}
+
 // Boolean Filter simple datatypes
 type BooleanFilterInput struct {
 	And     []*bool             `json:"and,omitempty"`

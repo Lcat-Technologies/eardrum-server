@@ -63,7 +63,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 }
 
 // VerifyUser is the resolver for the verifyUser field.
-func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, otp string) (*string, error) {
+func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
 	//Check the validity of the phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
 		return nil, errors.NewBadRequestError(err.Error())
@@ -94,11 +94,13 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 	}
 	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyUser").Msg("user verified successfully!")
 
-	return &token, nil
+	return &model.Authorization{
+		Token: token,
+	}, nil
 }
 
 // UserLogin is the resolver for the userLogin field.
-func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, password string) (*string, error) {
+func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, password string) (*model.Authorization, error) {
 	// Find the user that matches the input phone number
 	user, err := user.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
 
@@ -122,7 +124,9 @@ func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, pa
 		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "UserLogin").Msg("user logged in successfully!")
-	return &token, nil
+	return &model.Authorization{
+		Token: token,
+	}, nil
 }
 
 // ForgotUserPassword is the resolver for the forgotUserPassword field.
@@ -162,7 +166,7 @@ func (r *mutationResolver) ForgotUserPassword(ctx context.Context, phoneNumber s
 }
 
 // RequestUserPasswordReset is the resolver for the requestUserPasswordReset field.
-func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error) {
+func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
 	//Check the validity of an OTP code
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
 		return nil, errors.NewUnauthorizedError(err.Error())
@@ -184,7 +188,9 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "RequestUserPasswordReset").Msg(err.Error())
 		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
-	return &token, nil
+	return &model.Authorization{
+		Token: token,
+	}, nil
 }
 
 // ResetUserPassword is the resolver for the resetUserPassword field.

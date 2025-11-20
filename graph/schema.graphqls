@@ -16,3 +16,7 @@ type Dummy {
   id: Int!
   name: String!
 }
+
+type Authorization{
+  token: String!
+}

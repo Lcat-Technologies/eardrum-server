@@ -34,12 +34,12 @@ extend type Query {
 
 extend type Mutation {
   createMerchant(input: NewMerchant!): Merchant
-  verifyMerchant(phone_number: String!, otp: String!): String
+  verifyMerchant(phone_number: String!, otp: String!): Authorization!
   sendCode(phone_number: String!): SendCodeStatus
-  merchantLogin(phone_number: String!, password: String!): String
+  merchantLogin(phone_number: String!, password: String!): Authorization!
   forgotMerchantPassword(phone_number: String!): SendCodeStatus
-  requestMerchantPasswordReset(phone_number: String!, otp: String!): String
+  requestMerchantPasswordReset(phone_number: String!, otp: String!): Authorization!
   resetMerchantPassword(new_password: String!): Merchant
-  refreshToken(token: String!): String
+  refreshToken(token: String!): Authorization!
   updateMerchantPinCode(new_pincode: String!): Merchant!
 }

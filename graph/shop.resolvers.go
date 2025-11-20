@@ -14,10 +14,10 @@ import (
 	"github.com/GigaDesk/eardrum-prefix/validate"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/encrypt"
+	"github.com/GigaDesk/eardrum-server/errors"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
-	"github.com/GigaDesk/eardrum-server/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -153,7 +153,7 @@ func (r *mutationResolver) CreateMerchant(ctx context.Context, input model.NewMe
 }
 
 // VerifyMerchant is the resolver for the verifyMerchant field.
-func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber string, otp string) (*string, error) {
+func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
 	//Check the validity of the phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
 		return nil, errors.NewBadRequestError(err.Error())
@@ -184,7 +184,9 @@ func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber strin
 	}
 	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyMerchant").Msg("merchant verified successfully!")
 
-	return &token, nil
+	return &model.Authorization{
+		Token: token,
+	}, nil
 }
 
 // SendCode is the resolver for the sendCode field, it send an otp code to the provided phone number
@@ -206,7 +208,7 @@ func (r *mutationResolver) SendCode(ctx context.Context, phoneNumber string) (*m
 }
 
 // MerchantLogin is the resolver for the merchantLogin field.
-func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string, password string) (*string, error) {
+func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string, password string) (*model.Authorization, error) {
 	// Find the merchant that matches the input phone number
 	merchant, err := merchant.GetMerchantWithPhoneNumber(r.Sql.Db, phoneNumber)
 
@@ -230,7 +232,9 @@ func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string
 		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
 	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "MerchantLogin").Msg("merchant logged in successfully!")
-	return &token, nil
+	return &model.Authorization{
+		Token: token,
+	}, nil
 }
 
 // ForgotMerchantPassword is the resolver for the forgotMerchantPassword field.
@@ -270,7 +274,7 @@ func (r *mutationResolver) ForgotMerchantPassword(ctx context.Context, phoneNumb
 }
 
 // RequestMerchantPasswordReset is the resolver for the requestMerchantPasswordReset field.
-func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error) {
+func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
 	//Check the validity of an OTP code
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
 		return nil, errors.NewUnauthorizedError(err.Error())
@@ -292,7 +296,9 @@ func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, pho
 		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "RequestMerchantPasswordReset").Msg(err.Error())
 		return nil, errors.ErrPersistenceFailure(err.Error())
 	}
-	return &token, nil
+	return &model.Authorization{
+		Token: token,
+	}, nil
 }
 
 // ResetMerchantPassword is the resolver for the resetMerchantPassword field.
@@ -345,7 +351,7 @@ func (r *mutationResolver) ResetMerchantPassword(ctx context.Context, newPasswor
 }
 
 // RefreshToken is the resolver for the refreshToken field.
-func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*string, error) {
+func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*model.Authorization, error) {
 	credentials, err := jwt.ParseToken(token)
 	if err != nil {
 		return nil, errors.NewUnauthorizedError("access denied")
@@ -355,7 +361,9 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*str
 		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "RefreshToken").Msg(err.Error())
 		return nil, errors.ErrPersistenceFailure(error.Error())
 	}
-	return &token, nil
+	return &model.Authorization{
+		Token: token,
+	}, nil
 }
 
 // UpdateMerchantPinCode is the resolver for the updateMerchantPinCode field.
