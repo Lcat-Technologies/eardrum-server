@@ -108,7 +108,7 @@ type ComplexityRoot struct {
 		RestoreProduct               func(childComplexity int, input int) int
 		SendCode                     func(childComplexity int, phoneNumber string) int
 		UnblockProduct               func(childComplexity int, input int) int
-		UpdateMerchantPinCode        func(childComplexity int, newPincode string, otp string) int
+		UpdateMerchantPinCode        func(childComplexity int, newPincode string) int
 		UpdateUserPinCode            func(childComplexity int, newPincode string) int
 		UserLogin                    func(childComplexity int, phoneNumber string, password string) int
 		VerifyMerchant               func(childComplexity int, phoneNumber string, otp string) int
@@ -207,7 +207,7 @@ type MutationResolver interface {
 	RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error)
 	ResetMerchantPassword(ctx context.Context, newPassword string) (*model.Merchant, error)
 	RefreshToken(ctx context.Context, token string) (*string, error)
-	UpdateMerchantPinCode(ctx context.Context, newPincode string, otp string) (*model.Merchant, error)
+	UpdateMerchantPinCode(ctx context.Context, newPincode string) (*model.Merchant, error)
 	CreateProductTransaction(ctx context.Context, input model.NewProductTransaction) (*model.Transaction, error)
 	CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error)
 	CreateUser(ctx context.Context, input model.NewUser) (*model.User, error)
@@ -705,7 +705,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateMerchantPinCode(childComplexity, args["new_pincode"].(string), args["otp"].(string)), true
+		return e.complexity.Mutation.UpdateMerchantPinCode(childComplexity, args["new_pincode"].(string)), true
 
 	case "Mutation.updateUserPinCode":
 		if e.complexity.Mutation.UpdateUserPinCode == nil {
@@ -2042,11 +2042,6 @@ func (ec *executionContext) field_Mutation_updateMerchantPinCode_args(ctx contex
 		return nil, err
 	}
 	args["new_pincode"] = arg0
-	arg1, err := ec.field_Mutation_updateMerchantPinCode_argsOtp(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["otp"] = arg1
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_updateMerchantPinCode_argsNewPincode(
@@ -2055,19 +2050,6 @@ func (ec *executionContext) field_Mutation_updateMerchantPinCode_argsNewPincode(
 ) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("new_pincode"))
 	if tmp, ok := rawArgs["new_pincode"]; ok {
-		return ec.unmarshalNString2string(ctx, tmp)
-	}
-
-	var zeroVal string
-	return zeroVal, nil
-}
-
-func (ec *executionContext) field_Mutation_updateMerchantPinCode_argsOtp(
-	ctx context.Context,
-	rawArgs map[string]interface{},
-) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
-	if tmp, ok := rawArgs["otp"]; ok {
 		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
@@ -4400,7 +4382,7 @@ func (ec *executionContext) _Mutation_updateMerchantPinCode(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateMerchantPinCode(rctx, fc.Args["new_pincode"].(string), fc.Args["otp"].(string))
+		return ec.resolvers.Mutation().UpdateMerchantPinCode(rctx, fc.Args["new_pincode"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

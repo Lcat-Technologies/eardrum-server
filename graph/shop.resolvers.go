@@ -359,7 +359,7 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*str
 }
 
 // UpdateMerchantPinCode is the resolver for the updateMerchantPinCode field.
-func (r *mutationResolver) UpdateMerchantPinCode(ctx context.Context, newPincode string, otp string) (*model.Merchant, error) {
+func (r *mutationResolver) UpdateMerchantPinCode(ctx context.Context, newPincode string) (*model.Merchant, error) {
 	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, errors.NewUnauthorizedError(err.Error())
@@ -381,12 +381,6 @@ func (r *mutationResolver) UpdateMerchantPinCode(ctx context.Context, newPincode
 
 	if err != nil {
 		return nil, err
-	}
-
-	err = phoneutils.CheckOtp(user2.GetPhoneNumber(), otp)
-
-	if err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 
 	encryptedpincode, err := encrypt.HashPassword(newPincode)
