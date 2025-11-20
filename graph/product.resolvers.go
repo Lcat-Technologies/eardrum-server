@@ -94,7 +94,6 @@ func (r *mutationResolver) EditProductPrice(ctx context.Context, input model.Edi
 
 // BlockProduct is the resolver for the blockProduct field.
 func (r *mutationResolver) BlockProduct(ctx context.Context, input int) (bool, error) {
-
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return false, errors.NewUnauthorizedError(err.Error())
@@ -123,7 +122,6 @@ func (r *mutationResolver) BlockProduct(ctx context.Context, input int) (bool, e
 
 // DeleteProduct is the resolver for the deleteProduct field.
 func (r *mutationResolver) DeleteProduct(ctx context.Context, input int) (bool, error) {
-
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return false, errors.NewUnauthorizedError(err.Error())
@@ -152,7 +150,6 @@ func (r *mutationResolver) DeleteProduct(ctx context.Context, input int) (bool, 
 
 // UnblockProduct is the resolver for the unblockProduct field.
 func (r *mutationResolver) UnblockProduct(ctx context.Context, input int) (bool, error) {
-	
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return false, errors.NewUnauthorizedError(err.Error())
@@ -181,7 +178,6 @@ func (r *mutationResolver) UnblockProduct(ctx context.Context, input int) (bool,
 
 // RestoreProduct is the resolver for the restoreProduct field.
 func (r *mutationResolver) RestoreProduct(ctx context.Context, input int) (bool, error) {
-
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return false, errors.NewUnauthorizedError(err.Error())
@@ -210,7 +206,6 @@ func (r *mutationResolver) RestoreProduct(ctx context.Context, input int) (bool,
 
 // Purchases is the resolver for the purchases field.
 func (r *productResolver) Purchases(ctx context.Context, obj *model.Product) ([]*model.Purchase, error) {
-
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, errors.NewUnauthorizedError(err.Error())

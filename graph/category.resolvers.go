@@ -41,7 +41,6 @@ func (r *categoryResolver) Products(ctx context.Context, obj *model.Category) ([
 
 // CreateCategory is the resolver for the createCategory field.
 func (r *mutationResolver) CreateCategory(ctx context.Context, input model.NewCategory) (*model.Category, error) {
-
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, errors.NewUnauthorizedError(err.Error())
@@ -187,7 +186,7 @@ func (r *mutationResolver) RemoveProductsFromCategory(ctx context.Context, produ
 
 	category, err := product.GetCategoryWithId(r.Sql.Db, categoryid)
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 

@@ -16,8 +16,8 @@ import (
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
-	"github.com/rs/zerolog/log"
 	"github.com/GigaDesk/eardrum-server/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -208,7 +208,7 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 
 	//validate inputs
 	if err := validate.ValidatePassword(newPassword); err != nil {
-		return nil,  errors.NewBadRequestError(err.Error())
+		return nil, errors.NewBadRequestError(err.Error())
 	}
 
 	encryptedpassword, err := encrypt.HashPassword(newPassword)
@@ -238,7 +238,7 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 }
 
 // UpdateUserPinCode is the resolver for the updateUserPinCode field.
-func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode string, otp string) (*model.User, error) {
+func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error) {
 	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, errors.NewUnauthorizedError(err.Error())
@@ -253,19 +253,13 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 	id, err := u.GetID()
 
 	if err != nil {
-		return nil , errors.ErrPersistenceFailure("could not access user's id!")
+		return nil, errors.ErrPersistenceFailure("could not access user's id!")
 	}
 
 	user2, err := user.GetUserWithId(r.Sql.Db, id)
 
 	if err != nil {
 		return nil, err
-	}
-
-	err = phoneutils.CheckOtp(user2.GetPhoneNumber(), otp)
-
-	if err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 
 	encryptedpincode, err := encrypt.HashPassword(newPincode)

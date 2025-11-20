@@ -8,8 +8,8 @@ import (
 	"context"
 
 	"github.com/GigaDesk/eardrum-postgres/transaction"
-	"github.com/GigaDesk/eardrum-server/errors"
 	"github.com/GigaDesk/eardrum-server/graph/model"
+	"github.com/GigaDesk/eardrum-server/errors"
 )
 
 // Product is the resolver for the product field.

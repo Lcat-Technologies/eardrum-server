@@ -17,8 +17,8 @@ import (
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
-	"github.com/rs/zerolog/log"
 	"github.com/GigaDesk/eardrum-server/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // Products is the resolver for the products field.
