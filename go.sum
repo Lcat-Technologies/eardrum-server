@@ -6,8 +6,12 @@ github.com/GigaDesk/eardrum-graph v1.0.3 h1:rjIU4ktiavUHrRXo8L4X9fCN1tskoR4YE8qr
 github.com/GigaDesk/eardrum-graph v1.0.3/go.mod h1:HJY4TqlpsDIZPfYQMx4w49tIiFXOIIG3IU0uUK2srnM=
 github.com/GigaDesk/eardrum-interfaces v1.2.0 h1:fAOX1LAnq5SzMTldpxz17c2IcUbHs6w14aFRYBPisOQ=
 github.com/GigaDesk/eardrum-interfaces v1.2.0/go.mod h1:JdB9+C5wRwNXu15R2wlenwhT1UzbRkQknSKgyptTL8Q=
+github.com/GigaDesk/eardrum-interfaces v1.2.1 h1:Pv5coI8cotGyOhJHxRart9WFCY0g4/DKHI1xffnwH80=
+github.com/GigaDesk/eardrum-interfaces v1.2.1/go.mod h1:JdB9+C5wRwNXu15R2wlenwhT1UzbRkQknSKgyptTL8Q=
 github.com/GigaDesk/eardrum-postgres v1.0.6 h1:aM5EPMmwFz9WuanpCWAm9c2uRFHX3FX1fy5iHNwMObU=
 github.com/GigaDesk/eardrum-postgres v1.0.6/go.mod h1:o4jdnYyw4eh6EQ+AkGuyXRJDkjTS1QOrh2qH4ZqYtx8=
+github.com/GigaDesk/eardrum-postgres v1.0.7 h1:Tpf4JIDRj7cV48s8JmV0uxNP4YITbY+ZdhkIZ/5yZ0k=
+github.com/GigaDesk/eardrum-postgres v1.0.7/go.mod h1:FvSrEekKdJdqi3sKqW+1nK+mwZhjDh6RZ365PRzcS3I=
 github.com/GigaDesk/eardrum-prefix v1.0.2 h1:GsLn7fuQ+N8UehBKbS0ZdcAzudEJ4+Gc1gSrDoziLx0=
 github.com/GigaDesk/eardrum-prefix v1.0.2/go.mod h1:5Z5DptQSGuVsOQ16jKNtmSu8wQ8btEoH/o1zwbpP6hA=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=

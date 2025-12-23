@@ -2,18 +2,11 @@ package model
 
 import (
 	"github.com/GigaDesk/eardrum-interfaces/transaction"
-	"github.com/google/uuid"
 )
 
 // returns the transaction's universal unique identifier
-func (n NewProductTransaction) GetUUID() uuid.UUID {
-	// Parse the string field into a uuid.UUID type.
-	parsedUUID, err := uuid.Parse(n.QRCode)
-	if err != nil {
-		// Return zero value if the string is not a valid UUID format.
-		return uuid.UUID{}
-	}
-	return parsedUUID
+func (n NewProductTransaction) GetUUID() string {
+	return n.QRCode
 }
 
 // returns the transaction's pin code
@@ -32,14 +25,8 @@ func (n NewProductTransaction) GetPurchasedProducts() []transaction.PurchasedPro
 }
 
 // returns the transaction's universal unique identifier
-func (n NewAmountTransaction) GetUUID() uuid.UUID {
-	// Parse the string field into a uuid.UUID type.
-	parsedUUID, err := uuid.Parse(n.QRCode)
-	if err != nil {
-		// Return zero value if the string is not a valid UUID format.
-		return uuid.UUID{}
-	}
-	return parsedUUID
+func (n NewAmountTransaction) GetUUID() string {
+	return n.QRCode
 }
 
 // returns the transaction's pin code
