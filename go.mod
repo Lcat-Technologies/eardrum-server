@@ -16,14 +16,14 @@ require (
 )
 
 require (
+	github.com/AlekSi/pointer v1.2.0
 	github.com/GigaDesk/eardrum-graph v1.0.3
-	github.com/GigaDesk/eardrum-interfaces v1.1.3
+	github.com/GigaDesk/eardrum-interfaces v1.2.1
 	github.com/GigaDesk/eardrum-prefix v1.0.2
 	github.com/rs/cors v1.11.1
 )
 
 require (
-	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
@@ -31,7 +31,7 @@ require (
 )
 
 require (
-	github.com/GigaDesk/eardrum-postgres v1.0.3
+	github.com/GigaDesk/eardrum-postgres v1.0.8
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect

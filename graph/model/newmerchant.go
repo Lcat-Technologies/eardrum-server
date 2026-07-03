@@ -5,8 +5,8 @@ import (
 	"github.com/GigaDesk/eardrum-prefix/validate"
 )
 
-// validates NewUser input data
-func (n NewUser) Validate() error {
+// validates NewMerchant input data
+func (n NewMerchant) Validate() error {
 
 	//validate name
 	if err := validate.ValidateName(n.Username); err != nil {
@@ -20,8 +20,8 @@ func (n NewUser) Validate() error {
 
 	//validate phone number in kenyan conditions
 	if err := validate.ValidateKenyanPhoneNumber(pointer.GetString(n.MpesaNumber)); err != nil {
-		if n.MpesaNumber == nil {
-			return nil
+		if n.MpesaNumber == nil{
+        return nil
 		}
 		return err
 	}
@@ -34,22 +34,22 @@ func (n NewUser) Validate() error {
 	return nil
 }
 
-// returns the user's name
-func (n NewUser) GetUserName() string {
+// returns the merchant's name
+func (n NewMerchant) GetUserName() string {
 	return n.Username
 }
 
-// returns the user's phone number
-func (n NewUser) GetPhoneNumber() string {
+// returns the merchant's phone number
+func (n NewMerchant) GetPhoneNumber() string {
 	return n.PhoneNumber
 }
 
-// returns the user's password
-func (n NewUser) GetPassword() string {
+// returns the merchant's password
+func (n NewMerchant) GetPassword() string {
 	return n.Password
 }
 
-// returns the user's mpesa number
-func (n NewUser) GetMpesaNumber() *string {
+// returns the merchant's mpesa number
+func (n NewMerchant) GetMpesaNumber() *string {
 	return n.MpesaNumber
 }

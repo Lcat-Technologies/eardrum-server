@@ -1,11 +1,11 @@
-#returns a shop's data
-type Shop {
+#returns a merchant's data
+type Merchant {
   id: Int!
   createdAt: Time!
   updatedAt: Time!
-  name: String!
+  username: String!
   phone_number: String!
-  mpesa_number: String!
+  mpesa_number: String
   account_balance_in_cents: Int!
   products: [Product!]
   categories: [Category!]
@@ -13,12 +13,12 @@ type Shop {
   transactions: [Transaction!]
 }
 
-#fields required for adding a new shop to the system
-input NewShop {
-  name: String!
+#fields required for adding a new merchant to the system
+input NewMerchant {
+  username: String!
   phone_number: String!
   password: String!
-  mpesa_number: String!
+  mpesa_number: String
 }
 
 #returns the status of sending an OTP code to a specific number
@@ -28,17 +28,18 @@ type SendCodeStatus {
 }
 
 extend type Query {
-  getShop: Shop
-  getShops: [Shop!]
+  getMerchant: Merchant
+  getMerchants: [Merchant!]
 }
 
 extend type Mutation {
-  createShop(input: NewShop!): Shop
-  verifyShop(phone_number: String!, otp: String!): String
+  createMerchant(input: NewMerchant!): Merchant
+  verifyMerchant(phone_number: String!, otp: String!): Authorization!
   sendCode(phone_number: String!): SendCodeStatus
-  shopLogin(phone_number: String!, password: String!): String
-  forgotShopPassword(phone_number: String!): SendCodeStatus
-  requestShopPasswordReset(phone_number: String!, otp: String!): String
-  resetShopPassword(new_password: String!): Shop
-  refreshToken(token: String!): String
+  merchantLogin(phone_number: String!, password: String!): Authorization!
+  forgotMerchantPassword(phone_number: String!): SendCodeStatus
+  requestMerchantPasswordReset(phone_number: String!, otp: String!): Authorization!
+  resetMerchantPassword(new_password: String!): Merchant
+  refreshToken(token: String!): Authorization!
+  updateMerchantPinCode(new_pincode: String!): Merchant!
 }

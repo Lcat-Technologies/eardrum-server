@@ -9,6 +9,7 @@ import (
 
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-server/graph/model"
+	"github.com/GigaDesk/eardrum-server/errors"
 )
 
 // Product is the resolver for the product field.
@@ -19,7 +20,7 @@ func (r *purchaseResolver) Product(ctx context.Context, obj *model.Purchase) (*m
 	if err := r.Sql.Db.
 		Preload("Product").
 		First(&purchase, obj.ID).Error; err != nil {
-		return nil, err
+		return nil, errors.NewUnauthorizedError(err.Error())
 	}
 
 	product := &model.Product{
