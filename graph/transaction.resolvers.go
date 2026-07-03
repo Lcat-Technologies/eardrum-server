@@ -6,56 +6,13 @@ package graph
 
 import (
 	"context"
+	"errors"
 
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/encrypt"
 	"github.com/GigaDesk/eardrum-server/graph/model"
-	"github.com/GigaDesk/eardrum-server/errors"
 )
-
-// CreateProductTransaction is the resolver for the createProductTransaction field.
-func (r *mutationResolver) CreateProductTransaction(ctx context.Context, input model.NewProductTransaction) (*model.Transaction, error) {
-	s, err := auth.ForContext(ctx)
-	if err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
-	}
-	if s == nil {
-		return nil, errors.NewUnauthorizedError("access to create transaction denied!")
-	}
-	role := s.GetRole()
-	if role != "merchant" {
-		return nil, errors.NewUnauthorizedError("access to create transaction denied. Only available for registered and logged in merchants")
-	}
-	id, err := s.GetID()
-
-	if err != nil {
-		errors.ErrPersistenceFailure("could not access merchant's id!")
-	}
-
-	t, err := transaction.ProcessOrder(r.Sql.Db, uint(id), input, func(hashedPIN, PIN string) error {
-		err := encrypt.CheckPassword(hashedPIN, PIN)
-
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	p := model.Transaction{
-		ID:                     int(t.GetID()),
-		CreatedAt:              t.GetCreatedAt(),
-		UpdatedAt:              t.GetUpdatedAt(),
-		TotalAmountInCents:     int(t.GetTotalAmountInCents()),
-		TransactionCostInCents: int(t.GetTransactionCostInCents()),
-	}
-
-	return &p, nil
-}
 
 // CreateAmountTransaction is the resolver for the createAmountTransaction field.
 func (r *mutationResolver) CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error) {
@@ -98,28 +55,6 @@ func (r *mutationResolver) CreateAmountTransaction(ctx context.Context, input mo
 	}
 
 	return &p, nil
-}
-
-// Purchases is the resolver for the purchases field.
-func (r *transactionResolver) Purchases(ctx context.Context, obj *model.Transaction) ([]*model.Purchase, error) {
-	purchases, err := transaction.GetPurchasesForTransaction(r.Sql.Db, uint(obj.ID))
-
-	if err != nil {
-		return nil, err
-	}
-
-	var purchaseslist []*model.Purchase
-
-	for _, purchase := range purchases {
-		p := &model.Purchase{
-			ID:                 int(purchase.GetID()),
-			UnitsBought:        purchase.GetUnitsBought(),
-			TotalAmountInCents: int(purchase.GetTotalAmountInCents()),
-		}
-		purchaseslist = append(purchaseslist, p)
-	}
-
-	return purchaseslist, nil
 }
 
 // User is the resolver for the user field.

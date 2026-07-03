@@ -1,7 +1,0 @@
-#returns a purchase's data
-type Purchase {
-  id: Int!
-  units_bought: Int!
-  total_amount_in_cents: Int!
-  product: Product!
-}

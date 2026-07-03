@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/GigaDesk/eardrum-postgres/transaction"
@@ -16,7 +17,6 @@ import (
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
-	"github.com/GigaDesk/eardrum-server/errors"
 	"github.com/rs/zerolog/log"
 )
 

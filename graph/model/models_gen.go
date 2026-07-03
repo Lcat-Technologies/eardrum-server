@@ -20,23 +20,9 @@ type BooleanFilterInput struct {
 	NotNull *bool               `json:"notNull,omitempty"`
 }
 
-type Category struct {
-	ID          int        `json:"id"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Products    []*Product `json:"products,omitempty"`
-}
-
 type Dummy struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
-}
-
-type EditProductPriceInput struct {
-	ID                     int `json:"id"`
-	NewPricePerUnitInCents int `json:"newPricePerUnitInCents"`
 }
 
 // Filter between start and end (start > value < end)
@@ -108,9 +94,6 @@ type Merchant struct {
 	PhoneNumber           string         `json:"phone_number"`
 	MpesaNumber           *string        `json:"mpesa_number,omitempty"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
-	Products              []*Product     `json:"products,omitempty"`
-	Categories            []*Category    `json:"categories,omitempty"`
-	Category              *Category      `json:"category,omitempty"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
 
@@ -123,11 +106,6 @@ type NewAmountTransaction struct {
 	PinCode       string `json:"pin_code"`
 }
 
-type NewCategory struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
 type NewMerchant struct {
 	Username    string  `json:"username"`
 	PhoneNumber string  `json:"phone_number"`
@@ -135,44 +113,11 @@ type NewMerchant struct {
 	MpesaNumber *string `json:"mpesa_number,omitempty"`
 }
 
-type NewProduct struct {
-	Name                string `json:"name"`
-	PricePerUnitInCents int    `json:"pricePerUnitInCents"`
-}
-
-type NewProductTransaction struct {
-	PurchasedProducts []*PurchasedProduct `json:"purchased_products"`
-	QRCode            string              `json:"qr_code"`
-	PinCode           string              `json:"pin_code"`
-}
-
 type NewUser struct {
 	Username    string  `json:"username"`
 	PhoneNumber string  `json:"phone_number"`
 	Password    string  `json:"password"`
 	MpesaNumber *string `json:"mpesa_number,omitempty"`
-}
-
-type Product struct {
-	ID                  int         `json:"id"`
-	CreatedAt           time.Time   `json:"createdAt"`
-	UpdatedAt           time.Time   `json:"updatedAt"`
-	Name                string      `json:"name"`
-	PricePerUnitInCents int         `json:"pricePerUnitInCents"`
-	Purchases           []*Purchase `json:"purchases,omitempty"`
-	Category            *Category   `json:"category"`
-}
-
-type Purchase struct {
-	ID                 int      `json:"id"`
-	UnitsBought        int      `json:"units_bought"`
-	TotalAmountInCents int      `json:"total_amount_in_cents"`
-	Product            *Product `json:"product"`
-}
-
-type PurchasedProduct struct {
-	ProductID   int `json:"product_id"`
-	UnitsBought int `json:"units_bought"`
 }
 
 type Query struct {
@@ -269,7 +214,6 @@ type Transaction struct {
 	UpdatedAt              time.Time            `json:"updatedAt"`
 	TotalAmountInCents     int                  `json:"total_amount_in_cents"`
 	TransactionCostInCents int                  `json:"transaction_cost_in_cents"`
-	Purchases              []*Purchase          `json:"purchases"`
 	User                   *TransactionUser     `json:"user"`
 	Merchant               *TransactionMerchant `json:"merchant"`
 }
