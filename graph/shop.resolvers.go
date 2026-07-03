@@ -6,87 +6,19 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/GigaDesk/eardrum-postgres/merchant"
-	"github.com/GigaDesk/eardrum-postgres/product"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-prefix/validate"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/encrypt"
-	"github.com/GigaDesk/eardrum-server/errors"
 	"github.com/GigaDesk/eardrum-server/graph/model"
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
 )
-
-// Products is the resolver for the products field.
-func (r *merchantResolver) Products(ctx context.Context, obj *model.Merchant) ([]*model.Product, error) {
-	products, err := product.GetProductsForMerchant(r.Sql.Db, uint(obj.ID))
-
-	if err != nil {
-		return nil, err
-	}
-
-	var productslist []*model.Product
-
-	for _, product := range products {
-		t := &model.Product{
-			ID:                  int(product.GetID()),
-			CreatedAt:           product.GetCreatedAt(),
-			UpdatedAt:           product.GetUpdatedAt(),
-			Name:                product.GetName(),
-			PricePerUnitInCents: int(product.GetPricePerUnitInCents()),
-		}
-		productslist = append(productslist, t)
-	}
-
-	return productslist, nil
-}
-
-// Categories is the resolver for the categories field.
-func (r *merchantResolver) Categories(ctx context.Context, obj *model.Merchant) ([]*model.Category, error) {
-	categories, err := product.GetCategoriesForMerchant(r.Sql.Db, uint(obj.ID))
-
-	if err != nil {
-		return nil, err
-	}
-
-	var categorylist []*model.Category
-
-	for _, category := range categories {
-		c := &model.Category{
-			ID:          int(category.GetID()),
-			CreatedAt:   category.GetCreatedAt(),
-			UpdatedAt:   category.GetUpdatedAt(),
-			Name:        category.GetName(),
-			Description: category.GetDescription(),
-		}
-		categorylist = append(categorylist, c)
-	}
-
-	return categorylist, nil
-}
-
-// Category is the resolver for the category field.
-func (r *merchantResolver) Category(ctx context.Context, obj *model.Merchant, id int) (*model.Category, error) {
-	category, err := product.GetCategoryWithId(r.Sql.Db, id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	c := model.Category{
-		ID:          int(category.GetID()),
-		CreatedAt:   category.GetCreatedAt(),
-		UpdatedAt:   category.GetUpdatedAt(),
-		Name:        category.GetName(),
-		Description: category.GetDescription(),
-	}
-
-	return &c, nil
-}
 
 // Transactions is the resolver for the transactions field.
 func (r *merchantResolver) Transactions(ctx context.Context, obj *model.Merchant) ([]*model.Transaction, error) {

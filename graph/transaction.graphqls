@@ -13,22 +13,10 @@ type Transaction {
   updatedAt: Time!
   total_amount_in_cents: Int!
   transaction_cost_in_cents: Int!
-  purchases: [Purchase!]!
   user: TransactionUser!
   merchant: TransactionMerchant!
 }
 
-input PurchasedProduct {
-   product_id: Int!
-   units_bought: Int!
-}
-
-#fields required for adding a new product based transaction to the system
-input NewProductTransaction {
-  purchased_products: [PurchasedProduct!]!
-  qr_code: String!
-  pin_code: String!
-}
 
 #fields required for adding a new amount based transaction to the system
 input NewAmountTransaction {
@@ -38,6 +26,5 @@ input NewAmountTransaction {
 }
 
 extend type Mutation {
-  createProductTransaction(input: NewProductTransaction!): Transaction
   createAmountTransaction(input: NewAmountTransaction!): Transaction
 }

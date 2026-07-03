@@ -97,26 +97,10 @@ models:
       - github.com/99designs/gqlgen/graphql.Int32
   Merchant:
     fields:
-      products:
-        resolver: true
-      categories:
-        resolver: true
       transactions:
-        resolver: true
-      category:
-        resolver: true
-  Category:
-    fields:
-      products:
-        resolver: true
-  Purchase:
-    fields:
-      product:
         resolver: true
   Transaction:
     fields:
-      purchases:
-        resolver: true
       merchant:
         resolver: true
       user:
@@ -124,10 +108,4 @@ models:
   User:
     fields:
       transactions:
-        resolver: true
-  Product:
-    fields:
-      purchases:
-        resolver: true
-      category:
         resolver: true
