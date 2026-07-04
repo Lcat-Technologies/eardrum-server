@@ -12,6 +12,8 @@ github.com/GigaDesk/eardrum-postgres v1.0.9 h1:bGxeHBEDgSqTk4SYOfWPzWA7EZ/B+ybMh
 github.com/GigaDesk/eardrum-postgres v1.0.9/go.mod h1:jo5hpZqvf18nzvy1UOwHtWD+/YSQ2VVPjoNjDq7wh7A=
 github.com/GigaDesk/eardrum-prefix v1.0.2 h1:GsLn7fuQ+N8UehBKbS0ZdcAzudEJ4+Gc1gSrDoziLx0=
 github.com/GigaDesk/eardrum-prefix v1.0.2/go.mod h1:5Z5DptQSGuVsOQ16jKNtmSu8wQ8btEoH/o1zwbpP6hA=
+github.com/GigaDesk/eardrum-prefix v1.0.3 h1:6KbytakCbPOzDR+z/gXFCABhOCym4LnCZoTloX6V9nQ=
+github.com/GigaDesk/eardrum-prefix v1.0.3/go.mod h1:huVvrEE5UZi75nH5g39jzY3Bn85aAGeN044bnUqW6Ac=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver/v3 v3.2.0/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
