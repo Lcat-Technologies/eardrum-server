@@ -18,20 +18,21 @@ require (
 require (
 	github.com/AlekSi/pointer v1.2.0
 	github.com/GigaDesk/eardrum-graph v1.0.3
-	github.com/GigaDesk/eardrum-interfaces v1.2.1
+	github.com/GigaDesk/eardrum-interfaces v1.2.7
 	github.com/GigaDesk/eardrum-prefix v1.0.2
 	github.com/rs/cors v1.11.1
 )
 
 require (
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/lib/pq v1.12.3 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 )
 
 require (
-	github.com/GigaDesk/eardrum-postgres v1.0.8
+	github.com/GigaDesk/eardrum-postgres v1.0.9
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
@@ -52,7 +53,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/neo4j/neo4j-go-driver/v5 v5.26.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rs/zerolog v1.34.0
+	github.com/rs/zerolog v1.35.1
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
