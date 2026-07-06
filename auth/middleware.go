@@ -2,9 +2,9 @@ package auth
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
 )
@@ -46,10 +46,12 @@ func Middleware() func(http.Handler) http.Handler {
 }
 
 // ForContext finds the token credentials from the context. REQUIRES Middleware to have run.
-func ForContext(ctx context.Context) (*jwt.TokenCredentials, error){
+func ForContext(ctx context.Context) (*jwt.TokenCredentials, error) {
 	err := ctx.Value("error")
-	if err!=nil{
-		return nil, errors.New("Invalid Authentication Token")
+	if err != nil {
+		err1 := err.(*errors.PublicError)
+		err1.Log()
+		return nil, err1
 	}
 	user, _ := ctx.Value(k).(*jwt.TokenCredentials)
 	return user, nil

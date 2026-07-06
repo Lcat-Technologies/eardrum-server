@@ -87,12 +87,8 @@ type IntFilterInput struct {
 }
 
 type Merchant struct {
-	ID                    int            `json:"id"`
-	CreatedAt             time.Time      `json:"createdAt"`
-	UpdatedAt             time.Time      `json:"updatedAt"`
 	Username              string         `json:"username"`
 	PhoneNumber           string         `json:"phone_number"`
-	MpesaNumber           *string        `json:"mpesa_number,omitempty"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
@@ -107,10 +103,9 @@ type NewAmountTransaction struct {
 }
 
 type NewMerchant struct {
-	Username    string  `json:"username"`
-	PhoneNumber string  `json:"phone_number"`
-	Password    string  `json:"password"`
-	MpesaNumber *string `json:"mpesa_number,omitempty"`
+	Username    string `json:"username"`
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
 }
 
 type NewUser struct {
@@ -209,13 +204,13 @@ type TimeFilterInput struct {
 }
 
 type Transaction struct {
-	ID                     int                  `json:"id"`
+	TransactionID          string               `json:"transaction_id"`
 	CreatedAt              time.Time            `json:"createdAt"`
 	UpdatedAt              time.Time            `json:"updatedAt"`
 	TotalAmountInCents     int                  `json:"total_amount_in_cents"`
 	TransactionCostInCents int                  `json:"transaction_cost_in_cents"`
-	User                   *TransactionUser     `json:"user"`
-	Merchant               *TransactionMerchant `json:"merchant"`
+	User                   *TransactionUser     `json:"user,omitempty"`
+	Merchant               *TransactionMerchant `json:"merchant,omitempty"`
 }
 
 type TransactionMerchant struct {

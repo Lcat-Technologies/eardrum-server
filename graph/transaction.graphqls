@@ -8,13 +8,13 @@ type TransactionUser{
 }
 
 type Transaction {
-  id: Int!
+  transaction_id: String!
   createdAt: Time!
   updatedAt: Time!
   total_amount_in_cents: Int!
   transaction_cost_in_cents: Int!
-  user: TransactionUser!
-  merchant: TransactionMerchant!
+  user: TransactionUser
+  merchant: TransactionMerchant
 }
 
 

@@ -1,12 +1,12 @@
 package phoneutils
 
 import (
-	"errors"
-	"fmt"
+	pgerror "errors"
 
 	"github.com/rs/zerolog/log"
 
 	openapi "github.com/twilio/twilio-go/rest/verify/v2"
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 )
 
 //sends an OTP code to the phone number passed as an argument
@@ -19,9 +19,11 @@ func SendOtp(phone_number string) error {
 
 	if err != nil {
 		log.Error().Str("phone_number", phone_number).Msg(err.Error())
-		return errors.New("error sending verification code. Please verify format")
+		err1 := errors.New(errors.EAROtpDeliveryFailed, err)
+		err1.Log()
+		return err1
 	} else {
-		log.Info().Str("phone_number", phone_number).Str("verification_resource", *resp.Sid).Msg(fmt.Sprintf("Sent verification code"))
+		log.Info().Str("phone_number", phone_number).Str("verification_resource", *resp.Sid).Msg("Sent verification code")
 	}
 	return nil
 }
@@ -37,12 +39,16 @@ func CheckOtp(phone_number string, code string) error {
 
 	if err != nil {
 		log.Error().Str("phone_number", phone_number).Str("code", code).Msg(err.Error())
-		return errors.New("error vefifying code")
+		err1 := errors.New(errors.EAROtpVerificationSystemError, err)
+		err1.Log()
+		return err1
 	} else if *resp.Status == "approved" {
 		log.Info().Str("phone_number", phone_number).Str("code", code).Msg("Entered correct verification code!")
 	} else {
 		log.Info().Str("phone_number", phone_number).Str("code", code).Msg("Entered incorrect verification code!")
-		return errors.New("entered incorrect code")
+		err1 := errors.New(errors.EAROtpIncorrectCode, pgerror.New("entered incorrect code"))
+		err1.Log()
+		return err1
 	}
 	return nil
 }
