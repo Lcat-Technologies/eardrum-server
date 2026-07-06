@@ -13,7 +13,6 @@ import (
 	"github.com/GigaDesk/eardrum-graph/neo4jutils"
 	"github.com/GigaDesk/eardrum-postgres/merchant"
 	"github.com/GigaDesk/eardrum-postgres/postgresutils"
-	"github.com/GigaDesk/eardrum-postgres/product"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-server/auth"
