@@ -1,14 +1,16 @@
 #returns a user's data
 type User {
-  id: Int!
-  createdAt: Time!
-  updatedAt: Time!
   username: String!
   phone_number: String!
-  mpesa_number: String
   qr_code: String!
+  facial_embeddings: [String!]
   account_balance_in_cents: Int!
-  transactions: [Transaction!]
+    transactions(
+    limit: Int = 10
+    offset: Int = 0
+    startTime: Time
+    endTime: Time
+  ): [Transaction!]
 }
 
 #fields required for adding a new user to the system
@@ -16,12 +18,10 @@ input NewUser {
   username: String!
   phone_number: String!
   password: String!
-  mpesa_number: String
 }
 
 extend type Query {
   getUser: User
-  getUsers: [User!]
 }
 
 extend type Mutation {

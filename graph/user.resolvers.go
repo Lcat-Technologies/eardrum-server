@@ -6,9 +6,10 @@ package graph
 
 import (
 	"context"
-	"errors"
-	"strconv"
+	pgerror "errors"
+	"time"
 
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-prefix/validate"
@@ -24,21 +25,21 @@ import (
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
 	//validate inputs
 	if err := input.Validate(); err != nil {
-		return nil, errors.NewBadRequestError(err.Error())
+		return nil, err
 	}
 
 	//encrypt input password
 	encryptedpassword, err := encrypt.HashPassword(input.Password)
 	if err != nil {
 		log.Error().Str("password", input.Password).Str("path", "CreateUser").Msg(err.Error())
-		return nil, errors.ErrPersistenceFailure(err.Error())
+		return nil, err
 	}
 
 	input.Password = encryptedpassword
 
 	if err := phoneutils.SendOtp(input.PhoneNumber); err != nil {
 		log.Error().Str("phone_number", input.PhoneNumber).Str("path", "CreateUser").Msg(err.Error())
-		return nil, errors.NewBadRequestError(err.Error())
+		return nil, err
 	}
 
 	user, err := user.CreateUser(input, r.Sql.Db)
@@ -49,12 +50,8 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	}
 
 	u := model.User{
-		ID:                    int(user.GetID()),
-		CreatedAt:             user.GetCreatedAt(),
-		UpdatedAt:             user.GetUpdatedAt(),
 		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
-		MpesaNumber:           user.GetMpesaNumber(),
 		QRCode:                user.GetQrCodeBase64(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
 	}
@@ -66,15 +63,15 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
 	//Check the validity of the phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
-		return nil, errors.NewBadRequestError(err.Error())
+		return nil, err
 	}
 
 	//Check the validity of an OTP code
 	if err := validate.ValidateOtp(otp); err != nil {
-		return nil, errors.NewBadRequestError(err.Error())
+		return nil, err
 	}
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
+		return nil, err
 	}
 	user, err := user.VerifyUser(phoneNumber, r.Sql.Db)
 
@@ -84,15 +81,15 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 	}
 
 	credentials := jwt.TokenCredentials{
-		Id:   strconv.Itoa(int(user.GetID())),
-		Role: "user",
+		Username: user.GetUserName(),
+		Role:     "user",
 	}
 	token, err := jwt.GenerateToken(credentials)
 	if err != nil {
-		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyUser").Msg(err.Error())
-		return nil, errors.ErrPersistenceFailure(err.Error())
+		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "VerifyUser").Msg(err.Error())
+		return nil, err
 	}
-	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyUser").Msg("user verified successfully!")
+	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "VerifyUser").Msg("user verified successfully!")
 
 	return &model.Authorization{
 		Token: token,
@@ -111,19 +108,19 @@ func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, pa
 	//check if the password of the user matches the input password
 	if err := encrypt.CheckPassword(user.GetPassword(), password); err != nil {
 		log.Info().Str("path", "UserLogin").Msg(err.Error())
-		return nil, errors.NewUnauthorizedError(err.Error())
+		return nil, err
 	}
 
 	credentials := jwt.TokenCredentials{
-		Id:   strconv.Itoa(int(user.GetID())),
-		Role: "user",
+		Username: user.GetUserName(),
+		Role:     "user",
 	}
 	token, err := jwt.GenerateToken(credentials)
 	if err != nil {
-		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "UserLogin").Msg(err.Error())
-		return nil, errors.ErrPersistenceFailure(err.Error())
+		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "UserLogin").Msg(err.Error())
+		return nil, err
 	}
-	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "UserLogin").Msg("user logged in successfully!")
+	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "UserLogin").Msg("user logged in successfully!")
 	return &model.Authorization{
 		Token: token,
 	}, nil
@@ -133,7 +130,7 @@ func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, pa
 func (r *mutationResolver) ForgotUserPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error) {
 	//validate phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
-		return nil, errors.NewBadRequestError(err.Error())
+		return nil, err
 	}
 
 	//check if the phone number exists in the database
@@ -144,18 +141,16 @@ func (r *mutationResolver) ForgotUserPassword(ctx context.Context, phoneNumber s
 		log.Error().Str("phone_number", phoneNumber).Str("path", "ForgotUserPassword").Msg(err.Error())
 		return nil, err
 	}
-	//return an error if phone number exists in the unverified school table
-	if phoneexists.Verified != true && phoneexists.Unverified == true {
-		return nil, errors.NewForbiddenError("phone number has been registered but is yet to be verified")
-	}
-	//return an error if phone number is neither registered nor verified
-	if phoneexists.Verified != true && phoneexists.Unverified != true {
-		return nil, errors.NewNotFoundError("phone number does not exist")
+	//return an error if phone number does not exist in verified form
+	if phoneexists.IsVerified == false {
+		err1 := errors.New(errors.EARUserNotFoundByPhone, pgerror.New("phone number does not exist in verified form"))
+		err1.Log()
+		return nil, err1
 	}
 	//send an OTP code to the phone number provided, return error if there is any
 	if err := phoneutils.SendOtp(phoneNumber); err != nil {
 		log.Error().Str("phone_number", phoneNumber).Str("path", "ForgotUserPassword").Msg(err.Error())
-		return nil, errors.NewBadRequestError(err.Error())
+		return nil, err
 	}
 	//return status on success
 	sendcodestatus := &model.SendCodeStatus{
@@ -169,7 +164,7 @@ func (r *mutationResolver) ForgotUserPassword(ctx context.Context, phoneNumber s
 func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
 	//Check the validity of an OTP code
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
+		return nil, err
 	}
 
 	user, err := user.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
@@ -180,13 +175,13 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 	}
 
 	credentials := jwt.TokenCredentials{
-		Id:   strconv.Itoa(int(user.GetID())),
-		Role: "user",
+		Username: user.GetUserName(),
+		Role:     "user",
 	}
 	token, err := jwt.GenerateToken(credentials)
 	if err != nil {
-		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "RequestUserPasswordReset").Msg(err.Error())
-		return nil, errors.ErrPersistenceFailure(err.Error())
+		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "RequestUserPasswordReset").Msg(err.Error())
+		return nil, err
 	}
 	return &model.Authorization{
 		Token: token,
@@ -197,42 +192,36 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword string) (*model.User, error) {
 	u, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
+		return nil, err
 	}
-	if u == nil {
-		return nil, errors.NewUnauthorizedError("access to ResetUserPassword denied!")
-	}
+
 	role := u.GetRole()
 	if role != "user" {
-		return nil, errors.NewUnauthorizedError("access to ResetUserPassword denied. Only available for registered and logged in users")
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to reset user password denied"))
+		err1.Log()
+		return nil, err1
 	}
-	id, err := u.GetID()
 
-	if err != nil {
-		return nil, errors.ErrPersistenceFailure("could not access user's id!")
-	}
+	username := u.GetUsername()
 
 	//validate inputs
 	if err := validate.ValidatePassword(newPassword); err != nil {
-		return nil, errors.NewBadRequestError(err.Error())
+		return nil, err
 	}
 
 	encryptedpassword, err := encrypt.HashPassword(newPassword)
 
 	if err != nil {
-		return nil, errors.ErrPersistenceFailure(err.Error())
+		return nil, err
 	}
 
-	user, err := user.UpdatePassword(r.Sql.Db, encryptedpassword, id)
+	user, err := user.UpdatePassword(r.Sql.Db, encryptedpassword, username)
 	if err != nil {
-		log.Error().Int("id", id).Str("path", "ResetUserPassword").Msg(err.Error())
+		log.Error().Str("username", username).Str("path", "ResetUserPassword").Msg(err.Error())
 		return nil, err
 	}
 
 	user1 := model.User{
-		ID:                    int(user.GetID()),
-		CreatedAt:             user.GetCreatedAt(),
-		UpdatedAt:             user.GetUpdatedAt(),
 		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		QRCode:                user.GetQrCodeBase64(),
@@ -247,43 +236,30 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error) {
 	u, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
-	}
-	if u == nil {
-		return nil, errors.NewUnauthorizedError("access to UpdateUserPinCode denied!")
-	}
-	role := u.GetRole()
-	if role != "user" {
-		return nil, errors.NewUnauthorizedError("access to UpdateUserPinCode denied. Only available for registered and logged in users")
-	}
-	id, err := u.GetID()
-
-	if err != nil {
-		return nil, errors.ErrPersistenceFailure("could not access user's id!")
-	}
-
-	user2, err := user.GetUserWithId(r.Sql.Db, id)
-
-	if err != nil {
 		return nil, err
 	}
+
+	role := u.GetRole()
+	if role != "user" {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to Update user PinCode denied"))
+		err1.Log()
+		return nil, err1
+	}
+	username := u.GetUsername()
 
 	encryptedpincode, err := encrypt.HashPassword(newPincode)
 
 	if err != nil {
-		return nil, errors.ErrPersistenceFailure(err.Error())
+		return nil, err
 	}
 
-	user2, err = user.UpdatePinCode(r.Sql.Db, encryptedpincode, id)
+	user2, err := user.UpdatePinCode(r.Sql.Db, encryptedpincode, username)
 	if err != nil {
-		log.Error().Int("id", id).Str("path", "UpdateUserPinCode").Msg(err.Error())
+		log.Error().Str("username", username).Str("path", "UpdateUserPinCode").Msg(err.Error())
 		return nil, err
 	}
 
 	user1 := model.User{
-		ID:                    int(user2.GetID()),
-		CreatedAt:             user2.GetCreatedAt(),
-		UpdatedAt:             user2.GetUpdatedAt(),
 		Username:              user2.GetUserName(),
 		PhoneNumber:           user2.GetPhoneNumber(),
 		QRCode:                user2.GetQrCodeBase64(),
@@ -298,37 +274,23 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.User, error) {
 	u, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
-	}
-	if u == nil {
-		return nil, errors.NewUnauthorizedError("access to regenerate qr code denied!")
-	}
-	role := u.GetRole()
-	if role != "user" {
-		return nil, errors.NewUnauthorizedError("access to regenerate qr code denied. Only available for registered and logged in users")
-	}
-	id, err := u.GetID()
-
-	if err != nil {
-		return nil, errors.ErrPersistenceFailure("could not access user's id!")
-	}
-
-	//get the user's phone number
-
-	user1, err := user.GetUserWithId(r.Sql.Db, id)
-	if err != nil {
 		return nil, err
 	}
 
-	user1, err = user.RegenerateQrCode(r.Sql.Db, id)
+	role := u.GetRole()
+	if role != "user" {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to regenerate user qr code denied"))
+		err1.Log()
+		return nil, err1
+	}
+	username := u.GetUsername()
+
+	user1, err := user.RegenerateQrCode(r.Sql.Db, username)
 	if err != nil {
 		return nil, err
 	}
 
 	userprofile := model.User{
-		ID:                    int(user1.GetID()),
-		CreatedAt:             user1.GetCreatedAt(),
-		UpdatedAt:             user1.GetUpdatedAt(),
 		Username:              user1.GetUserName(),
 		PhoneNumber:           user1.GetPhoneNumber(),
 		QRCode:                user1.GetQrCodeBase64(),
@@ -341,32 +303,26 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 	user1, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
-	}
-	if user1 == nil {
-		return nil, errors.NewUnauthorizedError("access to get user profile denied!")
-	}
-	role := user1.GetRole()
-	if role != "user" {
-		return nil, errors.NewUnauthorizedError("access to get user profile denied. Only available for registered and logged in users.")
-	}
-	id, err := user1.GetID()
-
-	if err != nil {
-		return nil, errors.NewBadRequestError("could not access user's id!")
-	}
-
-	u, err := user.GetUserWithId(r.Sql.Db, id)
-	if err != nil {
-		log.Error().Int("id", id).Str("path", "GetUser").Msg(err.Error())
 		return nil, err
 	}
-	log.Info().Int("id", id).Str("role", role).Str("path", "GetUser").Msg("getting user's profile")
+
+	role := user1.GetRole()
+	if role != "user" {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to get user profile denied"))
+		err1.Log()
+		return nil, err1
+	}
+
+	username := user1.GetUsername()
+
+	u, err := user.GetUserWithUsername(r.Sql.Db, username)
+	if err != nil {
+		log.Error().Str("username", username).Str("path", "GetUser").Msg(err.Error())
+		return nil, err
+	}
+	log.Info().Str("id", username).Str("role", role).Str("path", "GetUser").Msg("getting user's profile")
 
 	userprofile := model.User{
-		ID:                    int(u.GetID()),
-		CreatedAt:             u.GetCreatedAt(),
-		UpdatedAt:             u.GetUpdatedAt(),
 		Username:              u.GetUserName(),
 		PhoneNumber:           u.GetPhoneNumber(),
 		QRCode:                u.GetQrCodeBase64(),
@@ -375,50 +331,39 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 	return &userprofile, nil
 }
 
-// GetUsers is the resolver for the getUsers field.
-func (r *queryResolver) GetUsers(ctx context.Context) ([]*model.User, error) {
-	users, err := user.GetUsers(r.Sql.Db)
-
-	if err != nil {
-		log.Error().Str("path", "GetUsers").Msg(err.Error())
-		return nil, err
-	}
-
-	var usersprofile []*model.User
-
-	for _, user := range users {
-		userprofile := &model.User{
-			ID:                    int(user.GetID()),
-			CreatedAt:             user.GetCreatedAt(),
-			UpdatedAt:             user.GetUpdatedAt(),
-			Username:              user.GetUserName(),
-			PhoneNumber:           user.GetPhoneNumber(),
-			QRCode:                user.GetQrCodeBase64(),
-			AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
-		}
-		usersprofile = append(usersprofile, userprofile)
-	}
-
-	return usersprofile, nil
-}
-
 // Transactions is the resolver for the transactions field.
-func (r *userResolver) Transactions(ctx context.Context, obj *model.User) ([]*model.Transaction, error) {
-	transactions, err := transaction.GetTransactionsForUser(r.Sql.Db, uint(obj.ID))
+func (r *userResolver) Transactions(ctx context.Context, obj *model.User, limit *int, offset *int, startTime *time.Time, endTime *time.Time) ([]*model.Transaction, error) {
+	user1, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	role := user1.GetRole()
+	if role != "user" {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to get user transactions denied"))
+		err1.Log()
+		return nil, err1
+	}
+
+	username := user1.GetUsername()
+
+	transactions, err := transaction.GetTransactionsForUser(r.Sql.Db, username, limit, offset, startTime, endTime)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var transactionslist []*model.Transaction
+	// 4. Transform DB model to GraphQL model with pre-allocated slice
+	transactionslist := make([]*model.Transaction, 0, len(transactions))
 
 	for _, transaction := range transactions {
 		t := &model.Transaction{
-			ID:                     int(transaction.GetID()),
+			TransactionID:          transaction.GetTransactionID(),
 			CreatedAt:              transaction.GetCreatedAt(),
 			UpdatedAt:              transaction.GetUpdatedAt(),
 			TotalAmountInCents:     int(transaction.GetTotalAmountInCents()),
 			TransactionCostInCents: int(transaction.GetTransactionCostInCents()),
+			UserUsername:           transaction.GetUserName(),
+			MerchantUsername:       transaction.GetMerchantName(),
 		}
 		transactionslist = append(transactionslist, t)
 	}

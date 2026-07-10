@@ -13,8 +13,8 @@ type Transaction {
   updatedAt: Time!
   total_amount_in_cents: Int!
   transaction_cost_in_cents: Int!
-  user: TransactionUser
-  merchant: TransactionMerchant
+  user_username: String!
+  merchant_username: String!
 }
 
 

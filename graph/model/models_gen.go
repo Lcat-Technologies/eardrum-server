@@ -109,10 +109,9 @@ type NewMerchant struct {
 }
 
 type NewUser struct {
-	Username    string  `json:"username"`
-	PhoneNumber string  `json:"phone_number"`
-	Password    string  `json:"password"`
-	MpesaNumber *string `json:"mpesa_number,omitempty"`
+	Username    string `json:"username"`
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
 }
 
 type Query struct {
@@ -204,13 +203,13 @@ type TimeFilterInput struct {
 }
 
 type Transaction struct {
-	TransactionID          string               `json:"transaction_id"`
-	CreatedAt              time.Time            `json:"createdAt"`
-	UpdatedAt              time.Time            `json:"updatedAt"`
-	TotalAmountInCents     int                  `json:"total_amount_in_cents"`
-	TransactionCostInCents int                  `json:"transaction_cost_in_cents"`
-	User                   *TransactionUser     `json:"user,omitempty"`
-	Merchant               *TransactionMerchant `json:"merchant,omitempty"`
+	TransactionID          string    `json:"transaction_id"`
+	CreatedAt              time.Time `json:"createdAt"`
+	UpdatedAt              time.Time `json:"updatedAt"`
+	TotalAmountInCents     int       `json:"total_amount_in_cents"`
+	TransactionCostInCents int       `json:"transaction_cost_in_cents"`
+	UserUsername           string    `json:"user_username"`
+	MerchantUsername       string    `json:"merchant_username"`
 }
 
 type TransactionMerchant struct {
@@ -222,13 +221,10 @@ type TransactionUser struct {
 }
 
 type User struct {
-	ID                    int            `json:"id"`
-	CreatedAt             time.Time      `json:"createdAt"`
-	UpdatedAt             time.Time      `json:"updatedAt"`
 	Username              string         `json:"username"`
 	PhoneNumber           string         `json:"phone_number"`
-	MpesaNumber           *string        `json:"mpesa_number,omitempty"`
 	QRCode                string         `json:"qr_code"`
+	FacialEmbeddings      []string       `json:"facial_embeddings,omitempty"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
