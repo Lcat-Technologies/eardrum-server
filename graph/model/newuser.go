@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/AlekSi/pointer"
 	"github.com/GigaDesk/eardrum-prefix/validate"
 )
 
@@ -18,13 +17,6 @@ func (n NewUser) Validate() error {
 		return err
 	}
 
-	//validate phone number in kenyan conditions
-	if err := validate.ValidateKenyanPhoneNumber(pointer.GetString(n.MpesaNumber)); err != nil {
-		if n.MpesaNumber == nil {
-			return nil
-		}
-		return err
-	}
 
 	//validate password
 	if err := validate.ValidatePassword(n.Password); err != nil {
@@ -47,9 +39,4 @@ func (n NewUser) GetPhoneNumber() string {
 // returns the user's password
 func (n NewUser) GetPassword() string {
 	return n.Password
-}
-
-// returns the user's mpesa number
-func (n NewUser) GetMpesaNumber() *string {
-	return n.MpesaNumber
 }
