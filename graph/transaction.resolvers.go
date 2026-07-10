@@ -6,89 +6,86 @@ package graph
 
 import (
 	"context"
-	"errors"
+	pgerror "errors"
 
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-server/auth"
-	"github.com/GigaDesk/eardrum-server/encrypt"
 	"github.com/GigaDesk/eardrum-server/graph/model"
+	"github.com/GigaDesk/eardrum-postgres/user"
+	"github.com/AlekSi/pointer"
 )
 
 // CreateAmountTransaction is the resolver for the createAmountTransaction field.
 func (r *mutationResolver) CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error) {
 	s, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, errors.NewUnauthorizedError(err.Error())
+		return nil, err
 	}
 	if s == nil {
-		return nil, errors.NewUnauthorizedError("access to create transaction denied!")
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
+		err1.Log()
+		return nil, err1
 	}
 	role := s.GetRole()
 	if role != "merchant" {
-		return nil, errors.NewUnauthorizedError("access to create transaction denied. Only available for registered and logged in merchants")
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
+		err1.Log()
+		return nil, err1
 	}
-	id, err := s.GetID()
+	username := s.GetUsername()
 
-	if err != nil {
-		errors.ErrPersistenceFailure("could not access merchant's id!")
-	}
-
-	t, err := transaction.ProcessTransaction(r.Sql.Db, uint(id), input, func(hashedPIN, PIN string) error {
-		err := encrypt.CheckPassword(hashedPIN, PIN)
-
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	t, err := transaction.ProcessTransaction(r.Sql.Db, username, input)
 
 	if err != nil {
 		return nil, err
 	}
 
 	p := model.Transaction{
-		ID:                     int(t.GetID()),
+		TransactionID:          t.GetTransactionID(),
 		CreatedAt:              t.GetCreatedAt(),
 		UpdatedAt:              t.GetUpdatedAt(),
 		TotalAmountInCents:     int(t.GetTotalAmountInCents()),
 		TransactionCostInCents: int(t.GetTransactionCostInCents()),
+		UserUsername:           t.GetUserName(),
+		MerchantUsername:       t.GetMerchantName(),
 	}
 
 	return &p, nil
 }
 
 // User is the resolver for the user field.
-func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) (*model.TransactionUser, error) {
-	var transaction transaction.Transaction
-	// The .Preload() method tells GORM to load the associated User data
-	// in the same query.
-	if err := r.Sql.Db.
-		Preload("User").
-		First(&transaction, obj.ID).Error; err != nil {
-		return nil, errors.ErrPersistenceFailure(err.Error())
+func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) (*model.User, error) {
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get offline user denied"))
+		err1.Log()
+		return nil, err1
+	}
+	role := s.GetRole()
+	if role != "merchant" {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get offline user denied"))
+		err1.Log()
+		return nil, err1
 	}
 
-	user := &model.TransactionUser{
-		Username: transaction.User.UserName,
+	//get user from database via username
+    dbuser, err := user.GetUserWithUsername(r.Sql.Db, obj.UserUsername)
+	if err != nil {
+		return nil, err
+	}
+
+	user := &model.User{
+		Username: dbuser.GetUserName(),
+		PhoneNumber: dbuser.GetPhoneNumber(),
+		QRCode: dbuser.GetQrCodeBase64(),
+		FacialEmbeddings: pointer.Get(dbuser.GetFacialEmbeddings()),
+		AccountBalanceInCents: int(dbuser.GetAccountBalanceInCents()),
 	}
 	return user, nil
-}
-
-// Merchant is the resolver for the merchant field.
-func (r *transactionResolver) Merchant(ctx context.Context, obj *model.Transaction) (*model.TransactionMerchant, error) {
-	var transaction transaction.Transaction
-	// The .Preload() method tells GORM to load the associated Shop data
-	// in the same query.
-	if err := r.Sql.Db.
-		Preload("Merchant").
-		First(&transaction, obj.ID).Error; err != nil {
-		return nil, errors.ErrPersistenceFailure(err.Error())
-	}
-
-	merchant := &model.TransactionMerchant{
-		Username: transaction.User.UserName,
-	}
-	return merchant, nil
 }
 
 // Transaction returns TransactionResolver implementation.

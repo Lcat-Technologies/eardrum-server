@@ -1,12 +1,4 @@
 #returns a transaction's data
-type TransactionMerchant{
-  username: String!
-}
-
-type TransactionUser{
-  username: String!
-}
-
 type Transaction {
   transaction_id: String!
   createdAt: Time!
@@ -15,6 +7,7 @@ type Transaction {
   transaction_cost_in_cents: Int!
   user_username: String!
   merchant_username: String!
+  user: User
 }
 
 
@@ -22,7 +15,7 @@ type Transaction {
 input NewAmountTransaction {
   amount_in_cents: Int!
   qr_code: String!
-  pin_code: String!
+  facial_embedding: String!
 }
 
 extend type Mutation {

@@ -1,5 +1,7 @@
 github.com/99designs/gqlgen v0.17.55 h1:3vzrNWYyzSZjGDFo68e5j9sSauLxfKvLp+6ioRokVtM=
 github.com/99designs/gqlgen v0.17.55/go.mod h1:3Bq768f8hgVPGZxL8aY9MaYmbxa6llPM/qu1IGH1EJo=
+github.com/AlekSi/pointer v1.2.0 h1:glcy/gc4h8HnG2Z3ZECSzZ1IX1x2JxRVuDzaJwQE0+w=
+github.com/AlekSi/pointer v1.2.0/go.mod h1:gZGfd3dpW4vEc/UlyfKKi1roIqcCgwOIvb0tSNSBle0=
 github.com/GigaDesk/eardrum-graph v1.0.3 h1:rjIU4ktiavUHrRXo8L4X9fCN1tskoR4YE8qryYX5okU=
 github.com/GigaDesk/eardrum-graph v1.0.3/go.mod h1:HJY4TqlpsDIZPfYQMx4w49tIiFXOIIG3IU0uUK2srnM=
 github.com/GigaDesk/eardrum-interfaces v1.2.7 h1:cgc3+dKe931dtNgU6fgvuBJ54HlZ3yGY8u9RaVxt0e0=

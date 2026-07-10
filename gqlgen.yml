@@ -101,8 +101,6 @@ models:
         resolver: true
   Transaction:
     fields:
-      merchant:
-        resolver: true
       user:
         resolver: true
   User:
