@@ -97,9 +97,9 @@ type Mutation struct {
 }
 
 type NewAmountTransaction struct {
-	AmountInCents int    `json:"amount_in_cents"`
-	QRCode        string `json:"qr_code"`
-	PinCode       string `json:"pin_code"`
+	AmountInCents   int    `json:"amount_in_cents"`
+	QRCode          string `json:"qr_code"`
+	FacialEmbedding string `json:"facial_embedding"`
 }
 
 type NewMerchant struct {
@@ -210,14 +210,7 @@ type Transaction struct {
 	TransactionCostInCents int       `json:"transaction_cost_in_cents"`
 	UserUsername           string    `json:"user_username"`
 	MerchantUsername       string    `json:"merchant_username"`
-}
-
-type TransactionMerchant struct {
-	Username string `json:"username"`
-}
-
-type TransactionUser struct {
-	Username string `json:"username"`
+	User                   *User     `json:"user,omitempty"`
 }
 
 type User struct {
