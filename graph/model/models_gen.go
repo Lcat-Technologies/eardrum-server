@@ -96,16 +96,24 @@ type Merchant struct {
 type Mutation struct {
 }
 
-type NewAmountTransaction struct {
-	AmountInCents   int    `json:"amount_in_cents"`
-	QRCode          string `json:"qr_code"`
-	FacialEmbedding string `json:"facial_embedding"`
-}
-
 type NewMerchant struct {
 	Username    string `json:"username"`
 	PhoneNumber string `json:"phone_number"`
 	Password    string `json:"password"`
+}
+
+type NewOfflineTransaction struct {
+	AmountInCents    int       `json:"amount_in_cents"`
+	QRCode           string    `json:"qr_code"`
+	FacialEmbedding  string    `json:"facial_embedding"`
+	PhoneNumber      string    `json:"phone_number"`
+	OfflineTimeStamp time.Time `json:"OfflineTimeStamp"`
+}
+
+type NewOnlineTransaction struct {
+	AmountInCents   int    `json:"amount_in_cents"`
+	QRCode          string `json:"qr_code"`
+	FacialEmbedding string `json:"facial_embedding"`
 }
 
 type NewUser struct {
@@ -216,7 +224,8 @@ type Transaction struct {
 type User struct {
 	Username              string         `json:"username"`
 	PhoneNumber           string         `json:"phone_number"`
-	QRCode                string         `json:"qr_code"`
+	QRCode                *string        `json:"qr_code,omitempty"`
+	UUID                  *string        `json:"uuid,omitempty"`
 	FacialEmbeddings      []string       `json:"facial_embeddings,omitempty"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`

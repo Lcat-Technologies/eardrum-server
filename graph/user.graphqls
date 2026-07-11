@@ -2,7 +2,8 @@
 type User {
   username: String!
   phone_number: String!
-  qr_code: String!
+  qr_code: String
+  uuid: String
   facial_embeddings: [String!]
   account_balance_in_cents: Int!
     transactions(
