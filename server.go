@@ -44,8 +44,8 @@ func CustomErrorPresenter(ctx context.Context, e error) *gqlerror.Error {
 			err.Extensions = make(map[string]interface{})
 		}
 		// Copy the structured fields to the GraphQL extensions
-		err.Extensions["code"] = publicErr.Code
-		err.Extensions["reason"] = publicErr.Reason
+		err.Extensions["code"] = publicErr.SystemCode
+		err.Extensions["status"] = publicErr.HttpStatus
 		err.Message = publicErr.Message
 	}
     // ALWAYS log the FULL, wrapped error internally for debugging
@@ -75,7 +75,7 @@ func main() {
 	postgresInstance.Init(os.Getenv("POSTGRES_DBURL"))
 
 	// Perform auto-migration for multiple models
-	err := postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &merchant.Merchant{}, &merchant.UnverifiedMerchant{}, &product.Product{}, &product.Category{}, &transaction.Transaction{}, &transaction.Purchase{})
+	err := postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &merchant.Merchant{}, &merchant.UnverifiedMerchant{}, &transaction.Transaction{})
 	if err != nil {
 		log.Fatal().Msg(fmt.Sprintf("Failed to auto-migrate database: %s", err))
 	}
