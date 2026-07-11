@@ -6,18 +6,18 @@ package graph
 
 import (
 	"context"
-	pgerror "errors"
+	"errors"
 
-	"github.com/GigaDesk/eardrum-interfaces/errors"
+	"github.com/AlekSi/pointer"
+	Tx "github.com/GigaDesk/eardrum-interfaces/transaction"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
+	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/graph/model"
-	"github.com/GigaDesk/eardrum-postgres/user"
-	"github.com/AlekSi/pointer"
 )
 
-// CreateAmountTransaction is the resolver for the createAmountTransaction field.
-func (r *mutationResolver) CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error) {
+// CreateOnlineTransaction is the resolver for the createOnlineTransaction field.
+func (r *mutationResolver) CreateOnlineTransaction(ctx context.Context, input model.NewOnlineTransaction) (*model.Transaction, error) {
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
@@ -54,6 +54,56 @@ func (r *mutationResolver) CreateAmountTransaction(ctx context.Context, input mo
 	return &p, nil
 }
 
+// CreateOfflineTransactions is the resolver for the createOfflineTransactions field.
+func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input []*model.NewOfflineTransaction) ([]*model.Transaction, error) {
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
+		err1.Log()
+		return nil, err1
+	}
+	role := s.GetRole()
+	if role != "merchant" {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
+		err1.Log()
+		return nil, err1
+	}
+	username := s.GetUsername()
+
+	// Creates a slice of length 5 filled with nil interface values
+	offlineTx := make([]Tx.NewOfflineTransaction, len(input))
+
+	for _, nTx := range input {
+		offlineTx = append(offlineTx, nTx)
+	}
+
+	t, err := transaction.ProcessOfflineTransactionsBatch(r.Sql.Db, username, offlineTx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	transactionslist := make([]*model.Transaction, len(t))
+
+	for _, n := range t {
+		p := &model.Transaction{
+			TransactionID:          n.GetTransactionID(),
+			CreatedAt:              n.GetCreatedAt(),
+			UpdatedAt:              n.GetUpdatedAt(),
+			TotalAmountInCents:     int(n.GetTotalAmountInCents()),
+			TransactionCostInCents: int(n.GetTransactionCostInCents()),
+			UserUsername:           n.GetUserName(),
+			MerchantUsername:       n.GetMerchantName(),
+		}
+		transactionslist = append(transactionslist, p)
+	}
+
+	return transactionslist, nil
+}
+
 // User is the resolver for the user field.
 func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) (*model.User, error) {
 	s, err := auth.ForContext(ctx)
@@ -73,16 +123,17 @@ func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) 
 	}
 
 	//get user from database via username
-    dbuser, err := user.GetUserWithUsername(r.Sql.Db, obj.UserUsername)
+	dbuser, err := user.GetUserWithUsername(r.Sql.Db, obj.UserUsername)
 	if err != nil {
 		return nil, err
 	}
+	uuidStr := dbuser.GetUUID()
 
 	user := &model.User{
-		Username: dbuser.GetUserName(),
-		PhoneNumber: dbuser.GetPhoneNumber(),
-		QRCode: dbuser.GetQrCodeBase64(),
-		FacialEmbeddings: pointer.Get(dbuser.GetFacialEmbeddings()),
+		Username:              dbuser.GetUserName(),
+		PhoneNumber:           dbuser.GetPhoneNumber(),
+		UUID:                  &uuidStr,
+		FacialEmbeddings:      pointer.Get(dbuser.GetFacialEmbeddings()),
 		AccountBalanceInCents: int(dbuser.GetAccountBalanceInCents()),
 	}
 	return user, nil

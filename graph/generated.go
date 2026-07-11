@@ -68,9 +68,10 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateAmountTransaction      func(childComplexity int, input model.NewAmountTransaction) int
 		CreateDummy                  func(childComplexity int, name string) int
 		CreateMerchant               func(childComplexity int, input model.NewMerchant) int
+		CreateOfflineTransactions    func(childComplexity int, input []*model.NewOfflineTransaction) int
+		CreateOnlineTransaction      func(childComplexity int, input model.NewOnlineTransaction) int
 		CreateUser                   func(childComplexity int, input model.NewUser) int
 		ForgotMerchantPassword       func(childComplexity int, phoneNumber string) int
 		ForgotUserPassword           func(childComplexity int, phoneNumber string) int
@@ -119,6 +120,7 @@ type ComplexityRoot struct {
 		PhoneNumber           func(childComplexity int) int
 		QRCode                func(childComplexity int) int
 		Transactions          func(childComplexity int, limit *int, offset *int, startTime *time.Time, endTime *time.Time) int
+		UUID                  func(childComplexity int) int
 		Username              func(childComplexity int) int
 	}
 }
@@ -137,7 +139,8 @@ type MutationResolver interface {
 	ResetMerchantPassword(ctx context.Context, newPassword string) (*model.Merchant, error)
 	RefreshToken(ctx context.Context, token string) (*model.Authorization, error)
 	UpdateMerchantPinCode(ctx context.Context, newPincode string) (*model.Merchant, error)
-	CreateAmountTransaction(ctx context.Context, input model.NewAmountTransaction) (*model.Transaction, error)
+	CreateOnlineTransaction(ctx context.Context, input model.NewOnlineTransaction) (*model.Transaction, error)
+	CreateOfflineTransactions(ctx context.Context, input []*model.NewOfflineTransaction) ([]*model.Transaction, error)
 	CreateUser(ctx context.Context, input model.NewUser) (*model.User, error)
 	VerifyUser(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error)
 	UserLogin(ctx context.Context, phoneNumber string, password string) (*model.Authorization, error)
@@ -234,18 +237,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Merchant.Username(childComplexity), true
 
-	case "Mutation.createAmountTransaction":
-		if e.complexity.Mutation.CreateAmountTransaction == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createAmountTransaction_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateAmountTransaction(childComplexity, args["input"].(model.NewAmountTransaction)), true
-
 	case "Mutation.createDummy":
 		if e.complexity.Mutation.CreateDummy == nil {
 			break
@@ -269,6 +260,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateMerchant(childComplexity, args["input"].(model.NewMerchant)), true
+
+	case "Mutation.createOfflineTransactions":
+		if e.complexity.Mutation.CreateOfflineTransactions == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createOfflineTransactions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateOfflineTransactions(childComplexity, args["input"].([]*model.NewOfflineTransaction)), true
+
+	case "Mutation.createOnlineTransaction":
+		if e.complexity.Mutation.CreateOnlineTransaction == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createOnlineTransaction_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateOnlineTransaction(childComplexity, args["input"].(model.NewOnlineTransaction)), true
 
 	case "Mutation.createUser":
 		if e.complexity.Mutation.CreateUser == nil {
@@ -607,6 +622,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Transactions(childComplexity, args["limit"].(*int), args["offset"].(*int), args["startTime"].(*time.Time), args["endTime"].(*time.Time)), true
 
+	case "User.uuid":
+		if e.complexity.User.UUID == nil {
+			break
+		}
+
+		return e.complexity.User.UUID(childComplexity), true
+
 	case "User.username":
 		if e.complexity.User.Username == nil {
 			break
@@ -628,8 +650,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputIDFilterInput,
 		ec.unmarshalInputIntFilterBetween,
 		ec.unmarshalInputIntFilterInput,
-		ec.unmarshalInputNewAmountTransaction,
 		ec.unmarshalInputNewMerchant,
+		ec.unmarshalInputNewOfflineTransaction,
+		ec.unmarshalInputNewOnlineTransaction,
 		ec.unmarshalInputNewUser,
 		ec.unmarshalInputSoftDeleteFilterInput,
 		ec.unmarshalInputSqlCreateExtension,
@@ -1026,29 +1049,6 @@ func (ec *executionContext) field_Merchant_transactions_argsEndTime(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_createAmountTransaction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	arg0, err := ec.field_Mutation_createAmountTransaction_argsInput(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg0
-	return args, nil
-}
-func (ec *executionContext) field_Mutation_createAmountTransaction_argsInput(
-	ctx context.Context,
-	rawArgs map[string]interface{},
-) (model.NewAmountTransaction, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNNewAmountTransaction2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewAmountTransaction(ctx, tmp)
-	}
-
-	var zeroVal model.NewAmountTransaction
-	return zeroVal, nil
-}
-
 func (ec *executionContext) field_Mutation_createDummy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1092,6 +1092,52 @@ func (ec *executionContext) field_Mutation_createMerchant_argsInput(
 	}
 
 	var zeroVal model.NewMerchant
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createOfflineTransactions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_createOfflineTransactions_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_createOfflineTransactions_argsInput(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) ([]*model.NewOfflineTransaction, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNNewOfflineTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransactionᚄ(ctx, tmp)
+	}
+
+	var zeroVal []*model.NewOfflineTransaction
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createOnlineTransaction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_createOnlineTransaction_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_createOnlineTransaction_argsInput(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.NewOnlineTransaction, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNNewOnlineTransaction2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOnlineTransaction(ctx, tmp)
+	}
+
+	var zeroVal model.NewOnlineTransaction
 	return zeroVal, nil
 }
 
@@ -2658,8 +2704,8 @@ func (ec *executionContext) fieldContext_Mutation_updateMerchantPinCode(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createAmountTransaction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createAmountTransaction(ctx, field)
+func (ec *executionContext) _Mutation_createOnlineTransaction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createOnlineTransaction(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2672,7 +2718,7 @@ func (ec *executionContext) _Mutation_createAmountTransaction(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateAmountTransaction(rctx, fc.Args["input"].(model.NewAmountTransaction))
+		return ec.resolvers.Mutation().CreateOnlineTransaction(rctx, fc.Args["input"].(model.NewOnlineTransaction))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2686,7 +2732,7 @@ func (ec *executionContext) _Mutation_createAmountTransaction(ctx context.Contex
 	return ec.marshalOTransaction2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransaction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createAmountTransaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_createOnlineTransaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -2721,7 +2767,77 @@ func (ec *executionContext) fieldContext_Mutation_createAmountTransaction(ctx co
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createAmountTransaction_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_createOnlineTransaction_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createOfflineTransactions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createOfflineTransactions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateOfflineTransactions(rctx, fc.Args["input"].([]*model.NewOfflineTransaction))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Transaction)
+	fc.Result = res
+	return ec.marshalOTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createOfflineTransactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "transaction_id":
+				return ec.fieldContext_Transaction_transaction_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Transaction_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Transaction_updatedAt(ctx, field)
+			case "total_amount_in_cents":
+				return ec.fieldContext_Transaction_total_amount_in_cents(ctx, field)
+			case "transaction_cost_in_cents":
+				return ec.fieldContext_Transaction_transaction_cost_in_cents(ctx, field)
+			case "user_username":
+				return ec.fieldContext_Transaction_user_username(ctx, field)
+			case "merchant_username":
+				return ec.fieldContext_Transaction_merchant_username(ctx, field)
+			case "user":
+				return ec.fieldContext_Transaction_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Transaction", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createOfflineTransactions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2773,6 +2889,8 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "qr_code":
 				return ec.fieldContext_User_qr_code(ctx, field)
+			case "uuid":
+				return ec.fieldContext_User_uuid(ctx, field)
 			case "facial_embeddings":
 				return ec.fieldContext_User_facial_embeddings(ctx, field)
 			case "account_balance_in_cents":
@@ -3080,6 +3198,8 @@ func (ec *executionContext) fieldContext_Mutation_resetUserPassword(ctx context.
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "qr_code":
 				return ec.fieldContext_User_qr_code(ctx, field)
+			case "uuid":
+				return ec.fieldContext_User_uuid(ctx, field)
 			case "facial_embeddings":
 				return ec.fieldContext_User_facial_embeddings(ctx, field)
 			case "account_balance_in_cents":
@@ -3149,6 +3269,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUserPinCode(ctx context.
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "qr_code":
 				return ec.fieldContext_User_qr_code(ctx, field)
+			case "uuid":
+				return ec.fieldContext_User_uuid(ctx, field)
 			case "facial_embeddings":
 				return ec.fieldContext_User_facial_embeddings(ctx, field)
 			case "account_balance_in_cents":
@@ -3218,6 +3340,8 @@ func (ec *executionContext) fieldContext_Mutation_regenerateUserQrCode(_ context
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "qr_code":
 				return ec.fieldContext_User_qr_code(ctx, field)
+			case "uuid":
+				return ec.fieldContext_User_uuid(ctx, field)
 			case "facial_embeddings":
 				return ec.fieldContext_User_facial_embeddings(ctx, field)
 			case "account_balance_in_cents":
@@ -3483,6 +3607,8 @@ func (ec *executionContext) fieldContext_Query_getUser(_ context.Context, field 
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "qr_code":
 				return ec.fieldContext_User_qr_code(ctx, field)
+			case "uuid":
+				return ec.fieldContext_User_uuid(ctx, field)
 			case "facial_embeddings":
 				return ec.fieldContext_User_facial_embeddings(ctx, field)
 			case "account_balance_in_cents":
@@ -4063,6 +4189,8 @@ func (ec *executionContext) fieldContext_Transaction_user(_ context.Context, fie
 				return ec.fieldContext_User_phone_number(ctx, field)
 			case "qr_code":
 				return ec.fieldContext_User_qr_code(ctx, field)
+			case "uuid":
+				return ec.fieldContext_User_uuid(ctx, field)
 			case "facial_embeddings":
 				return ec.fieldContext_User_facial_embeddings(ctx, field)
 			case "account_balance_in_cents":
@@ -4185,17 +4313,55 @@ func (ec *executionContext) _User_qr_code(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_qr_code(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_uuid(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_uuid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UUID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_uuid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -6585,47 +6751,6 @@ func (ec *executionContext) unmarshalInputIntFilterInput(ctx context.Context, ob
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewAmountTransaction(ctx context.Context, obj interface{}) (model.NewAmountTransaction, error) {
-	var it model.NewAmountTransaction
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"amount_in_cents", "qr_code", "facial_embedding"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "amount_in_cents":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount_in_cents"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.AmountInCents = data
-		case "qr_code":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qr_code"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.QRCode = data
-		case "facial_embedding":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facial_embedding"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.FacialEmbedding = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputNewMerchant(ctx context.Context, obj interface{}) (model.NewMerchant, error) {
 	var it model.NewMerchant
 	asMap := map[string]interface{}{}
@@ -6661,6 +6786,102 @@ func (ec *executionContext) unmarshalInputNewMerchant(ctx context.Context, obj i
 				return it, err
 			}
 			it.Password = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewOfflineTransaction(ctx context.Context, obj interface{}) (model.NewOfflineTransaction, error) {
+	var it model.NewOfflineTransaction
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"amount_in_cents", "qr_code", "facial_embedding", "phone_number", "OfflineTimeStamp"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "amount_in_cents":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount_in_cents"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AmountInCents = data
+		case "qr_code":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qr_code"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.QRCode = data
+		case "facial_embedding":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facial_embedding"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FacialEmbedding = data
+		case "phone_number":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone_number"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PhoneNumber = data
+		case "OfflineTimeStamp":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("OfflineTimeStamp"))
+			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OfflineTimeStamp = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewOnlineTransaction(ctx context.Context, obj interface{}) (model.NewOnlineTransaction, error) {
+	var it model.NewOnlineTransaction
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"amount_in_cents", "qr_code", "facial_embedding"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "amount_in_cents":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount_in_cents"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AmountInCents = data
+		case "qr_code":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qr_code"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.QRCode = data
+		case "facial_embedding":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facial_embedding"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FacialEmbedding = data
 		}
 	}
 
@@ -7480,9 +7701,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "createAmountTransaction":
+		case "createOnlineTransaction":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createAmountTransaction(ctx, field)
+				return ec._Mutation_createOnlineTransaction(ctx, field)
+			})
+		case "createOfflineTransactions":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createOfflineTransactions(ctx, field)
 			})
 		case "createUser":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -7880,9 +8105,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "qr_code":
 			out.Values[i] = ec._User_qr_code(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
+		case "uuid":
+			out.Values[i] = ec._User_uuid(ctx, field, obj)
 		case "facial_embeddings":
 			out.Values[i] = ec._User_facial_embeddings(ctx, field, obj)
 		case "account_balance_in_cents":
@@ -8383,13 +8607,35 @@ func (ec *executionContext) marshalNMerchant2ᚖgithubᚗcomᚋGigaDeskᚋeardru
 	return ec._Merchant(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNNewAmountTransaction2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewAmountTransaction(ctx context.Context, v interface{}) (model.NewAmountTransaction, error) {
-	res, err := ec.unmarshalInputNewAmountTransaction(ctx, v)
+func (ec *executionContext) unmarshalNNewMerchant2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewMerchant(ctx context.Context, v interface{}) (model.NewMerchant, error) {
+	res, err := ec.unmarshalInputNewMerchant(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewMerchant2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewMerchant(ctx context.Context, v interface{}) (model.NewMerchant, error) {
-	res, err := ec.unmarshalInputNewMerchant(ctx, v)
+func (ec *executionContext) unmarshalNNewOfflineTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransactionᚄ(ctx context.Context, v interface{}) ([]*model.NewOfflineTransaction, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.NewOfflineTransaction, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNNewOfflineTransaction2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransaction(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNNewOfflineTransaction2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransaction(ctx context.Context, v interface{}) (*model.NewOfflineTransaction, error) {
+	res, err := ec.unmarshalInputNewOfflineTransaction(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewOnlineTransaction2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOnlineTransaction(ctx context.Context, v interface{}) (model.NewOnlineTransaction, error) {
+	res, err := ec.unmarshalInputNewOnlineTransaction(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

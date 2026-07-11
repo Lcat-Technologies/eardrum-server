@@ -11,13 +11,26 @@ type Transaction {
 }
 
 
-#fields required for adding a new amount based transaction to the system
-input NewAmountTransaction {
+
+#fields required for adding a new realtime transaction to the system
+input NewOnlineTransaction {
   amount_in_cents: Int!
   qr_code: String!
   facial_embedding: String!
 }
 
+
+#fields required for adding a batch of offline transactions to the system
+input NewOfflineTransaction {
+  amount_in_cents: Int!
+  qr_code: String!
+  facial_embedding: String!
+  phone_number: String!
+  OfflineTimeStamp: Time!
+}
+
+
 extend type Mutation {
-  createAmountTransaction(input: NewAmountTransaction!): Transaction
+  createOnlineTransaction(input: NewOnlineTransaction!): Transaction
+  createOfflineTransactions(input: [NewOfflineTransaction!]!): [Transaction!]
 }

@@ -6,10 +6,9 @@ package graph
 
 import (
 	"context"
-	pgerror "errors"
+	"errors"
 	"time"
 
-	"github.com/GigaDesk/eardrum-interfaces/errors"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-prefix/validate"
