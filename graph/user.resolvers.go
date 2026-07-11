@@ -6,7 +6,7 @@ package graph
 
 import (
 	"context"
-	"errors"
+	pgerror "errors"
 	"time"
 
 	"github.com/GigaDesk/eardrum-postgres/transaction"
@@ -18,6 +18,7 @@ import (
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -51,7 +52,6 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	u := model.User{
 		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
-		QRCode:                user.GetQrCodeBase64(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
 	}
 
@@ -223,7 +223,6 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 	user1 := model.User{
 		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
-		QRCode:                user.GetQrCodeBase64(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
 	}
 
@@ -261,7 +260,39 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 	user1 := model.User{
 		Username:              user2.GetUserName(),
 		PhoneNumber:           user2.GetPhoneNumber(),
-		QRCode:                user2.GetQrCodeBase64(),
+		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
+	}
+
+	//return the updated record
+	return &user1, nil
+}
+
+// UpdateUserFacialEmbeddings is the resolver for the updateUserFacialEmbeddings field.
+func (r *mutationResolver) UpdateUserFacialEmbeddings(ctx context.Context, newEmbeddings []string) (*model.User, error) {
+		u, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	role := u.GetRole()
+	if role != "user" {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to Update user facial embeddings denied"))
+		err1.Log()
+		return nil, err1
+	}
+	username := u.GetUsername()
+
+	
+
+	user2, err := user.UpdateFacialEmbeddings(r.Sql.Db, newEmbeddings, username)
+	if err != nil {
+		log.Error().Str("username", username).Str("path", "UpdateUserFacialEmbeddings").Msg(err.Error())
+		return nil, err
+	}
+
+	user1 := model.User{
+		Username:              user2.GetUserName(),
+		PhoneNumber:           user2.GetPhoneNumber(),
 		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
 	}
 
@@ -289,10 +320,12 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 		return nil, err
 	}
 
+	qr:=user1.GetQrCodeBase64()
+
 	userprofile := model.User{
 		Username:              user1.GetUserName(),
 		PhoneNumber:           user1.GetPhoneNumber(),
-		QRCode:                user1.GetQrCodeBase64(),
+		QRCode:                &qr,
 		AccountBalanceInCents: int(user1.GetAccountBalanceInCents()),
 	}
 	return &userprofile, nil
@@ -321,10 +354,11 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 	}
 	log.Info().Str("id", username).Str("role", role).Str("path", "GetUser").Msg("getting user's profile")
 
+	qr:=u.GetQrCodeBase64()
 	userprofile := model.User{
 		Username:              u.GetUserName(),
 		PhoneNumber:           u.GetPhoneNumber(),
-		QRCode:                u.GetQrCodeBase64(),
+		QRCode:                &qr,
 		AccountBalanceInCents: int(u.GetAccountBalanceInCents()),
 	}
 	return &userprofile, nil

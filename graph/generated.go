@@ -84,6 +84,7 @@ type ComplexityRoot struct {
 		ResetUserPassword            func(childComplexity int, newPassword string) int
 		SendCode                     func(childComplexity int, phoneNumber string) int
 		UpdateMerchantPinCode        func(childComplexity int, newPincode string) int
+		UpdateUserFacialEmbeddings   func(childComplexity int, newEmbeddings []string) int
 		UpdateUserPinCode            func(childComplexity int, newPincode string) int
 		UserLogin                    func(childComplexity int, phoneNumber string, password string) int
 		VerifyMerchant               func(childComplexity int, phoneNumber string, otp string) int
@@ -148,6 +149,7 @@ type MutationResolver interface {
 	RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error)
 	ResetUserPassword(ctx context.Context, newPassword string) (*model.User, error)
 	UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error)
+	UpdateUserFacialEmbeddings(ctx context.Context, newEmbeddings []string) (*model.User, error)
 	RegenerateUserQRCode(ctx context.Context) (*model.User, error)
 }
 type QueryResolver interface {
@@ -423,6 +425,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateMerchantPinCode(childComplexity, args["new_pincode"].(string)), true
+
+	case "Mutation.updateUserFacialEmbeddings":
+		if e.complexity.Mutation.UpdateUserFacialEmbeddings == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUserFacialEmbeddings_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUserFacialEmbeddings(childComplexity, args["new_embeddings"].([]string)), true
 
 	case "Mutation.updateUserPinCode":
 		if e.complexity.Mutation.UpdateUserPinCode == nil {
@@ -1445,6 +1459,29 @@ func (ec *executionContext) field_Mutation_updateMerchantPinCode_argsNewPincode(
 	}
 
 	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserFacialEmbeddings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_updateUserFacialEmbeddings_argsNewEmbeddings(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["new_embeddings"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateUserFacialEmbeddings_argsNewEmbeddings(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) ([]string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("new_embeddings"))
+	if tmp, ok := rawArgs["new_embeddings"]; ok {
+		return ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+	}
+
+	var zeroVal []string
 	return zeroVal, nil
 }
 
@@ -3289,6 +3326,77 @@ func (ec *executionContext) fieldContext_Mutation_updateUserPinCode(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateUserPinCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateUserFacialEmbeddings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateUserFacialEmbeddings(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUserFacialEmbeddings(rctx, fc.Args["new_embeddings"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateUserFacialEmbeddings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "phone_number":
+				return ec.fieldContext_User_phone_number(ctx, field)
+			case "qr_code":
+				return ec.fieldContext_User_qr_code(ctx, field)
+			case "uuid":
+				return ec.fieldContext_User_uuid(ctx, field)
+			case "facial_embeddings":
+				return ec.fieldContext_User_facial_embeddings(ctx, field)
+			case "account_balance_in_cents":
+				return ec.fieldContext_User_account_balance_in_cents(ctx, field)
+			case "transactions":
+				return ec.fieldContext_User_transactions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateUserFacialEmbeddings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -7758,6 +7866,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "updateUserFacialEmbeddings":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateUserFacialEmbeddings(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "regenerateUserQrCode":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_regenerateUserQrCode(ctx, field)
@@ -8671,6 +8786,38 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

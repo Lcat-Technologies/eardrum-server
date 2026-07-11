@@ -6,7 +6,7 @@ package graph
 
 import (
 	"context"
-	"errors"
+	pgerror "errors"
 
 	"github.com/AlekSi/pointer"
 	Tx "github.com/GigaDesk/eardrum-interfaces/transaction"
@@ -14,6 +14,7 @@ import (
 	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/graph/model"
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 )
 
 // CreateOnlineTransaction is the resolver for the createOnlineTransaction field.

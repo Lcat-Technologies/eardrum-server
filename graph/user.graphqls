@@ -33,5 +33,6 @@ extend type Mutation {
   requestUserPasswordReset(phone_number: String!, otp: String!): Authorization!
   resetUserPassword(new_password: String!): User!
   updateUserPinCode(new_pincode: String!): User!
+  updateUserFacialEmbeddings(new_embeddings: [String!]!): User!
   regenerateUserQrCode: User!
 }

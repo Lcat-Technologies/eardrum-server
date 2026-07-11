@@ -6,11 +6,10 @@ package graph
 
 import (
 	"context"
-	pgerror "errors"
+	pgerror"errors"
 	"fmt"
 	"time"
 
-	"github.com/GigaDesk/eardrum-interfaces/errors"
 	"github.com/GigaDesk/eardrum-postgres/merchant"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-prefix/validate"
@@ -20,6 +19,7 @@ import (
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 )
 
 // Transactions is the resolver for the transactions field.
