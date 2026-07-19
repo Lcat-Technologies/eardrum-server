@@ -76,7 +76,7 @@ type ComplexityRoot struct {
 		ForgotMerchantPassword       func(childComplexity int, phoneNumber string) int
 		ForgotUserPassword           func(childComplexity int, phoneNumber string) int
 		MerchantLogin                func(childComplexity int, phoneNumber string, password string) int
-		RefreshToken                 func(childComplexity int, token string) int
+		RefreshToken                 func(childComplexity int) int
 		RegenerateUserQRCode         func(childComplexity int) int
 		RequestMerchantPasswordReset func(childComplexity int, phoneNumber string, otp string) int
 		RequestUserPasswordReset     func(childComplexity int, phoneNumber string, otp string) int
@@ -138,7 +138,7 @@ type MutationResolver interface {
 	ForgotMerchantPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error)
 	RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error)
 	ResetMerchantPassword(ctx context.Context, newPassword string) (*model.Merchant, error)
-	RefreshToken(ctx context.Context, token string) (*model.Authorization, error)
+	RefreshToken(ctx context.Context) (*model.Authorization, error)
 	UpdateMerchantPinCode(ctx context.Context, newPincode string) (*model.Merchant, error)
 	CreateOnlineTransaction(ctx context.Context, input model.NewOnlineTransaction) (*model.Transaction, error)
 	CreateOfflineTransactions(ctx context.Context, input []*model.NewOfflineTransaction) ([]*model.Transaction, error)
@@ -340,12 +340,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_refreshToken_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RefreshToken(childComplexity, args["token"].(string)), true
+		return e.complexity.Mutation.RefreshToken(childComplexity), true
 
 	case "Mutation.regenerateUserQrCode":
 		if e.complexity.Mutation.RegenerateUserQRCode == nil {
@@ -1258,29 +1253,6 @@ func (ec *executionContext) field_Mutation_merchantLogin_argsPassword(
 ) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 	if tmp, ok := rawArgs["password"]; ok {
-		return ec.unmarshalNString2string(ctx, tmp)
-	}
-
-	var zeroVal string
-	return zeroVal, nil
-}
-
-func (ec *executionContext) field_Mutation_refreshToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	arg0, err := ec.field_Mutation_refreshToken_argsToken(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["token"] = arg0
-	return args, nil
-}
-func (ec *executionContext) field_Mutation_refreshToken_argsToken(
-	ctx context.Context,
-	rawArgs map[string]interface{},
-) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
-	if tmp, ok := rawArgs["token"]; ok {
 		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
@@ -2631,7 +2603,7 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RefreshToken(rctx, fc.Args["token"].(string))
+		return ec.resolvers.Mutation().RefreshToken(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2648,7 +2620,7 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_refreshToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -2661,17 +2633,6 @@ func (ec *executionContext) fieldContext_Mutation_refreshToken(ctx context.Conte
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_refreshToken_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }

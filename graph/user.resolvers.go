@@ -194,6 +194,13 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 		return nil, err
 	}
 
+	// Add this safety check to catch unauthenticated users
+	if u == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to reset user password"))
+		err1.Log()
+		return nil, err1
+	}
+
 	role := u.GetRole()
 	if role != "user" {
 		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to reset user password denied"))
@@ -237,6 +244,13 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 		return nil, err
 	}
 
+	// Add this safety check to catch unauthenticated users
+	if u == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to update user pin code"))
+		err1.Log()
+		return nil, err1
+	}
+
 	role := u.GetRole()
 	if role != "user" {
 		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to Update user PinCode denied"))
@@ -269,9 +283,16 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 
 // UpdateUserFacialEmbeddings is the resolver for the updateUserFacialEmbeddings field.
 func (r *mutationResolver) UpdateUserFacialEmbeddings(ctx context.Context, newEmbeddings []string) (*model.User, error) {
-		u, err := auth.ForContext(ctx)
+	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// Add this safety check to catch unauthenticated users
+	if u == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to update facial embeddings"))
+		err1.Log()
+		return nil, err1
 	}
 
 	role := u.GetRole()
@@ -281,8 +302,6 @@ func (r *mutationResolver) UpdateUserFacialEmbeddings(ctx context.Context, newEm
 		return nil, err1
 	}
 	username := u.GetUsername()
-
-	
 
 	user2, err := user.UpdateFacialEmbeddings(r.Sql.Db, newEmbeddings, username)
 	if err != nil {
@@ -307,6 +326,13 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 		return nil, err
 	}
 
+	// Add this safety check to catch unauthenticated users
+	if u == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to regenerate user qr code"))
+		err1.Log()
+		return nil, err1
+	}
+
 	role := u.GetRole()
 	if role != "user" {
 		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to regenerate user qr code denied"))
@@ -320,7 +346,7 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 		return nil, err
 	}
 
-	qr:=user1.GetQrCodeBase64()
+	qr := user1.GetQrCodeBase64()
 
 	userprofile := model.User{
 		Username:              user1.GetUserName(),
@@ -336,6 +362,13 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 	user1, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// Add this safety check to catch unauthenticated users
+	if user1 == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to get user"))
+		err1.Log()
+		return nil, err1
 	}
 
 	role := user1.GetRole()
@@ -354,7 +387,7 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 	}
 	log.Info().Str("id", username).Str("role", role).Str("path", "GetUser").Msg("getting user's profile")
 
-	qr:=u.GetQrCodeBase64()
+	qr := u.GetQrCodeBase64()
 	userprofile := model.User{
 		Username:              u.GetUserName(),
 		PhoneNumber:           u.GetPhoneNumber(),
@@ -370,6 +403,13 @@ func (r *userResolver) Transactions(ctx context.Context, obj *model.User, limit 
 	if err != nil {
 		return nil, err
 	}
+	// Add this safety check to catch unauthenticated users
+	if user1 == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to get user transactions"))
+		err1.Log()
+		return nil, err1
+	}
+
 	role := user1.GetRole()
 	if role != "user" {
 		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to get user transactions denied"))

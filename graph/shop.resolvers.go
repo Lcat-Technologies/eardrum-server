@@ -6,7 +6,7 @@ package graph
 
 import (
 	"context"
-	pgerror"errors"
+	pgerror "errors"
 	"fmt"
 	"time"
 
@@ -240,6 +240,13 @@ func (r *mutationResolver) ResetMerchantPassword(ctx context.Context, newPasswor
 		return nil, err
 	}
 
+	// Add this safety check to catch unauthenticated merchants
+	if s == nil {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("authentication required to reset merchant password"))
+		err1.Log()
+		return nil, err1
+	}
+
 	role := s.GetRole()
 	if role != "merchant" {
 		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to reset merchant password denied"))
@@ -276,14 +283,22 @@ func (r *mutationResolver) ResetMerchantPassword(ctx context.Context, newPasswor
 }
 
 // RefreshToken is the resolver for the refreshToken field.
-func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*model.Authorization, error) {
-	credentials, err := jwt.ParseToken(token)
+func (r *mutationResolver) RefreshToken(ctx context.Context) (*model.Authorization, error) {
+	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	token, error := jwt.GenerateToken(*credentials)
+
+	// Add this safety check to catch unauthenticated requests
+	if s == nil {
+		err1 := errors.New(errors.EARUnauthenticated, pgerror.New("authentication required to refresh token"))
+		err1.Log()
+		return nil, err1
+	}
+
+	token, error := jwt.GenerateToken(*s)
 	if error != nil {
-		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "RefreshToken").Msg(err.Error())
+		log.Error().Str("username", s.Username).Str("role", s.Role).Str("path", "RefreshToken").Msg(err.Error())
 		return nil, err
 	}
 	return &model.Authorization{
@@ -296,6 +311,13 @@ func (r *mutationResolver) UpdateMerchantPinCode(ctx context.Context, newPincode
 	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// Add this safety check to catch unauthenticated requests
+	if u == nil {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("authentication required to update merchant pincode"))
+		err1.Log()
+		return nil, err1
 	}
 
 	role := u.GetRole()
@@ -334,11 +356,13 @@ func (r *queryResolver) GetMerchant(ctx context.Context) (*model.Merchant, error
 	if err != nil {
 		return nil, err
 	}
+	// Add this safety check to catch unauthenticated requests
 	if user == nil {
-		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get merchant profile denied!"))
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("authentication required to get user"))
 		err1.Log()
 		return nil, err1
 	}
+
 	role := user.GetRole()
 	if role != "merchant" {
 		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get merchant profile denied!"))

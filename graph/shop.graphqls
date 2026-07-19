@@ -37,6 +37,6 @@ extend type Mutation {
   forgotMerchantPassword(phone_number: String!): SendCodeStatus
   requestMerchantPasswordReset(phone_number: String!, otp: String!): Authorization!
   resetMerchantPassword(new_password: String!): Merchant
-  refreshToken(token: String!): Authorization!
+  refreshToken: Authorization!
   updateMerchantPinCode(new_pincode: String!): Merchant!
 }

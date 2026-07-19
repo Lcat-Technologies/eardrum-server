@@ -23,11 +23,14 @@ func (r *mutationResolver) CreateOnlineTransaction(ctx context.Context, input mo
 	if err != nil {
 		return nil, err
 	}
+
+	// Add this safety check to catch unauthenticated users
 	if s == nil {
-		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("authentication required to create online transaction"))
 		err1.Log()
 		return nil, err1
 	}
+
 	role := s.GetRole()
 	if role != "merchant" {
 		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
@@ -61,11 +64,13 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 	if err != nil {
 		return nil, err
 	}
+	// Add this safety check to catch unauthenticated users
 	if s == nil {
-		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("authentication required to create offline transactions"))
 		err1.Log()
 		return nil, err1
 	}
+
 	role := s.GetRole()
 	if role != "merchant" {
 		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
