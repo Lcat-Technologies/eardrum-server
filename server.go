@@ -26,7 +26,7 @@ import (
 	//"github.com/joho/godotenv"
 	customErrors "github.com/GigaDesk/eardrum-interfaces/errors"
 	"github.com/rs/cors"
-	"github.com/rs/zerolog/log"
+	customLog "github.com/rs/zerolog/log"
 )
 
 var (
@@ -48,8 +48,8 @@ func CustomErrorPresenter(ctx context.Context, e error) *gqlerror.Error {
 		err.Extensions["status"] = publicErr.HttpStatus
 		err.Message = publicErr.Message
 	}
-    // ALWAYS log the FULL, wrapped error internally for debugging
-    log.Error().Err(e).Msg("GraphQL Error Encountered")
+	// ALWAYS log the FULL, wrapped error internally for debugging
+	customLog.Error().Err(e).Msg("GraphQL Error Encountered")
 
 	return err
 }
@@ -57,12 +57,15 @@ func CustomErrorPresenter(ctx context.Context, e error) *gqlerror.Error {
 func main() {
 
 	//Find .env file
-    /*
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal().Msg(fmt.Sprintf("Error loading .env file: %s", err))
-	}
- */
+	/*
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatal().Msg(fmt.Sprintf("Error loading .env file: %s", err))
+		}
+	*/
+	//Ensure environment variables are configured
+	EnsureEnvVariables()
+
 	go phoneutils.InitializeTwilio()
 	go jwt.InitializeJwtSecretKey()
 
@@ -77,7 +80,7 @@ func main() {
 	// Perform auto-migration for multiple models
 	err := postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &merchant.Merchant{}, &merchant.UnverifiedMerchant{}, &transaction.Transaction{})
 	if err != nil {
-		log.Fatal().Msg(fmt.Sprintf("Failed to auto-migrate database: %s", err))
+		customLog.Fatal().Msg(fmt.Sprintf("Failed to auto-migrate database: %s", err))
 	}
 
 	port := defaultPort
@@ -92,10 +95,38 @@ func main() {
 	router.Use(auth.Middleware())
 
 	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Sql: &postgresInstance}}))
-    server.SetErrorPresenter(CustomErrorPresenter)
+	server.SetErrorPresenter(CustomErrorPresenter)
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", server)
 
-	log.Info().Msg(fmt.Sprintf("connect to http://localhost:%s/ for GraphQL playground", port))
-	log.Fatal().Msg(http.ListenAndServe(":"+port, router).Error())
+	customLog.Info().Msg(fmt.Sprintf("connect to http://localhost:%s/ for GraphQL playground", port))
+	customLog.Fatal().Msg(http.ListenAndServe(":"+port, router).Error())
+}
+
+// EnsureEnvVariables checks for required environment variables and exits if any are missing.
+func EnsureEnvVariables() {
+	requiredEnvs := []string{
+		"POSTGRES_DBURL",
+		"TRANSACTION_FEE_PERCENT",
+		"JWT_SECRET_KEY",
+		"TWILIO_ACCOUNT_SID",
+		"TWILIO_AUTH_TOKEN",
+		"TWILIO_VERIFY_SERVICE_SID",
+		"DEFAULT_PORT",
+	}
+
+	var missingEnvs []string
+
+	for _, env := range requiredEnvs {
+		if val := os.Getenv(env); val == "" {
+			missingEnvs = append(missingEnvs, env)
+		}
+	}
+
+	// If there are any missing variables, log a single structured fatal event and crash
+	if len(missingEnvs) > 0 {
+		customLog.Fatal().
+			Strs("missing_keys", missingEnvs).
+			Msg("Application terminating due to missing required environment variables")
+	}
 }
