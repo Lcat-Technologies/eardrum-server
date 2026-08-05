@@ -298,8 +298,8 @@ func (r *mutationResolver) RefreshToken(ctx context.Context) (*model.Authorizati
 
 	token, error := jwt.GenerateToken(*s)
 	if error != nil {
-		log.Error().Str("username", s.Username).Str("role", s.Role).Str("path", "RefreshToken").Msg(err.Error())
-		return nil, err
+		log.Error().Str("username", s.Username).Str("role", s.Role).Str("path", "RefreshToken").Msg(error.Error())
+		return nil, error
 	}
 	return &model.Authorization{
 		Token: token,
