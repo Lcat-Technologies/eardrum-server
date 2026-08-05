@@ -82,9 +82,9 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 	// Creates a slice of length 5 filled with nil interface values
 	offlineTx := make([]Tx.NewOfflineTransaction, len(input))
 
-	for _, nTx := range input {
-		offlineTx = append(offlineTx, nTx)
-	}
+	for i, nTx := range input {
+    offlineTx[i] = nTx // Overwrites the nil values in place
+    }
 
 	t, err := transaction.ProcessOfflineTransactionsBatch(r.Sql.Db, username, offlineTx)
 
