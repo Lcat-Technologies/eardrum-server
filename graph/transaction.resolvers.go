@@ -94,7 +94,7 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 
 	transactionslist := make([]*model.Transaction, len(t))
 
-	for _, n := range t {
+	for i, n := range t {
 		p := &model.Transaction{
 			TransactionID:          n.GetTransactionID(),
 			CreatedAt:              n.GetCreatedAt(),
@@ -104,7 +104,7 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 			UserUsername:           n.GetUserName(),
 			MerchantUsername:       n.GetMerchantName(),
 		}
-		transactionslist = append(transactionslist, p)
+		transactionslist[i] =  p
 	}
 
 	return transactionslist, nil
