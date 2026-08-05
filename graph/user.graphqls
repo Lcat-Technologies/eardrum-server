@@ -23,6 +23,7 @@ input NewUser {
 
 extend type Query {
   getUser: User
+  getUserStateByUuid(uuid: [String!]!): [User!]
 }
 
 extend type Mutation {
@@ -35,5 +36,4 @@ extend type Mutation {
   updateUserPinCode(new_pincode: String!): User!
   updateUserFacialEmbeddings(new_embeddings: [String!]!): User!
   regenerateUserQrCode: User!
-  getUserStateByUuid(uuid: [String!]!): [User!]
 }

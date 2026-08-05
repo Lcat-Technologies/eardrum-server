@@ -75,7 +75,6 @@ type ComplexityRoot struct {
 		CreateUser                   func(childComplexity int, input model.NewUser) int
 		ForgotMerchantPassword       func(childComplexity int, phoneNumber string) int
 		ForgotUserPassword           func(childComplexity int, phoneNumber string) int
-		GetUserStateByUUID           func(childComplexity int, uuid []string) int
 		MerchantLogin                func(childComplexity int, phoneNumber string, password string) int
 		RefreshToken                 func(childComplexity int) int
 		RegenerateUserQRCode         func(childComplexity int) int
@@ -93,11 +92,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetDummy     func(childComplexity int, id *int) int
-		GetDummys    func(childComplexity int) int
-		GetMerchant  func(childComplexity int) int
-		GetMerchants func(childComplexity int) int
-		GetUser      func(childComplexity int) int
+		GetDummy           func(childComplexity int, id *int) int
+		GetDummys          func(childComplexity int) int
+		GetMerchant        func(childComplexity int) int
+		GetMerchants       func(childComplexity int) int
+		GetUser            func(childComplexity int) int
+		GetUserStateByUUID func(childComplexity int, uuid []string) int
 	}
 
 	SendCodeStatus struct {
@@ -152,7 +152,6 @@ type MutationResolver interface {
 	UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error)
 	UpdateUserFacialEmbeddings(ctx context.Context, newEmbeddings []string) (*model.User, error)
 	RegenerateUserQRCode(ctx context.Context) (*model.User, error)
-	GetUserStateByUUID(ctx context.Context, uuid []string) ([]*model.User, error)
 }
 type QueryResolver interface {
 	GetDummys(ctx context.Context) ([]*model.Dummy, error)
@@ -160,6 +159,7 @@ type QueryResolver interface {
 	GetMerchant(ctx context.Context) (*model.Merchant, error)
 	GetMerchants(ctx context.Context) ([]*model.Merchant, error)
 	GetUser(ctx context.Context) (*model.User, error)
+	GetUserStateByUUID(ctx context.Context, uuid []string) ([]*model.User, error)
 }
 type TransactionResolver interface {
 	User(ctx context.Context, obj *model.Transaction) (*model.User, error)
@@ -324,18 +324,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ForgotUserPassword(childComplexity, args["phone_number"].(string)), true
-
-	case "Mutation.getUserStateByUuid":
-		if e.complexity.Mutation.GetUserStateByUUID == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_getUserStateByUuid_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.GetUserStateByUUID(childComplexity, args["uuid"].([]string)), true
 
 	case "Mutation.merchantLogin":
 		if e.complexity.Mutation.MerchantLogin == nil {
@@ -534,6 +522,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetUser(childComplexity), true
+
+	case "Query.getUserStateByUuid":
+		if e.complexity.Query.GetUserStateByUUID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserStateByUuid_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserStateByUUID(childComplexity, args["uuid"].([]string)), true
 
 	case "SendCodeStatus.phone_number":
 		if e.complexity.SendCodeStatus.PhoneNumber == nil {
@@ -1233,29 +1233,6 @@ func (ec *executionContext) field_Mutation_forgotUserPassword_argsPhoneNumber(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_getUserStateByUuid_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	arg0, err := ec.field_Mutation_getUserStateByUuid_argsUUID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["uuid"] = arg0
-	return args, nil
-}
-func (ec *executionContext) field_Mutation_getUserStateByUuid_argsUUID(
-	ctx context.Context,
-	rawArgs map[string]interface{},
-) ([]string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
-	if tmp, ok := rawArgs["uuid"]; ok {
-		return ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
-	}
-
-	var zeroVal []string
-	return zeroVal, nil
-}
-
 func (ec *executionContext) field_Mutation_merchantLogin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1683,6 +1660,29 @@ func (ec *executionContext) field_Query_getDummy_argsID(
 	}
 
 	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getUserStateByUuid_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Query_getUserStateByUuid_argsUUID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["uuid"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_getUserStateByUuid_argsUUID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) ([]string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+	if tmp, ok := rawArgs["uuid"]; ok {
+		return ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+	}
+
+	var zeroVal []string
 	return zeroVal, nil
 }
 
@@ -3461,74 +3461,6 @@ func (ec *executionContext) fieldContext_Mutation_regenerateUserQrCode(_ context
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_getUserStateByUuid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_getUserStateByUuid(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().GetUserStateByUUID(rctx, fc.Args["uuid"].([]string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.User)
-	fc.Result = res
-	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_getUserStateByUuid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "username":
-				return ec.fieldContext_User_username(ctx, field)
-			case "phone_number":
-				return ec.fieldContext_User_phone_number(ctx, field)
-			case "qr_code":
-				return ec.fieldContext_User_qr_code(ctx, field)
-			case "uuid":
-				return ec.fieldContext_User_uuid(ctx, field)
-			case "facial_embeddings":
-				return ec.fieldContext_User_facial_embeddings(ctx, field)
-			case "account_balance_in_cents":
-				return ec.fieldContext_User_account_balance_in_cents(ctx, field)
-			case "transactions":
-				return ec.fieldContext_User_transactions(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_getUserStateByUuid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_getDummys(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getDummys(ctx, field)
 	if err != nil {
@@ -3792,6 +3724,74 @@ func (ec *executionContext) fieldContext_Query_getUser(_ context.Context, field 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getUserStateByUuid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getUserStateByUuid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserStateByUUID(rctx, fc.Args["uuid"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getUserStateByUuid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "phone_number":
+				return ec.fieldContext_User_phone_number(ctx, field)
+			case "qr_code":
+				return ec.fieldContext_User_qr_code(ctx, field)
+			case "uuid":
+				return ec.fieldContext_User_uuid(ctx, field)
+			case "facial_embeddings":
+				return ec.fieldContext_User_facial_embeddings(ctx, field)
+			case "account_balance_in_cents":
+				return ec.fieldContext_User_account_balance_in_cents(ctx, field)
+			case "transactions":
+				return ec.fieldContext_User_transactions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getUserStateByUuid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -7946,10 +7946,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "getUserStateByUuid":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_getUserStateByUuid(ctx, field)
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8081,6 +8077,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getUser(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getUserStateByUuid":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserStateByUuid(ctx, field)
 				return res
 			}
 
