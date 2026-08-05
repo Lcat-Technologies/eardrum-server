@@ -6,7 +6,8 @@ package graph
 
 import (
 	"context"
-	pgerror "errors"
+	pgerror"errors"
+	"github.com/AlekSi/pointer"
 	"time"
 
 	"github.com/GigaDesk/eardrum-postgres/transaction"
@@ -355,6 +356,54 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 		AccountBalanceInCents: int(user1.GetAccountBalanceInCents()),
 	}
 	return &userprofile, nil
+}
+
+// GetUserStateByUUID is the resolver for the getUserStateByUuid field.
+func (r *mutationResolver) GetUserStateByUUID(ctx context.Context, uuid []string) ([]*model.User, error) {
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get offline user denied"))
+		err1.Log()
+		return nil, err1
+	}
+	role := s.GetRole()
+	if role != "merchant" {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get offline user denied"))
+		err1.Log()
+		return nil, err1
+	}
+
+	//get user from database via uuids
+	dbusers, err := user.GetUsersByUUIDs(r.Sql.Db, model.ParseUUIDSlice(uuid))
+	if err != nil {
+		return nil, err
+	}
+
+	if dbusers == nil{
+		return nil, nil
+	}
+
+    Userslist := make([]*model.User, len(dbusers))
+
+	
+
+	for i, dbuser := range dbusers {
+
+		uuidStr := dbuser.GetUUID()
+
+		user := &model.User{
+		Username:              dbuser.GetUserName(),
+		PhoneNumber:           dbuser.GetPhoneNumber(),
+		UUID:                  &uuidStr,
+		FacialEmbeddings:      pointer.Get(dbuser.GetFacialEmbeddings()),
+		AccountBalanceInCents: int(dbuser.GetAccountBalanceInCents()),
+	}
+		Userslist[i] =  user
+	}
+	return Userslist, nil
 }
 
 // GetUser is the resolver for the getUser field.

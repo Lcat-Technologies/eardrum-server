@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/GigaDesk/eardrum-prefix/validate"
+	"github.com/google/uuid"
 )
 
 // validates NewUser input data
@@ -39,4 +40,15 @@ func (n NewUser) GetPhoneNumber() string {
 // returns the user's password
 func (n NewUser) GetPassword() string {
 	return n.Password
+}
+
+
+// ParseUUIDSlice converts a slice of string UUIDs to a slice of uuid.UUID structs.
+func ParseUUIDSlice(strs []string) ([]uuid.UUID) {
+	uuids := make([]uuid.UUID, len(strs))
+	for i, str := range strs {
+		parsed, _ := uuid.Parse(str)
+		uuids[i] = parsed
+	}
+	return uuids
 }
