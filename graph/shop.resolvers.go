@@ -8,8 +8,10 @@ import (
 	"context"
 	pgerror "errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 	"github.com/GigaDesk/eardrum-postgres/merchant"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-prefix/validate"
@@ -19,7 +21,6 @@ import (
 	"github.com/GigaDesk/eardrum-server/phoneutils"
 	"github.com/GigaDesk/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
-	"github.com/GigaDesk/eardrum-interfaces/errors"
 )
 
 // Transactions is the resolver for the transactions field.
@@ -119,6 +120,7 @@ func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber strin
 
 	return &model.Authorization{
 		Token: token,
+		Role:  model.RoleMerchant,
 	}, nil
 }
 
@@ -167,6 +169,7 @@ func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string
 	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "MerchantLogin").Msg("merchant logged in successfully!")
 	return &model.Authorization{
 		Token: token,
+		Role:  model.RoleMerchant,
 	}, nil
 }
 
@@ -230,6 +233,7 @@ func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, pho
 	}
 	return &model.Authorization{
 		Token: token,
+		Role:  model.RoleMerchant,
 	}, nil
 }
 
@@ -301,8 +305,10 @@ func (r *mutationResolver) RefreshToken(ctx context.Context) (*model.Authorizati
 		log.Error().Str("username", s.Username).Str("role", s.Role).Str("path", "RefreshToken").Msg(error.Error())
 		return nil, error
 	}
+
 	return &model.Authorization{
 		Token: token,
+		Role:  model.Role(strings.ToUpper(s.GetRole())),
 	}, nil
 }
 

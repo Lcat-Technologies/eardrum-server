@@ -52,6 +52,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Authorization struct {
+		Role  func(childComplexity int) int
 		Token func(childComplexity int) int
 	}
 
@@ -186,6 +187,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Authorization.role":
+		if e.complexity.Authorization.Role == nil {
+			break
+		}
+
+		return e.complexity.Authorization.Role(childComplexity), true
 
 	case "Authorization.token":
 		if e.complexity.Authorization.Token == nil {
@@ -1861,6 +1869,50 @@ func (ec *executionContext) fieldContext_Authorization_token(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Authorization_role(ctx context.Context, field graphql.CollectedField, obj *model.Authorization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Authorization_role(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.Role)
+	fc.Result = res
+	return ec.marshalNRole2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐRole(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Authorization_role(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Authorization",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Role does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Dummy_id(ctx context.Context, field graphql.CollectedField, obj *model.Dummy) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Dummy_id(ctx, field)
 	if err != nil {
@@ -2312,6 +2364,8 @@ func (ec *executionContext) fieldContext_Mutation_verifyMerchant(ctx context.Con
 			switch field.Name {
 			case "token":
 				return ec.fieldContext_Authorization_token(ctx, field)
+			case "role":
+				return ec.fieldContext_Authorization_role(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -2429,6 +2483,8 @@ func (ec *executionContext) fieldContext_Mutation_merchantLogin(ctx context.Cont
 			switch field.Name {
 			case "token":
 				return ec.fieldContext_Authorization_token(ctx, field)
+			case "role":
+				return ec.fieldContext_Authorization_role(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -2546,6 +2602,8 @@ func (ec *executionContext) fieldContext_Mutation_requestMerchantPasswordReset(c
 			switch field.Name {
 			case "token":
 				return ec.fieldContext_Authorization_token(ctx, field)
+			case "role":
+				return ec.fieldContext_Authorization_role(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -2667,6 +2725,8 @@ func (ec *executionContext) fieldContext_Mutation_refreshToken(_ context.Context
 			switch field.Name {
 			case "token":
 				return ec.fieldContext_Authorization_token(ctx, field)
+			case "role":
+				return ec.fieldContext_Authorization_role(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -2991,6 +3051,8 @@ func (ec *executionContext) fieldContext_Mutation_verifyUser(ctx context.Context
 			switch field.Name {
 			case "token":
 				return ec.fieldContext_Authorization_token(ctx, field)
+			case "role":
+				return ec.fieldContext_Authorization_role(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -3050,6 +3112,8 @@ func (ec *executionContext) fieldContext_Mutation_userLogin(ctx context.Context,
 			switch field.Name {
 			case "token":
 				return ec.fieldContext_Authorization_token(ctx, field)
+			case "role":
+				return ec.fieldContext_Authorization_role(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -3170,6 +3234,8 @@ func (ec *executionContext) fieldContext_Mutation_requestUserPasswordReset(ctx c
 			switch field.Name {
 			case "token":
 				return ec.fieldContext_Authorization_token(ctx, field)
+			case "role":
+				return ec.fieldContext_Authorization_role(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -7652,6 +7718,11 @@ func (ec *executionContext) _Authorization(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "role":
+			out.Values[i] = ec._Authorization_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8842,6 +8913,16 @@ func (ec *executionContext) unmarshalNNewOnlineTransaction2githubᚗcomᚋGigaDe
 func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
 	res, err := ec.unmarshalInputNewUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRole2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
+	var res model.Role
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRole2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v model.Role) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSendCodeStatus2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx context.Context, sel ast.SelectionSet, v model.SendCodeStatus) graphql.Marshaler {

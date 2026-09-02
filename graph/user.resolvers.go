@@ -93,6 +93,7 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 
 	return &model.Authorization{
 		Token: token,
+		Role: model.RoleUser,
 	}, nil
 }
 
@@ -123,6 +124,7 @@ func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, pa
 	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "UserLogin").Msg("user logged in successfully!")
 	return &model.Authorization{
 		Token: token,
+		Role: model.RoleUser,
 	}, nil
 }
 
@@ -185,6 +187,7 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 	}
 	return &model.Authorization{
 		Token: token,
+		Role: model.RoleUser,
 	}, nil
 }
 

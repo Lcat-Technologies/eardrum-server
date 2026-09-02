@@ -47,7 +47,7 @@ func GenerateToken(credentials TokenCredentials) (string, error) {
 	return tokenString, nil
 }
 
-// ParseToken parses a jwt token and returns the id and role in it's claims as the token's credentials
+// ParseToken parses a jwt token and returns the username and role in it's claims as the token's credentials
 func ParseToken(tokenStr string) (*TokenCredentials, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		return JwtSecretKey, nil
