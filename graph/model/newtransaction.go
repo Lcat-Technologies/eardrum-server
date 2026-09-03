@@ -46,3 +46,8 @@ func (n NewOfflineTransaction) GetPhoneNumber() string{
 	return n.PhoneNumber
 }
 
+//Return's base64 encoding of the image of the scan that authorized transaction
+func (n NewOfflineTransaction) GetScanLog() string{
+	return n.ScanLog
+}
+

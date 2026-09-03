@@ -27,6 +27,7 @@ input NewOfflineTransaction {
   facial_embedding: String!
   phone_number: String!
   OfflineTimeStamp: Time!
+  ScanLog: String!
 }
 
 

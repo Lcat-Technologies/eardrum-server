@@ -112,6 +112,7 @@ type NewOfflineTransaction struct {
 	FacialEmbedding  string    `json:"facial_embedding"`
 	PhoneNumber      string    `json:"phone_number"`
 	OfflineTimeStamp time.Time `json:"OfflineTimeStamp"`
+	ScanLog          string    `json:"ScanLog"`
 }
 
 type NewOnlineTransaction struct {
