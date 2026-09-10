@@ -18,7 +18,7 @@ require (
 require (
 	github.com/AlekSi/pointer v1.2.0
 	github.com/GigaDesk/eardrum-graph v1.0.3
-	github.com/GigaDesk/eardrum-interfaces v1.2.9
+	github.com/GigaDesk/eardrum-interfaces v1.3.0
 	github.com/GigaDesk/eardrum-prefix v1.0.4
 	github.com/rs/cors v1.11.1
 )
