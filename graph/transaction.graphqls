@@ -28,6 +28,7 @@ input NewOfflineTransaction {
   phone_number: String!
   OfflineTimeStamp: Time!
   ScanLog: String!
+  OfflineTransactionID: String!
 }
 
 

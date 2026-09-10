@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+"time"
+"github.com/GigaDesk/eardrum-prefix/validate"
+)
 
 //Returns the facial embedding to authorize transaction
 func (n NewOnlineTransaction) GetFacialEmbedding() string {
@@ -49,5 +52,20 @@ func (n NewOfflineTransaction) GetPhoneNumber() string{
 //Return's base64 encoding of the image of the scan that authorized transaction
 func (n NewOfflineTransaction) GetScanLog() string{
 	return n.ScanLog
+}
+
+//Returnd the OfflineTransactionID
+func (n NewOfflineTransaction) GetOfflineTransactionID() string{
+	return n.OfflineTransactionID
+}
+
+
+//Validate NewOfflineTransaction input data
+func(n NewOfflineTransaction) Validate() error {
+	//validate offline transaction id
+	if err := validate.ValidateOfflineTransactionID(n.OfflineTransactionID); err != nil {
+		return err
+	}
+	return nil
 }
 

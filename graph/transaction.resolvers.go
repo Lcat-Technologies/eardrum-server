@@ -83,6 +83,10 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 	offlineTx := make([]Tx.NewOfflineTransaction, len(input))
 
 	for i, nTx := range input {
+	err2:=nTx.Validate()
+	if err2!= nil{
+		return nil, err2
+	}
     offlineTx[i] = nTx // Overwrites the nil values in place
     }
 
