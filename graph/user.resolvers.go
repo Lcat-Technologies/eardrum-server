@@ -38,10 +38,6 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 
 	input.Password = encryptedpassword
 
-	if err := phoneutils.SendOtp(input.PhoneNumber); err != nil {
-		log.Error().Str("phone_number", input.PhoneNumber).Str("path", "CreateUser").Msg(err.Error())
-		return nil, err
-	}
 
 	user, err := user.CreateUser(input, r.Sql.Db)
 
@@ -49,6 +45,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 		log.Error().Str("name", input.Username).Str("path", "CreateUser").Msg(err.Error())
 		return nil, err
 	}
+	
 
 	u := model.User{
 		Username:              user.GetUserName(),

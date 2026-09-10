@@ -7039,7 +7039,7 @@ func (ec *executionContext) unmarshalInputNewOfflineTransaction(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"amount_in_cents", "qr_code", "facial_embedding", "phone_number", "OfflineTimeStamp", "ScanLog"}
+	fieldsInOrder := [...]string{"amount_in_cents", "qr_code", "facial_embedding", "phone_number", "OfflineTimeStamp", "ScanLog", "OfflineTransactionID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7088,6 +7088,13 @@ func (ec *executionContext) unmarshalInputNewOfflineTransaction(ctx context.Cont
 				return it, err
 			}
 			it.ScanLog = data
+		case "OfflineTransactionID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("OfflineTransactionID"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OfflineTransactionID = data
 		}
 	}
 

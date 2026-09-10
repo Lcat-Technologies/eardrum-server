@@ -107,12 +107,13 @@ type NewMerchant struct {
 }
 
 type NewOfflineTransaction struct {
-	AmountInCents    int       `json:"amount_in_cents"`
-	QRCode           string    `json:"qr_code"`
-	FacialEmbedding  string    `json:"facial_embedding"`
-	PhoneNumber      string    `json:"phone_number"`
-	OfflineTimeStamp time.Time `json:"OfflineTimeStamp"`
-	ScanLog          string    `json:"ScanLog"`
+	AmountInCents        int       `json:"amount_in_cents"`
+	QRCode               string    `json:"qr_code"`
+	FacialEmbedding      string    `json:"facial_embedding"`
+	PhoneNumber          string    `json:"phone_number"`
+	OfflineTimeStamp     time.Time `json:"OfflineTimeStamp"`
+	ScanLog              string    `json:"ScanLog"`
+	OfflineTransactionID string    `json:"OfflineTransactionID"`
 }
 
 type NewOnlineTransaction struct {

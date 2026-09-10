@@ -65,11 +65,6 @@ func (r *mutationResolver) CreateMerchant(ctx context.Context, input model.NewMe
 
 	input.Password = encryptedpassword
 
-	if err := phoneutils.SendOtp(input.PhoneNumber); err != nil {
-		log.Error().Str("phone_number", input.PhoneNumber).Str("path", "CreateMerchant").Msg(err.Error())
-		return nil, err
-	}
-
 	merchant, err := merchant.CreateMerchant(input, r.Sql.Db)
 
 	if err != nil {
