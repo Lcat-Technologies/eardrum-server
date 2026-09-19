@@ -3,6 +3,7 @@ type Merchant {
   username: String!
   phone_number: String!
   account_balance_in_cents: Int!
+  pin_enrollment_status: Boolean!
   transactions(
     limit: Int = 10
     offset: Int = 0

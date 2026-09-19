@@ -64,6 +64,7 @@ type ComplexityRoot struct {
 	Merchant struct {
 		AccountBalanceInCents func(childComplexity int) int
 		PhoneNumber           func(childComplexity int) int
+		PinEnrollmentStatus   func(childComplexity int) int
 		Transactions          func(childComplexity int, limit *int, offset *int, startTime *time.Time, endTime *time.Time) int
 		Username              func(childComplexity int) int
 	}
@@ -231,6 +232,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Merchant.PhoneNumber(childComplexity), true
+
+	case "Merchant.pin_enrollment_status":
+		if e.complexity.Merchant.PinEnrollmentStatus == nil {
+			break
+		}
+
+		return e.complexity.Merchant.PinEnrollmentStatus(childComplexity), true
 
 	case "Merchant.transactions":
 		if e.complexity.Merchant.Transactions == nil {
@@ -2149,6 +2157,50 @@ func (ec *executionContext) fieldContext_Merchant_account_balance_in_cents(_ con
 	return fc, nil
 }
 
+func (ec *executionContext) _Merchant_pin_enrollment_status(ctx context.Context, field graphql.CollectedField, obj *model.Merchant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Merchant_pin_enrollment_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PinEnrollmentStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Merchant_pin_enrollment_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Merchant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Merchant_transactions(ctx context.Context, field graphql.CollectedField, obj *model.Merchant) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Merchant_transactions(ctx, field)
 	if err != nil {
@@ -2319,6 +2371,8 @@ func (ec *executionContext) fieldContext_Mutation_createMerchant(ctx context.Con
 				return ec.fieldContext_Merchant_phone_number(ctx, field)
 			case "account_balance_in_cents":
 				return ec.fieldContext_Merchant_account_balance_in_cents(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Merchant_pin_enrollment_status(ctx, field)
 			case "transactions":
 				return ec.fieldContext_Merchant_transactions(ctx, field)
 			}
@@ -2680,6 +2734,8 @@ func (ec *executionContext) fieldContext_Mutation_resetMerchantPassword(ctx cont
 				return ec.fieldContext_Merchant_phone_number(ctx, field)
 			case "account_balance_in_cents":
 				return ec.fieldContext_Merchant_account_balance_in_cents(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Merchant_pin_enrollment_status(ctx, field)
 			case "transactions":
 				return ec.fieldContext_Merchant_transactions(ctx, field)
 			}
@@ -2795,6 +2851,8 @@ func (ec *executionContext) fieldContext_Mutation_updateMerchantPinCode(ctx cont
 				return ec.fieldContext_Merchant_phone_number(ctx, field)
 			case "account_balance_in_cents":
 				return ec.fieldContext_Merchant_account_balance_in_cents(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Merchant_pin_enrollment_status(ctx, field)
 			case "transactions":
 				return ec.fieldContext_Merchant_transactions(ctx, field)
 			}
@@ -3713,6 +3771,8 @@ func (ec *executionContext) fieldContext_Query_getMerchant(_ context.Context, fi
 				return ec.fieldContext_Merchant_phone_number(ctx, field)
 			case "account_balance_in_cents":
 				return ec.fieldContext_Merchant_account_balance_in_cents(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Merchant_pin_enrollment_status(ctx, field)
 			case "transactions":
 				return ec.fieldContext_Merchant_transactions(ctx, field)
 			}
@@ -3764,6 +3824,8 @@ func (ec *executionContext) fieldContext_Query_getMerchants(_ context.Context, f
 				return ec.fieldContext_Merchant_phone_number(ctx, field)
 			case "account_balance_in_cents":
 				return ec.fieldContext_Merchant_account_balance_in_cents(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Merchant_pin_enrollment_status(ctx, field)
 			case "transactions":
 				return ec.fieldContext_Merchant_transactions(ctx, field)
 			}
@@ -7963,6 +8025,11 @@ func (ec *executionContext) _Merchant(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "account_balance_in_cents":
 			out.Values[i] = ec._Merchant_account_balance_in_cents(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "pin_enrollment_status":
+			out.Values[i] = ec._Merchant_pin_enrollment_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

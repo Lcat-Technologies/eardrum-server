@@ -6,12 +6,12 @@ package graph
 
 import (
 	"context"
-	pgerror "errors"
+	"github.com/GigaDesk/eardrum-interfaces/errors"
+	pgerror"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/GigaDesk/eardrum-interfaces/errors"
 	"github.com/GigaDesk/eardrum-postgres/merchant"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-prefix/validate"
@@ -76,6 +76,7 @@ func (r *mutationResolver) CreateMerchant(ctx context.Context, input model.NewMe
 		Username:              merchant.GetUserName(),
 		PhoneNumber:           merchant.GetPhoneNumber(),
 		AccountBalanceInCents: int(merchant.GetAccountBalanceInCents()),
+		PinEnrollmentStatus: merchant.GetPinStatus(),
 	}
 
 	return &u, nil
@@ -275,6 +276,7 @@ func (r *mutationResolver) ResetMerchantPassword(ctx context.Context, newPasswor
 		Username:              merchant.GetUserName(),
 		PhoneNumber:           merchant.GetPhoneNumber(),
 		AccountBalanceInCents: int(merchant.GetAccountBalanceInCents()),
+		PinEnrollmentStatus: merchant.GetPinStatus(),
 	}
 
 	//return the updated record
@@ -345,6 +347,7 @@ func (r *mutationResolver) UpdateMerchantPinCode(ctx context.Context, newPincode
 		Username:              user2.GetUserName(),
 		PhoneNumber:           user2.GetPhoneNumber(),
 		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
+		PinEnrollmentStatus: user2.GetPinStatus(),
 	}
 
 	//return the updated record
@@ -383,6 +386,7 @@ func (r *queryResolver) GetMerchant(ctx context.Context) (*model.Merchant, error
 		Username:              s.GetUserName(),
 		PhoneNumber:           s.GetPhoneNumber(),
 		AccountBalanceInCents: int(s.GetAccountBalanceInCents()),
+		PinEnrollmentStatus: s.GetPinStatus(),
 	}
 	return &merchantprofile, nil
 }

@@ -94,6 +94,7 @@ type Merchant struct {
 	Username              string         `json:"username"`
 	PhoneNumber           string         `json:"phone_number"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
+	PinEnrollmentStatus   bool           `json:"pin_enrollment_status"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
 
