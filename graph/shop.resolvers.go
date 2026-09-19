@@ -42,6 +42,7 @@ func (r *merchantResolver) Transactions(ctx context.Context, obj *model.Merchant
 			TransactionCostInCents: int(transaction.GetTransactionCostInCents()),
 			UserUsername:           transaction.GetUserName(),
 			MerchantUsername:       transaction.GetMerchantName(),
+			DeviceModel: transaction.GetTransactionDeviceModel(),
 		}
 		transactionslist = append(transactionslist, t)
 	}

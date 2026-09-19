@@ -225,6 +225,7 @@ type Transaction struct {
 	TransactionCostInCents int       `json:"transaction_cost_in_cents"`
 	UserUsername           string    `json:"user_username"`
 	MerchantUsername       string    `json:"merchant_username"`
+	DeviceModel            *string   `json:"Device_Model,omitempty"`
 	User                   *User     `json:"user,omitempty"`
 }
 

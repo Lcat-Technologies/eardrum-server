@@ -109,6 +109,7 @@ type ComplexityRoot struct {
 
 	Transaction struct {
 		CreatedAt              func(childComplexity int) int
+		DeviceModel            func(childComplexity int) int
 		MerchantUsername       func(childComplexity int) int
 		TotalAmountInCents     func(childComplexity int) int
 		TransactionCostInCents func(childComplexity int) int
@@ -573,6 +574,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Transaction.CreatedAt(childComplexity), true
+
+	case "Transaction.Device_Model":
+		if e.complexity.Transaction.DeviceModel == nil {
+			break
+		}
+
+		return e.complexity.Transaction.DeviceModel(childComplexity), true
 
 	case "Transaction.merchant_username":
 		if e.complexity.Transaction.MerchantUsername == nil {
@@ -2251,6 +2259,8 @@ func (ec *executionContext) fieldContext_Merchant_transactions(ctx context.Conte
 				return ec.fieldContext_Transaction_user_username(ctx, field)
 			case "merchant_username":
 				return ec.fieldContext_Transaction_merchant_username(ctx, field)
+			case "Device_Model":
+				return ec.fieldContext_Transaction_Device_Model(ctx, field)
 			case "user":
 				return ec.fieldContext_Transaction_user(ctx, field)
 			}
@@ -2923,6 +2933,8 @@ func (ec *executionContext) fieldContext_Mutation_createOnlineTransaction(ctx co
 				return ec.fieldContext_Transaction_user_username(ctx, field)
 			case "merchant_username":
 				return ec.fieldContext_Transaction_merchant_username(ctx, field)
+			case "Device_Model":
+				return ec.fieldContext_Transaction_Device_Model(ctx, field)
 			case "user":
 				return ec.fieldContext_Transaction_user(ctx, field)
 			}
@@ -2993,6 +3005,8 @@ func (ec *executionContext) fieldContext_Mutation_createOfflineTransactions(ctx 
 				return ec.fieldContext_Transaction_user_username(ctx, field)
 			case "merchant_username":
 				return ec.fieldContext_Transaction_merchant_username(ctx, field)
+			case "Device_Model":
+				return ec.fieldContext_Transaction_Device_Model(ctx, field)
 			case "user":
 				return ec.fieldContext_Transaction_user(ctx, field)
 			}
@@ -4493,6 +4507,47 @@ func (ec *executionContext) fieldContext_Transaction_merchant_username(_ context
 	return fc, nil
 }
 
+func (ec *executionContext) _Transaction_Device_Model(ctx context.Context, field graphql.CollectedField, obj *model.Transaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Transaction_Device_Model(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeviceModel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Transaction_Device_Model(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Transaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Transaction_user(ctx context.Context, field graphql.CollectedField, obj *model.Transaction) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Transaction_user(ctx, field)
 	if err != nil {
@@ -4947,6 +5002,8 @@ func (ec *executionContext) fieldContext_User_transactions(ctx context.Context, 
 				return ec.fieldContext_Transaction_user_username(ctx, field)
 			case "merchant_username":
 				return ec.fieldContext_Transaction_merchant_username(ctx, field)
+			case "Device_Model":
+				return ec.fieldContext_Transaction_Device_Model(ctx, field)
 			case "user":
 				return ec.fieldContext_Transaction_user(ctx, field)
 			}
@@ -8514,6 +8571,8 @@ func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "Device_Model":
+			out.Values[i] = ec._Transaction_Device_Model(ctx, field, obj)
 		case "user":
 			field := field
 

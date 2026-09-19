@@ -6,10 +6,10 @@ package graph
 
 import (
 	"context"
-	pgerror "errors"
+	"github.com/GigaDesk/eardrum-interfaces/errors"
+	pgerror"errors"
 
 	"github.com/AlekSi/pointer"
-	"github.com/GigaDesk/eardrum-interfaces/errors"
 	Tx "github.com/GigaDesk/eardrum-interfaces/transaction"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-postgres/user"
@@ -53,6 +53,7 @@ func (r *mutationResolver) CreateOnlineTransaction(ctx context.Context, input mo
 		TransactionCostInCents: int(t.GetTransactionCostInCents()),
 		UserUsername:           t.GetUserName(),
 		MerchantUsername:       t.GetMerchantName(),
+		DeviceModel: t.GetTransactionDeviceModel(),
 	}
 
 	return &p, nil
@@ -107,6 +108,7 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 			TransactionCostInCents: int(n.GetTransactionCostInCents()),
 			UserUsername:           n.GetUserName(),
 			MerchantUsername:       n.GetMerchantName(),
+			DeviceModel: n.GetTransactionDeviceModel(),
 		}
 		transactionslist[i] = p
 	}

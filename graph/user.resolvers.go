@@ -496,6 +496,7 @@ func (r *userResolver) Transactions(ctx context.Context, obj *model.User, limit 
 			TransactionCostInCents: int(transaction.GetTransactionCostInCents()),
 			UserUsername:           transaction.GetUserName(),
 			MerchantUsername:       transaction.GetMerchantName(),
+			DeviceModel: transaction.GetTransactionDeviceModel(),
 		}
 		transactionslist = append(transactionslist, t)
 	}
