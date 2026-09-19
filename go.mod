@@ -18,7 +18,7 @@ require (
 require (
 	github.com/AlekSi/pointer v1.2.0
 	github.com/GigaDesk/eardrum-graph v1.0.3
-	github.com/GigaDesk/eardrum-interfaces v1.3.0
+	github.com/GigaDesk/eardrum-interfaces v1.3.2
 	github.com/GigaDesk/eardrum-prefix v1.0.5
 	github.com/rs/cors v1.11.1
 )
@@ -32,7 +32,7 @@ require (
 )
 
 require (
-	github.com/GigaDesk/eardrum-postgres v1.2.6
+	github.com/GigaDesk/eardrum-postgres v1.2.8
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
