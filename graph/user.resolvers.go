@@ -6,11 +6,11 @@ package graph
 
 import (
 	"context"
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 	pgerror"errors"
 	"time"
 
 	"github.com/AlekSi/pointer"
-	"github.com/GigaDesk/eardrum-interfaces/errors"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-prefix/validate"
@@ -38,19 +38,19 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 
 	input.Password = encryptedpassword
 
-
 	user, err := user.CreateUser(input, r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("name", input.Username).Str("path", "CreateUser").Msg(err.Error())
 		return nil, err
 	}
-	
 
 	u := model.User{
 		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus: user.GetPinStatus(),
 	}
 
 	return &u, nil
@@ -90,7 +90,7 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 
 	return &model.Authorization{
 		Token: token,
-		Role: model.RoleUser,
+		Role:  model.RoleUser,
 	}, nil
 }
 
@@ -121,7 +121,7 @@ func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, pa
 	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "UserLogin").Msg("user logged in successfully!")
 	return &model.Authorization{
 		Token: token,
-		Role: model.RoleUser,
+		Role:  model.RoleUser,
 	}, nil
 }
 
@@ -184,7 +184,7 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 	}
 	return &model.Authorization{
 		Token: token,
-		Role: model.RoleUser,
+		Role:  model.RoleUser,
 	}, nil
 }
 
@@ -232,6 +232,8 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus: user.GetPinStatus(),
 	}
 
 	//return the updated record
@@ -276,6 +278,8 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 		Username:              user2.GetUserName(),
 		PhoneNumber:           user2.GetPhoneNumber(),
 		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus: user2.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus: user2.GetPinStatus(),
 	}
 
 	//return the updated record
@@ -314,6 +318,8 @@ func (r *mutationResolver) UpdateUserFacialEmbeddings(ctx context.Context, newEm
 		Username:              user2.GetUserName(),
 		PhoneNumber:           user2.GetPhoneNumber(),
 		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus: user2.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus: user2.GetPinStatus(),
 	}
 
 	//return the updated record
@@ -354,6 +360,8 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 		PhoneNumber:           user1.GetPhoneNumber(),
 		QRCode:                &qr,
 		AccountBalanceInCents: int(user1.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus: user1.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus: user1.GetPinStatus(),
 	}
 	return &userprofile, nil
 }
@@ -394,6 +402,8 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 		PhoneNumber:           u.GetPhoneNumber(),
 		QRCode:                &qr,
 		AccountBalanceInCents: int(u.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus: u.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus: u.GetPinStatus(),
 	}
 	return &userprofile, nil
 }
@@ -438,6 +448,8 @@ func (r *queryResolver) GetUserStateByUUID(ctx context.Context, uuid []string) (
 			UUID:                  &uuidStr,
 			FacialEmbeddings:      pointer.Get(dbuser.GetFacialEmbeddings()),
 			AccountBalanceInCents: int(dbuser.GetAccountBalanceInCents()),
+			FaceEnrollmentStatus: dbuser.GetFaceEnrollmentStatus(),
+		    PinEnrollmentStatus: dbuser.GetPinStatus(),
 		}
 		Userslist[i] = user
 	}

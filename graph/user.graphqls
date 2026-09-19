@@ -5,6 +5,8 @@ type User {
   qr_code: String
   uuid: String
   facial_embeddings: [String!]
+  face_enrollment_status: Boolean!
+  pin_enrollment_status: Boolean!
   account_balance_in_cents: Int!
     transactions(
     limit: Int = 10

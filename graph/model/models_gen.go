@@ -233,6 +233,8 @@ type User struct {
 	QRCode                *string        `json:"qr_code,omitempty"`
 	UUID                  *string        `json:"uuid,omitempty"`
 	FacialEmbeddings      []string       `json:"facial_embeddings,omitempty"`
+	FaceEnrollmentStatus  bool           `json:"face_enrollment_status"`
+	PinEnrollmentStatus   bool           `json:"pin_enrollment_status"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`
 }

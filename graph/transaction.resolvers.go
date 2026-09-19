@@ -9,12 +9,12 @@ import (
 	pgerror "errors"
 
 	"github.com/AlekSi/pointer"
+	"github.com/GigaDesk/eardrum-interfaces/errors"
 	Tx "github.com/GigaDesk/eardrum-interfaces/transaction"
 	"github.com/GigaDesk/eardrum-postgres/transaction"
 	"github.com/GigaDesk/eardrum-postgres/user"
 	"github.com/GigaDesk/eardrum-server/auth"
 	"github.com/GigaDesk/eardrum-server/graph/model"
-	"github.com/GigaDesk/eardrum-interfaces/errors"
 )
 
 // CreateOnlineTransaction is the resolver for the createOnlineTransaction field.
@@ -83,12 +83,12 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 	offlineTx := make([]Tx.NewOfflineTransaction, len(input))
 
 	for i, nTx := range input {
-	err2:=nTx.Validate()
-	if err2!= nil{
-		return nil, err2
+		err2 := nTx.Validate()
+		if err2 != nil {
+			return nil, err2
+		}
+		offlineTx[i] = nTx // Overwrites the nil values in place
 	}
-    offlineTx[i] = nTx // Overwrites the nil values in place
-    }
 
 	t, err := transaction.ProcessOfflineTransactionsBatch(r.Sql.Db, username, offlineTx)
 
@@ -108,7 +108,7 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 			UserUsername:           n.GetUserName(),
 			MerchantUsername:       n.GetMerchantName(),
 		}
-		transactionslist[i] =  p
+		transactionslist[i] = p
 	}
 
 	return transactionslist, nil
@@ -145,6 +145,8 @@ func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) 
 		UUID:                  &uuidStr,
 		FacialEmbeddings:      pointer.Get(dbuser.GetFacialEmbeddings()),
 		AccountBalanceInCents: int(dbuser.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus:  dbuser.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   dbuser.GetPinStatus(),
 	}
 	return user, nil
 }
