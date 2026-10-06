@@ -14,6 +14,7 @@ import (
 	"github.com/Lcat-Technologies/eardrum-postgres/postgresutils"
 	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
 	"github.com/Lcat-Technologies/eardrum-postgres/user"
+	"github.com/Lcat-Technologies/eardrum-postgres/device"
 	"github.com/Lcat-Technologies/eardrum-server/auth"
 	"github.com/Lcat-Technologies/eardrum-server/graph"
 	"github.com/Lcat-Technologies/eardrum-server/phoneutils"
@@ -76,7 +77,7 @@ func main() {
 	postgresInstance.Init(os.Getenv("POSTGRES_DBURL"))
 
 	// Perform auto-migration for multiple models
-	err := postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &merchant.Merchant{}, &merchant.UnverifiedMerchant{}, &transaction.Transaction{})
+	err := postgresInstance.Db.AutoMigrate(&user.User{}, &user.UnverifiedUser{}, &merchant.Merchant{}, &merchant.UnverifiedMerchant{}, &transaction.Transaction{}, &device.Device{})
 	if err != nil {
 		customLog.Fatal().Msg(fmt.Sprintf("Failed to auto-migrate database: %s", err))
 	}
