@@ -1,32 +1,41 @@
 #returns a user's data
 type User {
-  id: Int!
-  createdAt: Time!
-  updatedAt: Time!
-  name: String!
+  username: String!
   phone_number: String!
+  qr_code: String
+  uuid: String
+  facial_embeddings: [String!]
+  face_enrollment_status: Boolean!
+  pin_enrollment_status: Boolean!
   account_balance_in_cents: Int!
-  transactions: [Transaction!]
+    transactions(
+    limit: Int = 10
+    offset: Int = 0
+    startTime: Time
+    endTime: Time
+  ): [Transaction!]
 }
 
 #fields required for adding a new user to the system
 input NewUser {
-  name: String!
+  username: String!
   phone_number: String!
   password: String!
 }
 
 extend type Query {
   getUser: User
-  getUsers: [User!]
+  getUserStateByUuid(uuid: [String!]!): [User!]
 }
 
 extend type Mutation {
-  createUser(input: NewUser!): User
-  verifyUser(phone_number: String!, otp: String!): String
-  userLogin(phone_number: String!, password: String!): String
-  forgotUserPassword(phone_number: String!): SendCodeStatus
-  requestUserPasswordReset(phone_number: String!, otp: String!): String
-  resetUserPassword(new_password: String!): User
-  updateUserPinCode(new_pincode: String!): User
+  createUser(input: NewUser!): User!
+  verifyUser(phone_number: String!, otp: String!): Authorization!
+  userLogin(phone_number: String!, password: String!): Authorization!
+  forgotUserPassword(phone_number: String!): SendCodeStatus!
+  requestUserPasswordReset(phone_number: String!, otp: String!): Authorization!
+  resetUserPassword(new_password: String!): User!
+  updateUserPinCode(new_pincode: String!): User!
+  updateUserFacialEmbeddings(new_embeddings: [String!]!): User!
+  regenerateUserQrCode: User!
 }

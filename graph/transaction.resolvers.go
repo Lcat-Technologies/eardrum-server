@@ -6,83 +6,167 @@ package graph
 
 import (
 	"context"
-	"errors"
+	pgerror"errors"
 
-	"github.com/GigaDesk/eardrum-graph/neo4jpurchase"
-	"github.com/GigaDesk/eardrum-server/auth"
-	"github.com/GigaDesk/eardrum-server/encrypt"
-	"github.com/GigaDesk/eardrum-server/graph/model"
-	"github.com/GigaDesk/eardrum-server/shutdown"
-	"github.com/GigaDesk/eardrum-sync/transaction"
+	"github.com/AlekSi/pointer"
+	Tx "github.com/Lcat-Technologies/eardrum-interfaces/transaction"
+	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
+	"github.com/Lcat-Technologies/eardrum-postgres/user"
+	"github.com/Lcat-Technologies/eardrum-server/auth"
+	"github.com/Lcat-Technologies/eardrum-server/graph/model"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-postgres/device"
 )
 
-// CreateTransaction is the resolver for the createTransaction field.
-func (r *mutationResolver) CreateTransaction(ctx context.Context, input model.NewTransaction) (*model.Transaction, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
+// CreateOnlineTransaction is the resolver for the createOnlineTransaction field.
+func (r *mutationResolver) CreateOnlineTransaction(ctx context.Context, input model.NewOnlineTransaction) (*model.Transaction, error) {
 	s, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	// Add this safety check to catch unauthenticated users
 	if s == nil {
-		return nil, errors.New("access to create transaction denied!")
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("authentication required to create online transaction"))
+		err1.Log()
+		return nil, err1
 	}
+
 	role := s.GetRole()
-	if role != "shop" {
-		return nil, errors.New("access to create transaction denied. Only available for registered and logged in shops")
+	if role != "merchant" {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
+		err1.Log()
+		return nil, err1
 	}
-	id, err := s.GetID()
+	username := s.GetUsername()
 
-	if err != nil {
-		errors.New("could not access shop's id!")
-	}
-
-	t, err := transaction.CreateTransaction(input, id, func(hashedPIN, PIN string) error {
-		err := encrypt.CheckPassword(hashedPIN, PIN)
-
-		if err != nil {
-			return err
-		}
-		return nil
-	}, r.Sql.Db, r.Neo4j)
+	t, err := transaction.ProcessTransaction(r.Sql.Db, username, input)
 
 	if err != nil {
 		return nil, err
 	}
 
 	p := model.Transaction{
-		ID:                     int(t.GetID()),
+		TransactionID:          t.GetTransactionID(),
 		CreatedAt:              t.GetCreatedAt(),
 		UpdatedAt:              t.GetUpdatedAt(),
 		TotalAmountInCents:     int(t.GetTotalAmountInCents()),
 		TransactionCostInCents: int(t.GetTransactionCostInCents()),
+		UserUsername:           t.GetUserName(),
+		MerchantUsername:       t.GetMerchantName(),
 	}
 
 	return &p, nil
 }
 
-// Purchases is the resolver for the purchases field.
-func (r *transactionResolver) Purchases(ctx context.Context, obj *model.Transaction) ([]*model.Purchase, error) {
-	purchases, err := neo4jpurchase.RetrieveTransactionPurchases(r.Neo4j, obj.ID)
+// CreateOfflineTransactions is the resolver for the createOfflineTransactions field.
+func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input []*model.NewOfflineTransaction) ([]*model.Transaction, error) {
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Add this safety check to catch unauthenticated users
+	if s == nil {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("authentication required to create offline transactions"))
+		err1.Log()
+		return nil, err1
+	}
+
+	role := s.GetRole()
+	if role != "merchant" {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to create transaction denied"))
+		err1.Log()
+		return nil, err1
+	}
+	username := s.GetUsername()
+
+	// Creates a slice of length 5 filled with nil interface values
+	offlineTx := make([]Tx.NewOfflineTransaction, len(input))
+
+	for i, nTx := range input {
+		err2 := nTx.Validate()
+		if err2 != nil {
+			return nil, err2
+		}
+		offlineTx[i] = nTx // Overwrites the nil values in place
+	}
+
+	t, err := transaction.ProcessOfflineTransactionsBatch(r.Sql.Db, username, offlineTx)
 
 	if err != nil {
-		return nil, errors.New("could not access transactions' purchases!")
+		return nil, err
 	}
 
-	var purchaseslist []*model.Purchase
+	transactionslist := make([]*model.Transaction, len(t))
 
-	for _, purchase := range purchases {
-		p := &model.Purchase{
-			ID:                 int(purchase.GetID()),
-			UnitsBought:        purchase.GetUnitsBought(),
-			TotalAmountInCents: int(purchase.GetTotalAmountInCents()),
+	for i, n := range t {
+		p := &model.Transaction{
+			TransactionID:          n.GetTransactionID(),
+			CreatedAt:              n.GetCreatedAt(),
+			UpdatedAt:              n.GetUpdatedAt(),
+			TotalAmountInCents:     int(n.GetTotalAmountInCents()),
+			TransactionCostInCents: int(n.GetTransactionCostInCents()),
+			UserUsername:           n.GetUserName(),
+			MerchantUsername:       n.GetMerchantName(),
 		}
-		purchaseslist = append(purchaseslist, p)
+		transactionslist[i] = p
 	}
 
-	return purchaseslist, nil
+	return transactionslist, nil
+}
+
+// Device is the resolver for the device field.
+func (r *transactionResolver) Device(ctx context.Context, obj *model.Transaction) (*string, error) {
+	ts, err:= transaction.GetTransactionByReference(r.Sql.Db, obj.TransactionID)
+	if err!=nil{
+		return nil, err
+	}
+	id, err := ts.GetTransactionDeviceID()
+	if err!=nil{
+		return nil, nil
+	}
+	ds, err := device.GetDeviceByID(id, r.Sql.Db)
+	if err!=nil{
+		return nil, err
+	}
+	return ds.GetDeviceModel(), nil
+}
+
+// User is the resolver for the user field.
+func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) (*model.User, error) {
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get offline user denied"))
+		err1.Log()
+		return nil, err1
+	}
+	role := s.GetRole()
+	if role != "merchant" {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get offline user denied"))
+		err1.Log()
+		return nil, err1
+	}
+
+	//get user from database via username
+	dbuser, err := user.GetUserWithUsername(r.Sql.Db, obj.UserUsername)
+	if err != nil {
+		return nil, err
+	}
+	uuidStr := dbuser.GetUUID()
+
+	user := &model.User{
+		Username:              dbuser.GetUserName(),
+		PhoneNumber:           dbuser.GetPhoneNumber(),
+		UUID:                  &uuidStr,
+		FacialEmbeddings:      pointer.Get(dbuser.GetFacialEmbeddings()),
+		AccountBalanceInCents: int(dbuser.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus:  dbuser.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   dbuser.GetPinStatus(),
+	}
+	return user, nil
 }
 
 // Transaction returns TransactionResolver implementation.

@@ -1,22 +1,28 @@
-#returns a shop's data
-type Shop {
-  id: Int!
-  createdAt: Time!
-  updatedAt: Time!
-  name: String!
+#returns a merchant's data
+type Merchant {
+  username: String!
   phone_number: String!
   account_balance_in_cents: Int!
-  products: [Product!]
-  categories: [Category!]
-  category(id: Int!): Category
-  transactions: [Transaction!]
+  pin_enrollment_status: Boolean!
+  transactions(
+    limit: Int = 10
+    offset: Int = 0
+    startTime: Time
+    endTime: Time
+  ): [Transaction!]
 }
 
-#fields required for adding a new shop to the system
-input NewShop {
-  name: String!
+#fields required for adding a new merchant to the system
+input NewMerchant {
+  username: String!
   phone_number: String!
   password: String!
+}
+
+#fields required when logging device information to the system
+input NewDevice {
+  device_id: String!
+  model: String!
 }
 
 #returns the status of sending an OTP code to a specific number
@@ -26,17 +32,18 @@ type SendCodeStatus {
 }
 
 extend type Query {
-  getShop: Shop
-  getShops: [Shop!]
+  getMerchant: Merchant
+  getMerchants: [Merchant!]
 }
 
 extend type Mutation {
-  createShop(input: NewShop!): Shop
-  verifyShop(phone_number: String!, otp: String!): String
+  createMerchant(input: NewMerchant!): Merchant
+  verifyMerchant(phone_number: String!, otp: String!, device_info: NewDevice!): Authorization!
   sendCode(phone_number: String!): SendCodeStatus
-  shopLogin(phone_number: String!, password: String!): String
-  forgotShopPassword(phone_number: String!): SendCodeStatus
-  requestShopPasswordReset(phone_number: String!, otp: String!): String
-  resetShopPassword(new_password: String!): Shop
-  refreshToken(token: String!): String
+  merchantLogin(phone_number: String!, password: String!, device_info: NewDevice!): Authorization!
+  forgotMerchantPassword(phone_number: String!): SendCodeStatus
+  requestMerchantPasswordReset(phone_number: String!, otp: String!, device_info: NewDevice!): Authorization!
+  resetMerchantPassword(new_password: String!): Merchant
+  refreshToken: Authorization!
+  updateMerchantPinCode(new_pincode: String!): Merchant!
 }

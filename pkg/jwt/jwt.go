@@ -2,11 +2,11 @@ package jwt
 
 import (
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rs/zerolog/log"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 )
 
 // secret key being used to sign tokens
@@ -15,7 +15,7 @@ var (
 )
 
 type TokenCredentials struct {
-	Id   string
+    Username   string
 	Role string
 }
 
@@ -24,9 +24,9 @@ func (tokencredentials *TokenCredentials) GetRole() string {
 	return tokencredentials.Role
 }
 
-// returns the id of a given user
-func (tokencredentials *TokenCredentials) GetID() (int, error) {
-	return strconv.Atoi(tokencredentials.Id)
+// returns the username of a given user/merchant
+func (tokencredentials *TokenCredentials) GetUsername() (string) {
+	return tokencredentials.Username
 }
 
 // GenerateToken takes token credentials generates a jwt token and assign an id and role to it's claims and return it. It returns an error on failure
@@ -35,29 +35,33 @@ func GenerateToken(credentials TokenCredentials) (string, error) {
 	/* Create a map to store our claims */
 	claims := token.Claims.(jwt.MapClaims)
 	/* Set token claims */
-	claims["id"] = credentials.Id
+	claims["username"] = credentials.Username
 	claims["role"] = credentials.Role
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	tokenString, err := token.SignedString(JwtSecretKey)
 	if err != nil {
-		return "", err
+		err1 := errors.New(errors.EARJwtSigningFailed, err)
+		err1.Log()
+		return "", err1
 	}
 	return tokenString, nil
 }
 
-// ParseToken parses a jwt token and returns the id and role in it's claims as the token's credentials
+// ParseToken parses a jwt token and returns the username and role in it's claims as the token's credentials
 func ParseToken(tokenStr string) (*TokenCredentials, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		return JwtSecretKey, nil
 	})
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		credentials := &TokenCredentials{
-			Id:   claims["id"].(string),
+			Username:   claims["username"].(string),
 			Role: claims["role"].(string),
 		}
 		return credentials, nil
 	} else {
-		return nil, err
+		err1 := errors.New(errors.EARJwtParsingFailed, err)
+		err1.Log()
+		return nil, err1
 	}
 }
 

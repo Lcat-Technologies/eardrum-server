@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/GigaDesk/eardrum-server/graph/model"
+	"github.com/Lcat-Technologies/eardrum-server/graph/model"
 )
 
 // CreateDummy is the resolver for the createDummy field.

@@ -3,8 +3,18 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
+
+type Authorization struct {
+	Token                string `json:"token"`
+	Role                 Role   `json:"role"`
+	PinEnrollmentStatus  bool   `json:"pin_enrollment_status"`
+	FaceEnrollmentStatus bool   `json:"face_enrollment_status"`
+}
 
 // Boolean Filter simple datatypes
 type BooleanFilterInput struct {
@@ -14,15 +24,6 @@ type BooleanFilterInput struct {
 	Is      *bool               `json:"is,omitempty"`
 	Null    *bool               `json:"null,omitempty"`
 	NotNull *bool               `json:"notNull,omitempty"`
-}
-
-type Category struct {
-	ID          int        `json:"id"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Products    []*Product `json:"products,omitempty"`
 }
 
 type Dummy struct {
@@ -91,55 +92,48 @@ type IntFilterInput struct {
 	Between *IntFilterBetween `json:"between,omitempty"`
 }
 
+type Merchant struct {
+	Username              string         `json:"username"`
+	PhoneNumber           string         `json:"phone_number"`
+	AccountBalanceInCents int            `json:"account_balance_in_cents"`
+	PinEnrollmentStatus   bool           `json:"pin_enrollment_status"`
+	Transactions          []*Transaction `json:"transactions,omitempty"`
+}
+
 type Mutation struct {
 }
 
-type NewCategory struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+type NewDevice struct {
+	DeviceID string `json:"device_id"`
+	Model    string `json:"model"`
 }
 
-type NewProduct struct {
-	Name                string `json:"name"`
-	PricePerUnitInCents int    `json:"price_per_unit_in_cents"`
-}
-
-type NewShop struct {
-	Name        string `json:"name"`
+type NewMerchant struct {
+	Username    string `json:"username"`
 	PhoneNumber string `json:"phone_number"`
 	Password    string `json:"password"`
 }
 
-type NewTransaction struct {
-	PurchasedProducts []*PurchasedProduct `json:"purchased_products"`
-	PhoneNumber       string              `json:"phone_number"`
-	PinCode           string              `json:"pin_code"`
+type NewOfflineTransaction struct {
+	AmountInCents        int       `json:"amount_in_cents"`
+	QRCode               string    `json:"qr_code"`
+	FacialEmbedding      string    `json:"facial_embedding"`
+	PhoneNumber          string    `json:"phone_number"`
+	OfflineTimeStamp     time.Time `json:"OfflineTimeStamp"`
+	ScanLog              string    `json:"ScanLog"`
+	OfflineTransactionID string    `json:"OfflineTransactionID"`
+}
+
+type NewOnlineTransaction struct {
+	AmountInCents   int    `json:"amount_in_cents"`
+	QRCode          string `json:"qr_code"`
+	FacialEmbedding string `json:"facial_embedding"`
 }
 
 type NewUser struct {
-	Name        string `json:"name"`
+	Username    string `json:"username"`
 	PhoneNumber string `json:"phone_number"`
 	Password    string `json:"password"`
-}
-
-type Product struct {
-	ID                  int       `json:"id"`
-	CreatedAt           time.Time `json:"createdAt"`
-	UpdatedAt           time.Time `json:"updatedAt"`
-	Name                string    `json:"name"`
-	PricePerUnitInCents int       `json:"price_per_unit_in_cents"`
-}
-
-type Purchase struct {
-	ID                 int      `json:"id"`
-	UnitsBought        int      `json:"units_bought"`
-	TotalAmountInCents int      `json:"total_amount_in_cents"`
-	Product            *Product `json:"product"`
-}
-
-type PurchasedProduct struct {
-	ProductID   int `json:"product_id"`
-	UnitsBought int `json:"units_bought"`
 }
 
 type Query struct {
@@ -148,19 +142,6 @@ type Query struct {
 type SendCodeStatus struct {
 	PhoneNumber string `json:"phone_number"`
 	Success     bool   `json:"success"`
-}
-
-type Shop struct {
-	ID                    int            `json:"id"`
-	CreatedAt             time.Time      `json:"createdAt"`
-	UpdatedAt             time.Time      `json:"updatedAt"`
-	Name                  string         `json:"name"`
-	PhoneNumber           string         `json:"phone_number"`
-	AccountBalanceInCents int            `json:"account_balance_in_cents"`
-	Products              []*Product     `json:"products,omitempty"`
-	Categories            []*Category    `json:"categories,omitempty"`
-	Category              *Category      `json:"category,omitempty"`
-	Transactions          []*Transaction `json:"transactions,omitempty"`
 }
 
 // SoftDelete Filter simple datatypes
@@ -244,20 +225,66 @@ type TimeFilterInput struct {
 }
 
 type Transaction struct {
-	ID                     int         `json:"id"`
-	CreatedAt              time.Time   `json:"createdAt"`
-	UpdatedAt              time.Time   `json:"updatedAt"`
-	TotalAmountInCents     int         `json:"total_amount_in_cents"`
-	TransactionCostInCents int         `json:"transaction_cost_in_cents"`
-	Purchases              []*Purchase `json:"purchases"`
+	TransactionID          string    `json:"transaction_id"`
+	CreatedAt              time.Time `json:"createdAt"`
+	UpdatedAt              time.Time `json:"updatedAt"`
+	TotalAmountInCents     int       `json:"total_amount_in_cents"`
+	TransactionCostInCents int       `json:"transaction_cost_in_cents"`
+	UserUsername           string    `json:"user_username"`
+	MerchantUsername       string    `json:"merchant_username"`
+	Device                 *string   `json:"device,omitempty"`
+	User                   *User     `json:"user,omitempty"`
 }
 
 type User struct {
-	ID                    int            `json:"id"`
-	CreatedAt             time.Time      `json:"createdAt"`
-	UpdatedAt             time.Time      `json:"updatedAt"`
-	Name                  string         `json:"name"`
+	Username              string         `json:"username"`
 	PhoneNumber           string         `json:"phone_number"`
+	QRCode                *string        `json:"qr_code,omitempty"`
+	UUID                  *string        `json:"uuid,omitempty"`
+	FacialEmbeddings      []string       `json:"facial_embeddings,omitempty"`
+	FaceEnrollmentStatus  bool           `json:"face_enrollment_status"`
+	PinEnrollmentStatus   bool           `json:"pin_enrollment_status"`
 	AccountBalanceInCents int            `json:"account_balance_in_cents"`
 	Transactions          []*Transaction `json:"transactions,omitempty"`
+}
+
+type Role string
+
+const (
+	RoleMerchant Role = "MERCHANT"
+	RoleUser     Role = "USER"
+)
+
+var AllRole = []Role{
+	RoleMerchant,
+	RoleUser,
+}
+
+func (e Role) IsValid() bool {
+	switch e {
+	case RoleMerchant, RoleUser:
+		return true
+	}
+	return false
+}
+
+func (e Role) String() string {
+	return string(e)
+}
+
+func (e *Role) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Role(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Role", str)
+	}
+	return nil
+}
+
+func (e Role) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

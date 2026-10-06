@@ -6,28 +6,24 @@ package graph
 
 import (
 	"context"
-	"errors"
-	"strconv"
+	pgerror"errors"
+	"time"
 
-	"github.com/GigaDesk/eardrum-graph/neo4jtransaction"
-	"github.com/GigaDesk/eardrum-postgres/postgresuser"
-	"github.com/GigaDesk/eardrum-prefix/validate"
-	"github.com/GigaDesk/eardrum-server/auth"
-	"github.com/GigaDesk/eardrum-server/encrypt"
-	"github.com/GigaDesk/eardrum-server/graph/model"
-	"github.com/GigaDesk/eardrum-server/phoneutils"
-	"github.com/GigaDesk/eardrum-server/pkg/jwt"
-	"github.com/GigaDesk/eardrum-server/shutdown"
-	"github.com/GigaDesk/eardrum-sync/user"
+	"github.com/AlekSi/pointer"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
+	"github.com/Lcat-Technologies/eardrum-postgres/user"
+	"github.com/Lcat-Technologies/eardrum-prefix/validate"
+	"github.com/Lcat-Technologies/eardrum-server/auth"
+	"github.com/Lcat-Technologies/eardrum-server/encrypt"
+	"github.com/Lcat-Technologies/eardrum-server/graph/model"
+	"github.com/Lcat-Technologies/eardrum-server/phoneutils"
+	"github.com/Lcat-Technologies/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
 )
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	//validate inputs
 	if err := input.Validate(); err != nil {
 		return nil, err
@@ -42,36 +38,26 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 
 	input.Password = encryptedpassword
 
-	if err := phoneutils.SendOtp(input.PhoneNumber); err != nil {
-		log.Error().Str("phone_number", input.PhoneNumber).Str("path", "CreateUser").Msg(err.Error())
+	user, err := user.CreateUser(input, r.Sql.Db)
+
+	if err != nil {
+		log.Error().Str("name", input.Username).Str("path", "CreateUser").Msg(err.Error())
 		return nil, err
 	}
 
-	user, err := postgresuser.CreateUser(input, r.Sql.Db)
-
-	if err != nil {
-		log.Error().Str("name", input.Name).Str("path", "CreateUser").Msg(err.Error())
-		return nil, errors.New("an unexpected error occurred while creating the user account. please try again later or contact support")
-	}
-
 	u := model.User{
-		ID:                    int(user.GetID()),
-		CreatedAt:             user.GetCreatedAt(),
-		UpdatedAt:             user.GetUpdatedAt(),
-		Name:                  user.GetName(),
+		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus:  user.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user.GetPinStatus(),
 	}
 
 	return &u, nil
 }
 
 // VerifyUser is the resolver for the verifyUser field.
-func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, otp string) (*string, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
+func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
 	//Check the validity of the phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
 		return nil, err
@@ -84,86 +70,85 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
 		return nil, err
 	}
-	user, err := user.VerifyUser(phoneNumber, r.Sql.Db, r.Neo4j)
+	user, err := user.VerifyUser(phoneNumber, r.Sql.Db)
 
 	if err != nil {
 		log.Error().Str("phone_number", phoneNumber).Str("path", "VerifyUser").Msg(err.Error())
-		return nil, errors.New("an unexpected error occurred while verifying the user account. please try again later or contact support")
+		return nil, err
 	}
 
 	credentials := jwt.TokenCredentials{
-		Id:   strconv.Itoa(int(user.GetID())),
-		Role: "user",
+		Username: user.GetUserName(),
+		Role:     "user",
 	}
 	token, err := jwt.GenerateToken(credentials)
 	if err != nil {
-		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyUser").Msg(err.Error())
-		return nil, errors.New("error generating accessToken")
+		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "VerifyUser").Msg(err.Error())
+		return nil, err
 	}
-	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "VerifyUser").Msg("user verified successfully!")
+	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "VerifyUser").Msg("user verified successfully!")
 
-	return &token, nil
+	return &model.Authorization{
+		Token:                token,
+		Role:                 model.RoleUser,
+		PinEnrollmentStatus:  user.GetPinStatus(),
+		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
+	}, nil
 }
 
 // UserLogin is the resolver for the userLogin field.
-func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, password string) (*string, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
-
+func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, password string) (*model.Authorization, error) {
 	// Find the user that matches the input phone number
-	user, err := postgresuser.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
+	user, err := user.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
 
 	if err != nil {
 		log.Info().Str("phone_number", phoneNumber).Str("path", "UserLogin").Msg(err.Error())
-		return nil, errors.New("phone number does not exist")
+		return nil, err
 	}
 	//check if the password of the user matches the input password
 	if err := encrypt.CheckPassword(user.GetPassword(), password); err != nil {
 		log.Info().Str("path", "UserLogin").Msg(err.Error())
-		return nil, errors.New("Invalid phone number or password")
+		return nil, err
 	}
 
 	credentials := jwt.TokenCredentials{
-		Id:   strconv.Itoa(int(user.GetID())),
-		Role: "user",
+		Username: user.GetUserName(),
+		Role:     "user",
 	}
 	token, err := jwt.GenerateToken(credentials)
 	if err != nil {
-		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "UserLogin").Msg(err.Error())
-		return nil, errors.New("error generating accessToken")
+		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "UserLogin").Msg(err.Error())
+		return nil, err
 	}
-	log.Info().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "UserLogin").Msg("user logged in successfully!")
-	return &token, nil
+	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "UserLogin").Msg("user logged in successfully!")
+	return &model.Authorization{
+		Token:                token,
+		Role:                 model.RoleUser,
+		PinEnrollmentStatus:  user.GetPinStatus(),
+		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
+	}, nil
 }
 
 // ForgotUserPassword is the resolver for the forgotUserPassword field.
 func (r *mutationResolver) ForgotUserPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error) {
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
-
 	//validate phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
 		return nil, err
 	}
 
 	//check if the phone number exists in the database
-	phoneexists, err := postgresuser.CheckUserPhoneNumber(r.Sql.Db, phoneNumber)
+	phoneexists, err := user.CheckUserPhoneNumber(r.Sql.Db, phoneNumber)
 
 	//return any error that might be associated with checking the phone number's existence in the database
 	if err != nil {
 		log.Error().Str("phone_number", phoneNumber).Str("path", "ForgotUserPassword").Msg(err.Error())
 		return nil, err
 	}
-	//return an error if phone number exists in the unverified school table
-	if phoneexists.Verified != true && phoneexists.Unverified == true {
-		return nil, errors.New("phone number has been registered but is yet to be verified")
-	}
-	//return an error if phone number is neither registered nor verified
-	if phoneexists.Verified != true && phoneexists.Unverified != true {
-		return nil, errors.New("phone number does not exist")
+	//return an error if phone number does not exist in verified form
+	if phoneexists.IsVerified == false {
+		err1 := errors.New(errors.EARUserNotFoundByPhone, pgerror.New("phone number does not exist in verified form"))
+		err1.Log()
+		return nil, err1
 	}
 	//send an OTP code to the phone number provided, return error if there is any
 	if err := phoneutils.SendOtp(phoneNumber); err != nil {
@@ -179,58 +164,58 @@ func (r *mutationResolver) ForgotUserPassword(ctx context.Context, phoneNumber s
 }
 
 // RequestUserPasswordReset is the resolver for the requestUserPasswordReset field.
-func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*string, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
-
+func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
 	//Check the validity of an OTP code
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
 		return nil, err
 	}
 
-	user, err := postgresuser.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
+	user, err := user.GetUserWithPhoneNumber(r.Sql.Db, phoneNumber)
 
 	if err != nil {
 		log.Info().Str("phone_number", phoneNumber).Str("path", "RequestUserPasswordReset").Msg(err.Error())
-		return nil, errors.New("phone number does not exist")
+		return nil, err
 	}
 
 	credentials := jwt.TokenCredentials{
-		Id:   strconv.Itoa(int(user.GetID())),
-		Role: "user",
+		Username: user.GetUserName(),
+		Role:     "user",
 	}
 	token, err := jwt.GenerateToken(credentials)
 	if err != nil {
-		log.Error().Str("id", credentials.Id).Str("role", credentials.Role).Str("path", "RequestUserPasswordReset").Msg(err.Error())
-		return nil, errors.New("error generating accessToken")
+		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "RequestUserPasswordReset").Msg(err.Error())
+		return nil, err
 	}
-	return &token, nil
+	return &model.Authorization{
+		Token:                token,
+		Role:                 model.RoleUser,
+		PinEnrollmentStatus:  user.GetPinStatus(),
+		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
+	}, nil
 }
 
 // ResetUserPassword is the resolver for the resetUserPassword field.
 func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword string) (*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	// Add this safety check to catch unauthenticated users
 	if u == nil {
-		return nil, errors.New("access to ResetUserPassword denied!")
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to reset user password"))
+		err1.Log()
+		return nil, err1
 	}
+
 	role := u.GetRole()
 	if role != "user" {
-		return nil, errors.New("access to ResetUserPassword denied. Only available for registered and logged in users")
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to reset user password denied"))
+		err1.Log()
+		return nil, err1
 	}
-	id, err := u.GetID()
 
-	if err != nil {
-		errors.New("could not access user's id!")
-	}
+	username := u.GetUsername()
 
 	//validate inputs
 	if err := validate.ValidatePassword(newPassword); err != nil {
@@ -243,19 +228,18 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 		return nil, err
 	}
 
-	user, err := user.UpdatePassword(r.Sql.Db, encryptedpassword, id, r.Neo4j)
+	user, err := user.UpdatePassword(r.Sql.Db, encryptedpassword, username)
 	if err != nil {
-		log.Error().Int("id", id).Str("path", "ResetUserPassword").Msg(err.Error())
+		log.Error().Str("username", username).Str("path", "ResetUserPassword").Msg(err.Error())
 		return nil, err
 	}
 
 	user1 := model.User{
-		ID:                    int(user.GetID()),
-		CreatedAt:             user.GetCreatedAt(),
-		UpdatedAt:             user.GetUpdatedAt(),
-		Name:                  user.GetName(),
+		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus:  user.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user.GetPinStatus(),
 	}
 
 	//return the updated record
@@ -264,26 +248,25 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 
 // UpdateUserPinCode is the resolver for the updateUserPinCode field.
 func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode string) (*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
 	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	// Add this safety check to catch unauthenticated users
 	if u == nil {
-		return nil, errors.New("access to UpdateUserPinCode denied!")
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to update user pin code"))
+		err1.Log()
+		return nil, err1
 	}
+
 	role := u.GetRole()
 	if role != "user" {
-		return nil, errors.New("access to UpdateUserPassword denied. Only available for registered and logged in users")
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to Update user PinCode denied"))
+		err1.Log()
+		return nil, err1
 	}
-	id, err := u.GetID()
-
-	if err != nil {
-		errors.New("could not access user's id!")
-	}
+	username := u.GetUsername()
 
 	encryptedpincode, err := encrypt.HashPassword(newPincode)
 
@@ -291,114 +274,234 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 		return nil, err
 	}
 
-	user, err := user.UpdatePinCode(r.Sql.Db, encryptedpincode, id, r.Neo4j)
+	user2, err := user.UpdatePinCode(r.Sql.Db, encryptedpincode, username)
 	if err != nil {
-		log.Error().Int("id", id).Str("path", "UpdateUserPinCode").Msg(err.Error())
+		log.Error().Str("username", username).Str("path", "UpdateUserPinCode").Msg(err.Error())
 		return nil, err
 	}
 
 	user1 := model.User{
-		ID:                    int(user.GetID()),
-		CreatedAt:             user.GetCreatedAt(),
-		UpdatedAt:             user.GetUpdatedAt(),
-		Name:                  user.GetName(),
-		PhoneNumber:           user.GetPhoneNumber(),
-		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
+		Username:              user2.GetUserName(),
+		PhoneNumber:           user2.GetPhoneNumber(),
+		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus:  user2.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user2.GetPinStatus(),
 	}
 
 	//return the updated record
 	return &user1, nil
 }
 
-// GetUser is the resolver for the getUser field.
-func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
-	user, err := auth.ForContext(ctx)
+// UpdateUserFacialEmbeddings is the resolver for the updateUserFacialEmbeddings field.
+func (r *mutationResolver) UpdateUserFacialEmbeddings(ctx context.Context, newEmbeddings []string) (*model.User, error) {
+	u, err := auth.ForContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if user == nil {
-		return nil, errors.New("access to get user profile denied!")
+
+	// Add this safety check to catch unauthenticated users
+	if u == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to update facial embeddings"))
+		err1.Log()
+		return nil, err1
 	}
-	role := user.GetRole()
+
+	role := u.GetRole()
 	if role != "user" {
-		return nil, errors.New("access to get user profile denied. Only available for registered and logged in users.")
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to Update user facial embeddings denied"))
+		err1.Log()
+		return nil, err1
 	}
-	id, err := user.GetID()
+	username := u.GetUsername()
 
+	user2, err := user.UpdateFacialEmbeddings(r.Sql.Db, newEmbeddings, username)
 	if err != nil {
-		errors.New("could not access user's id!")
+		log.Error().Str("username", username).Str("path", "UpdateUserFacialEmbeddings").Msg(err.Error())
+		return nil, err
 	}
 
-	u, err := postgresuser.GetUserWithId(r.Sql.Db, id)
-	if err != nil {
-		log.Error().Int("id", id).Str("path", "GetUser").Msg(err.Error())
-		return nil, errors.New("could not access user's profile!")
+	user1 := model.User{
+		Username:              user2.GetUserName(),
+		PhoneNumber:           user2.GetPhoneNumber(),
+		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus:  user2.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user2.GetPinStatus(),
 	}
-	log.Info().Int("id", id).Str("role", role).Str("path", "GetUser").Msg("getting user's profile")
+
+	//return the updated record
+	return &user1, nil
+}
+
+// RegenerateUserQRCode is the resolver for the regenerateUserQrCode field.
+func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.User, error) {
+	u, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add this safety check to catch unauthenticated users
+	if u == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to regenerate user qr code"))
+		err1.Log()
+		return nil, err1
+	}
+
+	role := u.GetRole()
+	if role != "user" {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to regenerate user qr code denied"))
+		err1.Log()
+		return nil, err1
+	}
+	username := u.GetUsername()
+
+	user1, err := user.RegenerateQrCode(r.Sql.Db, username)
+	if err != nil {
+		return nil, err
+	}
+
+	qr := user1.GetQrCodeBase64()
 
 	userprofile := model.User{
-		ID:                    int(u.GetID()),
-		CreatedAt:             u.GetCreatedAt(),
-		UpdatedAt:             u.GetUpdatedAt(),
-		Name:                  u.GetName(),
-		PhoneNumber:           u.GetPhoneNumber(),
-		AccountBalanceInCents: int(u.GetAccountBalanceInCents()),
+		Username:              user1.GetUserName(),
+		PhoneNumber:           user1.GetPhoneNumber(),
+		QRCode:                &qr,
+		AccountBalanceInCents: int(user1.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus:  user1.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user1.GetPinStatus(),
 	}
 	return &userprofile, nil
 }
 
-// GetUsers is the resolver for the getUsers field.
-func (r *queryResolver) GetUsers(ctx context.Context) ([]*model.User, error) {
-	//check if system is in shutdown mode
-	if *shutdown.IsShutdown {
-		return nil, errors.New("System is shut down for maintainance. We are sorry for any incoveniences caused")
-	}
-
-	users, err := postgresuser.GetUsers(r.Sql.Db)
-
+// GetUser is the resolver for the getUser field.
+func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
+	user1, err := auth.ForContext(ctx)
 	if err != nil {
-		log.Error().Str("path", "GetUsers").Msg(err.Error())
-		return nil, errors.New("could not access users' profile!")
+		return nil, err
 	}
 
-	var usersprofile []*model.User
+	// Add this safety check to catch unauthenticated users
+	if user1 == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to get user"))
+		err1.Log()
+		return nil, err1
+	}
 
-	for _, user := range users {
-		userprofile := &model.User{
-			ID:                    int(user.GetID()),
-			CreatedAt:             user.GetCreatedAt(),
-			UpdatedAt:             user.GetUpdatedAt(),
-			Name:                  user.GetName(),
-			PhoneNumber:           user.GetPhoneNumber(),
-			AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
+	role := user1.GetRole()
+	if role != "user" {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to get user profile denied"))
+		err1.Log()
+		return nil, err1
+	}
+
+	username := user1.GetUsername()
+
+	u, err := user.GetUserWithUsername(r.Sql.Db, username)
+	if err != nil {
+		log.Error().Str("username", username).Str("path", "GetUser").Msg(err.Error())
+		return nil, err
+	}
+	log.Info().Str("id", username).Str("role", role).Str("path", "GetUser").Msg("getting user's profile")
+
+	qr := u.GetQrCodeBase64()
+	userprofile := model.User{
+		Username:              u.GetUserName(),
+		PhoneNumber:           u.GetPhoneNumber(),
+		QRCode:                &qr,
+		AccountBalanceInCents: int(u.GetAccountBalanceInCents()),
+		FaceEnrollmentStatus:  u.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   u.GetPinStatus(),
+	}
+	return &userprofile, nil
+}
+
+// GetUserStateByUUID is the resolver for the getUserStateByUuid field.
+func (r *queryResolver) GetUserStateByUUID(ctx context.Context, uuid []string) ([]*model.User, error) {
+	s, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get offline user denied"))
+		err1.Log()
+		return nil, err1
+	}
+	role := s.GetRole()
+	if role != "merchant" {
+		err1 := errors.New(errors.EARMerchantUnauthenticated, pgerror.New("access to get offline user denied"))
+		err1.Log()
+		return nil, err1
+	}
+
+	//get user from database via uuids
+	dbusers, err := user.GetUsersByUUIDs(r.Sql.Db, model.ParseUUIDSlice(uuid))
+	if err != nil {
+		return nil, err
+	}
+
+	if dbusers == nil {
+		return nil, nil
+	}
+
+	Userslist := make([]*model.User, len(dbusers))
+
+	for i, dbuser := range dbusers {
+
+		uuidStr := dbuser.GetUUID()
+
+		user := &model.User{
+			Username:              dbuser.GetUserName(),
+			PhoneNumber:           dbuser.GetPhoneNumber(),
+			UUID:                  &uuidStr,
+			FacialEmbeddings:      pointer.Get(dbuser.GetFacialEmbeddings()),
+			AccountBalanceInCents: int(dbuser.GetAccountBalanceInCents()),
+			FaceEnrollmentStatus:  dbuser.GetFaceEnrollmentStatus(),
+			PinEnrollmentStatus:   dbuser.GetPinStatus(),
 		}
-		usersprofile = append(usersprofile, userprofile)
+		Userslist[i] = user
 	}
-
-	return usersprofile, nil
+	return Userslist, nil
 }
 
 // Transactions is the resolver for the transactions field.
-func (r *userResolver) Transactions(ctx context.Context, obj *model.User) ([]*model.Transaction, error) {
-	transactions, err := neo4jtransaction.RetrieveUserTransactions(r.Neo4j, obj.ID)
-
+func (r *userResolver) Transactions(ctx context.Context, obj *model.User, limit *int, offset *int, startTime *time.Time, endTime *time.Time) ([]*model.Transaction, error) {
+	user1, err := auth.ForContext(ctx)
 	if err != nil {
-		return nil, errors.New("could not access users' transactions!")
+		return nil, err
+	}
+	// Add this safety check to catch unauthenticated users
+	if user1 == nil {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("authentication required to get user transactions"))
+		err1.Log()
+		return nil, err1
 	}
 
-	var transactionslist []*model.Transaction
+	role := user1.GetRole()
+	if role != "user" {
+		err1 := errors.New(errors.EARUserUnauthenticated, pgerror.New("access to get user transactions denied"))
+		err1.Log()
+		return nil, err1
+	}
+
+	username := user1.GetUsername()
+
+	transactions, err := transaction.GetTransactionsForUser(r.Sql.Db, username, limit, offset, startTime, endTime)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 4. Transform DB model to GraphQL model with pre-allocated slice
+	transactionslist := make([]*model.Transaction, 0, len(transactions))
 
 	for _, transaction := range transactions {
 		t := &model.Transaction{
-			ID:                     int(transaction.GetID()),
+			TransactionID:          transaction.GetTransactionID(),
 			CreatedAt:              transaction.GetCreatedAt(),
 			UpdatedAt:              transaction.GetUpdatedAt(),
 			TotalAmountInCents:     int(transaction.GetTotalAmountInCents()),
 			TransactionCostInCents: int(transaction.GetTransactionCostInCents()),
+			UserUsername:           transaction.GetUserName(),
+			MerchantUsername:       transaction.GetMerchantName(),
 		}
 		transactionslist = append(transactionslist, t)
 	}

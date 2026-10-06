@@ -16,3 +16,15 @@ type Dummy {
   id: Int!
   name: String!
 }
+
+enum Role {
+  MERCHANT
+  USER
+}
+
+type Authorization{
+  token: String!
+  role: Role!
+  pin_enrollment_status: Boolean!
+  face_enrollment_status: Boolean!
+}

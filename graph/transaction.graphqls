@@ -1,25 +1,39 @@
 #returns a transaction's data
 type Transaction {
-  id: Int!
+  transaction_id: String!
   createdAt: Time!
   updatedAt: Time!
   total_amount_in_cents: Int!
   transaction_cost_in_cents: Int!
-  purchases: [Purchase!]!
+  user_username: String!
+  merchant_username: String!
+  device: String
+  user: User
 }
 
-input PurchasedProduct {
-   product_id: Int!
-   units_bought: Int!
+
+
+#fields required for adding a new realtime transaction to the system
+input NewOnlineTransaction {
+  amount_in_cents: Int!
+  qr_code: String!
+  facial_embedding: String!
 }
 
-#fields required for adding a new transaction to the system
-input NewTransaction {
-  purchased_products: [PurchasedProduct!]!
+
+#fields required for adding a batch of offline transactions to the system
+input NewOfflineTransaction {
+  amount_in_cents: Int!
+  qr_code: String!
+  facial_embedding: String!
   phone_number: String!
-  pin_code: String!
+  OfflineTimeStamp: Time!
+  ScanLog: String!
+  OfflineTransactionID: String!
 }
+
 
 extend type Mutation {
-  createTransaction(input: NewTransaction!): Transaction
+  createOnlineTransaction(input: NewOnlineTransaction!): Transaction
+  createOfflineTransactions(input: [NewOfflineTransaction!]!): [Transaction!]
 }

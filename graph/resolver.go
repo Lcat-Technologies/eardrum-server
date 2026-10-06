@@ -1,8 +1,7 @@
 package graph
 
 import (
-	"github.com/GigaDesk/eardrum-graph/neo4jutils"
-	"github.com/GigaDesk/eardrum-postgres/postgresutils"
+	"github.com/Lcat-Technologies/eardrum-postgres/postgresutils"
 )
 
 // This file will not be regenerated automatically.
@@ -11,5 +10,4 @@ import (
 
 type Resolver struct {
 	Sql   *postgresutils.PostgresInstance
-	Neo4j *neo4jutils.Neo4jInstance
 }
