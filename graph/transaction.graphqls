@@ -7,7 +7,7 @@ type Transaction {
   transaction_cost_in_cents: Int!
   user_username: String!
   merchant_username: String!
-  Device_Model: String
+  device: String
   user: User
 }
 

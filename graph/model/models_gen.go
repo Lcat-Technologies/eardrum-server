@@ -103,6 +103,11 @@ type Merchant struct {
 type Mutation struct {
 }
 
+type NewDevice struct {
+	DeviceID string `json:"device_id"`
+	Model    string `json:"model"`
+}
+
 type NewMerchant struct {
 	Username    string `json:"username"`
 	PhoneNumber string `json:"phone_number"`
@@ -227,7 +232,7 @@ type Transaction struct {
 	TransactionCostInCents int       `json:"transaction_cost_in_cents"`
 	UserUsername           string    `json:"user_username"`
 	MerchantUsername       string    `json:"merchant_username"`
-	DeviceModel            *string   `json:"Device_Model,omitempty"`
+	Device                 *string   `json:"device,omitempty"`
 	User                   *User     `json:"user,omitempty"`
 }
 

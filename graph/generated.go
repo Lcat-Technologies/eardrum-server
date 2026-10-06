@@ -79,10 +79,10 @@ type ComplexityRoot struct {
 		CreateUser                   func(childComplexity int, input model.NewUser) int
 		ForgotMerchantPassword       func(childComplexity int, phoneNumber string) int
 		ForgotUserPassword           func(childComplexity int, phoneNumber string) int
-		MerchantLogin                func(childComplexity int, phoneNumber string, password string) int
+		MerchantLogin                func(childComplexity int, phoneNumber string, password string, deviceInfo model.NewDevice) int
 		RefreshToken                 func(childComplexity int) int
 		RegenerateUserQRCode         func(childComplexity int) int
-		RequestMerchantPasswordReset func(childComplexity int, phoneNumber string, otp string) int
+		RequestMerchantPasswordReset func(childComplexity int, phoneNumber string, otp string, deviceInfo model.NewDevice) int
 		RequestUserPasswordReset     func(childComplexity int, phoneNumber string, otp string) int
 		ResetMerchantPassword        func(childComplexity int, newPassword string) int
 		ResetUserPassword            func(childComplexity int, newPassword string) int
@@ -91,7 +91,7 @@ type ComplexityRoot struct {
 		UpdateUserFacialEmbeddings   func(childComplexity int, newEmbeddings []string) int
 		UpdateUserPinCode            func(childComplexity int, newPincode string) int
 		UserLogin                    func(childComplexity int, phoneNumber string, password string) int
-		VerifyMerchant               func(childComplexity int, phoneNumber string, otp string) int
+		VerifyMerchant               func(childComplexity int, phoneNumber string, otp string, deviceInfo model.NewDevice) int
 		VerifyUser                   func(childComplexity int, phoneNumber string, otp string) int
 	}
 
@@ -111,7 +111,7 @@ type ComplexityRoot struct {
 
 	Transaction struct {
 		CreatedAt              func(childComplexity int) int
-		DeviceModel            func(childComplexity int) int
+		Device                 func(childComplexity int) int
 		MerchantUsername       func(childComplexity int) int
 		TotalAmountInCents     func(childComplexity int) int
 		TransactionCostInCents func(childComplexity int) int
@@ -140,11 +140,11 @@ type MerchantResolver interface {
 type MutationResolver interface {
 	CreateDummy(ctx context.Context, name string) (*model.Dummy, error)
 	CreateMerchant(ctx context.Context, input model.NewMerchant) (*model.Merchant, error)
-	VerifyMerchant(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error)
+	VerifyMerchant(ctx context.Context, phoneNumber string, otp string, deviceInfo model.NewDevice) (*model.Authorization, error)
 	SendCode(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error)
-	MerchantLogin(ctx context.Context, phoneNumber string, password string) (*model.Authorization, error)
+	MerchantLogin(ctx context.Context, phoneNumber string, password string, deviceInfo model.NewDevice) (*model.Authorization, error)
 	ForgotMerchantPassword(ctx context.Context, phoneNumber string) (*model.SendCodeStatus, error)
-	RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error)
+	RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string, deviceInfo model.NewDevice) (*model.Authorization, error)
 	ResetMerchantPassword(ctx context.Context, newPassword string) (*model.Merchant, error)
 	RefreshToken(ctx context.Context) (*model.Authorization, error)
 	UpdateMerchantPinCode(ctx context.Context, newPincode string) (*model.Merchant, error)
@@ -169,6 +169,7 @@ type QueryResolver interface {
 	GetUserStateByUUID(ctx context.Context, uuid []string) ([]*model.User, error)
 }
 type TransactionResolver interface {
+	Device(ctx context.Context, obj *model.Transaction) (*string, error)
 	User(ctx context.Context, obj *model.Transaction) (*model.User, error)
 }
 type UserResolver interface {
@@ -370,7 +371,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MerchantLogin(childComplexity, args["phone_number"].(string), args["password"].(string)), true
+		return e.complexity.Mutation.MerchantLogin(childComplexity, args["phone_number"].(string), args["password"].(string), args["device_info"].(model.NewDevice)), true
 
 	case "Mutation.refreshToken":
 		if e.complexity.Mutation.RefreshToken == nil {
@@ -396,7 +397,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RequestMerchantPasswordReset(childComplexity, args["phone_number"].(string), args["otp"].(string)), true
+		return e.complexity.Mutation.RequestMerchantPasswordReset(childComplexity, args["phone_number"].(string), args["otp"].(string), args["device_info"].(model.NewDevice)), true
 
 	case "Mutation.requestUserPasswordReset":
 		if e.complexity.Mutation.RequestUserPasswordReset == nil {
@@ -504,7 +505,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.VerifyMerchant(childComplexity, args["phone_number"].(string), args["otp"].(string)), true
+		return e.complexity.Mutation.VerifyMerchant(childComplexity, args["phone_number"].(string), args["otp"].(string), args["device_info"].(model.NewDevice)), true
 
 	case "Mutation.verifyUser":
 		if e.complexity.Mutation.VerifyUser == nil {
@@ -591,12 +592,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Transaction.CreatedAt(childComplexity), true
 
-	case "Transaction.Device_Model":
-		if e.complexity.Transaction.DeviceModel == nil {
+	case "Transaction.device":
+		if e.complexity.Transaction.Device == nil {
 			break
 		}
 
-		return e.complexity.Transaction.DeviceModel(childComplexity), true
+		return e.complexity.Transaction.Device(childComplexity), true
 
 	case "Transaction.merchant_username":
 		if e.complexity.Transaction.MerchantUsername == nil {
@@ -729,6 +730,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputIDFilterInput,
 		ec.unmarshalInputIntFilterBetween,
 		ec.unmarshalInputIntFilterInput,
+		ec.unmarshalInputNewDevice,
 		ec.unmarshalInputNewMerchant,
 		ec.unmarshalInputNewOfflineTransaction,
 		ec.unmarshalInputNewOnlineTransaction,
@@ -1302,6 +1304,11 @@ func (ec *executionContext) field_Mutation_merchantLogin_args(ctx context.Contex
 		return nil, err
 	}
 	args["password"] = arg1
+	arg2, err := ec.field_Mutation_merchantLogin_argsDeviceInfo(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["device_info"] = arg2
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_merchantLogin_argsPhoneNumber(
@@ -1330,6 +1337,19 @@ func (ec *executionContext) field_Mutation_merchantLogin_argsPassword(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Mutation_merchantLogin_argsDeviceInfo(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.NewDevice, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("device_info"))
+	if tmp, ok := rawArgs["device_info"]; ok {
+		return ec.unmarshalNNewDevice2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewDevice(ctx, tmp)
+	}
+
+	var zeroVal model.NewDevice
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Mutation_requestMerchantPasswordReset_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1343,6 +1363,11 @@ func (ec *executionContext) field_Mutation_requestMerchantPasswordReset_args(ctx
 		return nil, err
 	}
 	args["otp"] = arg1
+	arg2, err := ec.field_Mutation_requestMerchantPasswordReset_argsDeviceInfo(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["device_info"] = arg2
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_requestMerchantPasswordReset_argsPhoneNumber(
@@ -1368,6 +1393,19 @@ func (ec *executionContext) field_Mutation_requestMerchantPasswordReset_argsOtp(
 	}
 
 	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_requestMerchantPasswordReset_argsDeviceInfo(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.NewDevice, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("device_info"))
+	if tmp, ok := rawArgs["device_info"]; ok {
+		return ec.unmarshalNNewDevice2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewDevice(ctx, tmp)
+	}
+
+	var zeroVal model.NewDevice
 	return zeroVal, nil
 }
 
@@ -1604,6 +1642,11 @@ func (ec *executionContext) field_Mutation_verifyMerchant_args(ctx context.Conte
 		return nil, err
 	}
 	args["otp"] = arg1
+	arg2, err := ec.field_Mutation_verifyMerchant_argsDeviceInfo(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["device_info"] = arg2
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_verifyMerchant_argsPhoneNumber(
@@ -1629,6 +1672,19 @@ func (ec *executionContext) field_Mutation_verifyMerchant_argsOtp(
 	}
 
 	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_verifyMerchant_argsDeviceInfo(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.NewDevice, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("device_info"))
+	if tmp, ok := rawArgs["device_info"]; ok {
+		return ec.unmarshalNNewDevice2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewDevice(ctx, tmp)
+	}
+
+	var zeroVal model.NewDevice
 	return zeroVal, nil
 }
 
@@ -2363,8 +2419,8 @@ func (ec *executionContext) fieldContext_Merchant_transactions(ctx context.Conte
 				return ec.fieldContext_Transaction_user_username(ctx, field)
 			case "merchant_username":
 				return ec.fieldContext_Transaction_merchant_username(ctx, field)
-			case "Device_Model":
-				return ec.fieldContext_Transaction_Device_Model(ctx, field)
+			case "device":
+				return ec.fieldContext_Transaction_device(ctx, field)
 			case "user":
 				return ec.fieldContext_Transaction_user(ctx, field)
 			}
@@ -2521,7 +2577,7 @@ func (ec *executionContext) _Mutation_verifyMerchant(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().VerifyMerchant(rctx, fc.Args["phone_number"].(string), fc.Args["otp"].(string))
+		return ec.resolvers.Mutation().VerifyMerchant(rctx, fc.Args["phone_number"].(string), fc.Args["otp"].(string), fc.Args["device_info"].(model.NewDevice))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2644,7 +2700,7 @@ func (ec *executionContext) _Mutation_merchantLogin(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MerchantLogin(rctx, fc.Args["phone_number"].(string), fc.Args["password"].(string))
+		return ec.resolvers.Mutation().MerchantLogin(rctx, fc.Args["phone_number"].(string), fc.Args["password"].(string), fc.Args["device_info"].(model.NewDevice))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2767,7 +2823,7 @@ func (ec *executionContext) _Mutation_requestMerchantPasswordReset(ctx context.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RequestMerchantPasswordReset(rctx, fc.Args["phone_number"].(string), fc.Args["otp"].(string))
+		return ec.resolvers.Mutation().RequestMerchantPasswordReset(rctx, fc.Args["phone_number"].(string), fc.Args["otp"].(string), fc.Args["device_info"].(model.NewDevice))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3053,8 +3109,8 @@ func (ec *executionContext) fieldContext_Mutation_createOnlineTransaction(ctx co
 				return ec.fieldContext_Transaction_user_username(ctx, field)
 			case "merchant_username":
 				return ec.fieldContext_Transaction_merchant_username(ctx, field)
-			case "Device_Model":
-				return ec.fieldContext_Transaction_Device_Model(ctx, field)
+			case "device":
+				return ec.fieldContext_Transaction_device(ctx, field)
 			case "user":
 				return ec.fieldContext_Transaction_user(ctx, field)
 			}
@@ -3125,8 +3181,8 @@ func (ec *executionContext) fieldContext_Mutation_createOfflineTransactions(ctx 
 				return ec.fieldContext_Transaction_user_username(ctx, field)
 			case "merchant_username":
 				return ec.fieldContext_Transaction_merchant_username(ctx, field)
-			case "Device_Model":
-				return ec.fieldContext_Transaction_Device_Model(ctx, field)
+			case "device":
+				return ec.fieldContext_Transaction_device(ctx, field)
 			case "user":
 				return ec.fieldContext_Transaction_user(ctx, field)
 			}
@@ -4639,8 +4695,8 @@ func (ec *executionContext) fieldContext_Transaction_merchant_username(_ context
 	return fc, nil
 }
 
-func (ec *executionContext) _Transaction_Device_Model(ctx context.Context, field graphql.CollectedField, obj *model.Transaction) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Transaction_Device_Model(ctx, field)
+func (ec *executionContext) _Transaction_device(ctx context.Context, field graphql.CollectedField, obj *model.Transaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Transaction_device(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4653,7 +4709,7 @@ func (ec *executionContext) _Transaction_Device_Model(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DeviceModel, nil
+		return ec.resolvers.Transaction().Device(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4667,12 +4723,12 @@ func (ec *executionContext) _Transaction_Device_Model(ctx context.Context, field
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Transaction_Device_Model(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Transaction_device(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Transaction",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -5134,8 +5190,8 @@ func (ec *executionContext) fieldContext_User_transactions(ctx context.Context, 
 				return ec.fieldContext_Transaction_user_username(ctx, field)
 			case "merchant_username":
 				return ec.fieldContext_Transaction_merchant_username(ctx, field)
-			case "Device_Model":
-				return ec.fieldContext_Transaction_Device_Model(ctx, field)
+			case "device":
+				return ec.fieldContext_Transaction_device(ctx, field)
 			case "user":
 				return ec.fieldContext_Transaction_user(ctx, field)
 			}
@@ -7378,6 +7434,40 @@ func (ec *executionContext) unmarshalInputIntFilterInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewDevice(ctx context.Context, obj interface{}) (model.NewDevice, error) {
+	var it model.NewDevice
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"device_id", "model"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "device_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("device_id"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeviceID = data
+		case "model":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("model"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Model = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewMerchant(ctx context.Context, obj interface{}) (model.NewMerchant, error) {
 	var it model.NewMerchant
 	asMap := map[string]interface{}{}
@@ -8713,8 +8803,39 @@ func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "Device_Model":
-			out.Values[i] = ec._Transaction_Device_Model(ctx, field, obj)
+		case "device":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Transaction_device(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "user":
 			field := field
 
@@ -9304,6 +9425,11 @@ func (ec *executionContext) marshalNMerchant2ᚖgithubᚗcomᚋLcatᚑTechnologi
 		return graphql.Null
 	}
 	return ec._Merchant(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNNewDevice2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewDevice(ctx context.Context, v interface{}) (model.NewDevice, error) {
+	res, err := ec.unmarshalInputNewDevice(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNNewMerchant2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewMerchant(ctx context.Context, v interface{}) (model.NewMerchant, error) {

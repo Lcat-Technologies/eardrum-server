@@ -6,11 +6,13 @@ package graph
 
 import (
 	"context"
-	pgerror "errors"
+	pgerror"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-postgres/device"
 	"github.com/Lcat-Technologies/eardrum-postgres/merchant"
 	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
 	"github.com/Lcat-Technologies/eardrum-prefix/validate"
@@ -19,7 +21,6 @@ import (
 	"github.com/Lcat-Technologies/eardrum-server/graph/model"
 	"github.com/Lcat-Technologies/eardrum-server/phoneutils"
 	"github.com/Lcat-Technologies/eardrum-server/pkg/jwt"
-	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -42,7 +43,6 @@ func (r *merchantResolver) Transactions(ctx context.Context, obj *model.Merchant
 			TransactionCostInCents: int(transaction.GetTransactionCostInCents()),
 			UserUsername:           transaction.GetUserName(),
 			MerchantUsername:       transaction.GetMerchantName(),
-			DeviceModel:            transaction.GetTransactionDeviceModel(),
 		}
 		transactionslist = append(transactionslist, t)
 	}
@@ -84,7 +84,7 @@ func (r *mutationResolver) CreateMerchant(ctx context.Context, input model.NewMe
 }
 
 // VerifyMerchant is the resolver for the verifyMerchant field.
-func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
+func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber string, otp string, deviceInfo model.NewDevice) (*model.Authorization, error) {
 	//Check the validity of the phone number
 	if err := validate.ValidateKenyanPhoneNumber(phoneNumber); err != nil {
 		return nil, err
@@ -115,10 +115,17 @@ func (r *mutationResolver) VerifyMerchant(ctx context.Context, phoneNumber strin
 	}
 	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "VerifyMerchant").Msg("merchant verified successfully!")
 
+	//create a new device record
+	_, err = device.CreateDevice(deviceInfo, r.Sql.Db)
+	if err != nil {
+		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "VerifyMerchant").Msg(err.Error())
+		return nil, err
+	}
+
 	return &model.Authorization{
-		Token: token,
-		Role:  model.RoleMerchant,
-		PinEnrollmentStatus: merchant.GetPinStatus(),
+		Token:                token,
+		Role:                 model.RoleMerchant,
+		PinEnrollmentStatus:  merchant.GetPinStatus(),
 		FaceEnrollmentStatus: false,
 	}, nil
 }
@@ -142,7 +149,7 @@ func (r *mutationResolver) SendCode(ctx context.Context, phoneNumber string) (*m
 }
 
 // MerchantLogin is the resolver for the merchantLogin field.
-func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string, password string) (*model.Authorization, error) {
+func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string, password string, deviceInfo model.NewDevice) (*model.Authorization, error) {
 	// Find the merchant that matches the input phone number
 	merchant, err := merchant.GetMerchantWithPhoneNumber(r.Sql.Db, phoneNumber)
 
@@ -166,10 +173,18 @@ func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string
 		return nil, err
 	}
 	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "MerchantLogin").Msg("merchant logged in successfully!")
+
+	//create a new device record
+	_, err = device.CreateDevice(deviceInfo, r.Sql.Db)
+	if err != nil {
+		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "MerchantLogin").Msg(err.Error())
+		return nil, err
+	}
+
 	return &model.Authorization{
-		Token: token,
-		Role:  model.RoleMerchant,
-		PinEnrollmentStatus: merchant.GetPinStatus(),
+		Token:                token,
+		Role:                 model.RoleMerchant,
+		PinEnrollmentStatus:  merchant.GetPinStatus(),
 		FaceEnrollmentStatus: false,
 	}, nil
 }
@@ -210,7 +225,7 @@ func (r *mutationResolver) ForgotMerchantPassword(ctx context.Context, phoneNumb
 }
 
 // RequestMerchantPasswordReset is the resolver for the requestMerchantPasswordReset field.
-func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) (*model.Authorization, error) {
+func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string, deviceInfo model.NewDevice) (*model.Authorization, error) {
 	//Check the validity of an OTP code
 	if err := phoneutils.CheckOtp(phoneNumber, otp); err != nil {
 		return nil, err
@@ -232,10 +247,18 @@ func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, pho
 		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "RequestMerchantPasswordReset").Msg(err.Error())
 		return nil, err
 	}
+
+	//create a new device record
+	_, err = device.CreateDevice(deviceInfo, r.Sql.Db)
+	if err != nil {
+		log.Error().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "RequestMerchantPasswordReset").Msg(err.Error())
+		return nil, err
+	}
+
 	return &model.Authorization{
-		Token: token,
-		Role:  model.RoleMerchant,
-		PinEnrollmentStatus: merchant.GetPinStatus(),
+		Token:                token,
+		Role:                 model.RoleMerchant,
+		PinEnrollmentStatus:  merchant.GetPinStatus(),
 		FaceEnrollmentStatus: false,
 	}, nil
 }
@@ -311,9 +334,9 @@ func (r *mutationResolver) RefreshToken(ctx context.Context) (*model.Authorizati
 	}
 
 	return &model.Authorization{
-		Token: token,
-		Role:  model.Role(strings.ToUpper(s.GetRole())),
-		PinEnrollmentStatus: false,
+		Token:                token,
+		Role:                 model.Role(strings.ToUpper(s.GetRole())),
+		PinEnrollmentStatus:  false,
 		FaceEnrollmentStatus: false,
 	}, nil
 }
@@ -409,63 +432,3 @@ func (r *queryResolver) GetMerchants(ctx context.Context) ([]*model.Merchant, er
 func (r *Resolver) Merchant() MerchantResolver { return &merchantResolver{r} }
 
 type merchantResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	}
-
-// SendCode is the resolver for the sendCode field.
-	func (r *mutationResolver) SendCode(ctx context.Context, phoneNumber string) ( *model.SendCodeStatus,  error){
-		panic(fmt.Errorf("not implemented: SendCode - sendCode"))
-	}
-
-// MerchantLogin is the resolver for the merchantLogin field.
-	func (r *mutationResolver) MerchantLogin(ctx context.Context, phoneNumber string, password string) ( *model.Authorization,  error){
-		panic(fmt.Errorf("not implemented: MerchantLogin - merchantLogin"))
-	}
-
-// ForgotMerchantPassword is the resolver for the forgotMerchantPassword field.
-	func (r *mutationResolver) ForgotMerchantPassword(ctx context.Context, phoneNumber string) ( *model.SendCodeStatus,  error){
-		panic(fmt.Errorf("not implemented: ForgotMerchantPassword - forgotMerchantPassword"))
-	}
-
-// RequestMerchantPasswordReset is the resolver for the requestMerchantPasswordReset field.
-	func (r *mutationResolver) RequestMerchantPasswordReset(ctx context.Context, phoneNumber string, otp string) ( *model.Authorization,  error){
-		panic(fmt.Errorf("not implemented: RequestMerchantPasswordReset - requestMerchantPasswordReset"))
-	}
-
-// ResetMerchantPassword is the resolver for the resetMerchantPassword field.
-	func (r *mutationResolver) ResetMerchantPassword(ctx context.Context, newPassword string) ( *model.Merchant,  error){
-		panic(fmt.Errorf("not implemented: ResetMerchantPassword - resetMerchantPassword"))
-	}
-
-// RefreshToken is the resolver for the refreshToken field.
-	func (r *mutationResolver) RefreshToken(ctx context.Context) ( *model.Authorization,  error){
-		panic(fmt.Errorf("not implemented: RefreshToken - refreshToken"))
-	}
-
-// UpdateMerchantPinCode is the resolver for the updateMerchantPinCode field.
-	func (r *mutationResolver) UpdateMerchantPinCode(ctx context.Context, newPincode string) ( *model.Merchant,  error){
-		panic(fmt.Errorf("not implemented: UpdateMerchantPinCode - updateMerchantPinCode"))
-	}
-
-// GetMerchant is the resolver for the getMerchant field.
-	func (r *queryResolver) GetMerchant(ctx context.Context) ( *model.Merchant,  error){
-		panic(fmt.Errorf("not implemented: GetMerchant - getMerchant"))
-	}
-
-// GetMerchants is the resolver for the getMerchants field.
-	func (r *queryResolver) GetMerchants(ctx context.Context) ( []*model.Merchant,  error){
-		panic(fmt.Errorf("not implemented: GetMerchants - getMerchants"))
-	}
-
-
-
-// Merchant returns MerchantResolver implementation.
-	func (r *Resolver) Merchant() MerchantResolver { return &merchantResolver{r} }
-*/

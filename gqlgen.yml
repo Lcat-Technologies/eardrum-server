@@ -103,6 +103,8 @@ models:
     fields:
       user:
         resolver: true
+      device:
+        resolver: true
   User:
     fields:
       transactions:

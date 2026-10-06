@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/AlekSi/pointer"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
 	"github.com/Lcat-Technologies/eardrum-postgres/user"
 	"github.com/Lcat-Technologies/eardrum-prefix/validate"
@@ -19,7 +20,6 @@ import (
 	"github.com/Lcat-Technologies/eardrum-server/phoneutils"
 	"github.com/Lcat-Technologies/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
-	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -89,9 +89,9 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "VerifyUser").Msg("user verified successfully!")
 
 	return &model.Authorization{
-		Token: token,
-		Role:  model.RoleUser,
-		PinEnrollmentStatus: user.GetPinStatus(),
+		Token:                token,
+		Role:                 model.RoleUser,
+		PinEnrollmentStatus:  user.GetPinStatus(),
 		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
 	}, nil
 }
@@ -122,9 +122,9 @@ func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, pa
 	}
 	log.Info().Str("username", credentials.Username).Str("role", credentials.Role).Str("path", "UserLogin").Msg("user logged in successfully!")
 	return &model.Authorization{
-		Token: token,
-		Role:  model.RoleUser,
-		PinEnrollmentStatus: user.GetPinStatus(),
+		Token:                token,
+		Role:                 model.RoleUser,
+		PinEnrollmentStatus:  user.GetPinStatus(),
 		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
 	}, nil
 }
@@ -187,9 +187,9 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 		return nil, err
 	}
 	return &model.Authorization{
-		Token: token,
-		Role:  model.RoleUser,
-		PinEnrollmentStatus: user.GetPinStatus(),
+		Token:                token,
+		Role:                 model.RoleUser,
+		PinEnrollmentStatus:  user.GetPinStatus(),
 		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
 	}, nil
 }
@@ -502,7 +502,6 @@ func (r *userResolver) Transactions(ctx context.Context, obj *model.User, limit 
 			TransactionCostInCents: int(transaction.GetTransactionCostInCents()),
 			UserUsername:           transaction.GetUserName(),
 			MerchantUsername:       transaction.GetMerchantName(),
-			DeviceModel:            transaction.GetTransactionDeviceModel(),
 		}
 		transactionslist = append(transactionslist, t)
 	}

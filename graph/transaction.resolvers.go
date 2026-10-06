@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 	pgerror"errors"
 
 	"github.com/AlekSi/pointer"
@@ -15,6 +14,8 @@ import (
 	"github.com/Lcat-Technologies/eardrum-postgres/user"
 	"github.com/Lcat-Technologies/eardrum-server/auth"
 	"github.com/Lcat-Technologies/eardrum-server/graph/model"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-postgres/device"
 )
 
 // CreateOnlineTransaction is the resolver for the createOnlineTransaction field.
@@ -53,7 +54,6 @@ func (r *mutationResolver) CreateOnlineTransaction(ctx context.Context, input mo
 		TransactionCostInCents: int(t.GetTransactionCostInCents()),
 		UserUsername:           t.GetUserName(),
 		MerchantUsername:       t.GetMerchantName(),
-		DeviceModel: t.GetTransactionDeviceModel(),
 	}
 
 	return &p, nil
@@ -108,12 +108,28 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 			TransactionCostInCents: int(n.GetTransactionCostInCents()),
 			UserUsername:           n.GetUserName(),
 			MerchantUsername:       n.GetMerchantName(),
-			DeviceModel: n.GetTransactionDeviceModel(),
 		}
 		transactionslist[i] = p
 	}
 
 	return transactionslist, nil
+}
+
+// Device is the resolver for the device field.
+func (r *transactionResolver) Device(ctx context.Context, obj *model.Transaction) (*string, error) {
+	ts, err:= transaction.GetTransactionByReference(r.Sql.Db, obj.TransactionID)
+	if err!=nil{
+		return nil, err
+	}
+	id, err := ts.GetTransactionDeviceID()
+	if err!=nil{
+		return nil, nil
+	}
+	ds, err := device.GetDeviceByID(id, r.Sql.Db)
+	if err!=nil{
+		return nil, err
+	}
+	return ds.GetDeviceModel(), nil
 }
 
 // User is the resolver for the user field.
