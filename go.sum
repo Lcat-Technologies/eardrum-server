@@ -8,6 +8,8 @@ github.com/Lcat-Technologies/eardrum-interfaces v1.3.4 h1:BSyO6ORN9OKK6YPBmu0mPa
 github.com/Lcat-Technologies/eardrum-interfaces v1.3.4/go.mod h1:27DqoR+ovyU8Yd2AiYBy7RbgLtLjXG57nC1NaBUuTaI=
 github.com/Lcat-Technologies/eardrum-postgres v1.2.9 h1:YiSEWYAMVstROm5qERnV0u7mTmGYaKSRBgFIIR3pkYE=
 github.com/Lcat-Technologies/eardrum-postgres v1.2.9/go.mod h1:gcybl0mUewcF9M+vXraO/gI7X5eNRP9Yj+boDO0W8Uo=
+github.com/Lcat-Technologies/eardrum-postgres v1.3.0 h1:fZgXR+onV8Q9sR1V41DJ1BG9LxGDWVMNw3QDGMJ6Zrg=
+github.com/Lcat-Technologies/eardrum-postgres v1.3.0/go.mod h1:gcybl0mUewcF9M+vXraO/gI7X5eNRP9Yj+boDO0W8Uo=
 github.com/Lcat-Technologies/eardrum-prefix v1.0.6 h1:7fDOgkeqlwggVSimXylL09jNJPOfhG6wG9sqhgUh8B8=
 github.com/Lcat-Technologies/eardrum-prefix v1.0.6/go.mod h1:U63LIcECtHkuzSHmjYwyCFtxsOaz0s2SKCYzPq3hVOo=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=

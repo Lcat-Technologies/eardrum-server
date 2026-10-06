@@ -32,7 +32,7 @@ require (
 )
 
 require (
-	github.com/Lcat-Technologies/eardrum-postgres v1.2.9
+	github.com/Lcat-Technologies/eardrum-postgres v1.3.0
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
