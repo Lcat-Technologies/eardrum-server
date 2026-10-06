@@ -6,20 +6,20 @@ package graph
 
 import (
 	"context"
-	"github.com/GigaDesk/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 	pgerror"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/GigaDesk/eardrum-postgres/merchant"
-	"github.com/GigaDesk/eardrum-postgres/transaction"
-	"github.com/GigaDesk/eardrum-prefix/validate"
-	"github.com/GigaDesk/eardrum-server/auth"
-	"github.com/GigaDesk/eardrum-server/encrypt"
-	"github.com/GigaDesk/eardrum-server/graph/model"
-	"github.com/GigaDesk/eardrum-server/phoneutils"
-	"github.com/GigaDesk/eardrum-server/pkg/jwt"
+	"github.com/Lcat-Technologies/eardrum-postgres/merchant"
+	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
+	"github.com/Lcat-Technologies/eardrum-prefix/validate"
+	"github.com/Lcat-Technologies/eardrum-server/auth"
+	"github.com/Lcat-Technologies/eardrum-server/encrypt"
+	"github.com/Lcat-Technologies/eardrum-server/graph/model"
+	"github.com/Lcat-Technologies/eardrum-server/phoneutils"
+	"github.com/Lcat-Technologies/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
 )
 

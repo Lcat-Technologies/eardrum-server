@@ -1,7 +1,7 @@
 package encrypt
 
 import (
-	"github.com/GigaDesk/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 

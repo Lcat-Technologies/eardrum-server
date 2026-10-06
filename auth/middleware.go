@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/GigaDesk/eardrum-interfaces/errors"
-	"github.com/GigaDesk/eardrum-server/pkg/jwt"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
 )
 

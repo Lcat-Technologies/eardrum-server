@@ -2,7 +2,7 @@ package model
 
 import (
 "time"
-"github.com/GigaDesk/eardrum-prefix/validate"
+"github.com/Lcat-Technologies/eardrum-prefix/validate"
 )
 
 //Returns the facial embedding to authorize transaction

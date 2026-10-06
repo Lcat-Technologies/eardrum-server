@@ -4,7 +4,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"github.com/rs/zerolog/log"
-	"github.com/GigaDesk/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 )
 
 //encrypts plain text passwords

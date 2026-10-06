@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/GigaDesk/eardrum-prefix/validate"
+	"github.com/Lcat-Technologies/eardrum-prefix/validate"
 )
 
 // validates NewMerchant input data

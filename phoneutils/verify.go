@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	openapi "github.com/twilio/twilio-go/rest/verify/v2"
-	"github.com/GigaDesk/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 )
 
 //sends an OTP code to the phone number passed as an argument

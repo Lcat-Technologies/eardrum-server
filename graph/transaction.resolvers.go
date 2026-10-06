@@ -6,15 +6,15 @@ package graph
 
 import (
 	"context"
-	"github.com/GigaDesk/eardrum-interfaces/errors"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 	pgerror"errors"
 
 	"github.com/AlekSi/pointer"
-	Tx "github.com/GigaDesk/eardrum-interfaces/transaction"
-	"github.com/GigaDesk/eardrum-postgres/transaction"
-	"github.com/GigaDesk/eardrum-postgres/user"
-	"github.com/GigaDesk/eardrum-server/auth"
-	"github.com/GigaDesk/eardrum-server/graph/model"
+	Tx "github.com/Lcat-Technologies/eardrum-interfaces/transaction"
+	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
+	"github.com/Lcat-Technologies/eardrum-postgres/user"
+	"github.com/Lcat-Technologies/eardrum-server/auth"
+	"github.com/Lcat-Technologies/eardrum-server/graph/model"
 )
 
 // CreateOnlineTransaction is the resolver for the createOnlineTransaction field.

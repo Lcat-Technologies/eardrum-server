@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"github.com/GigaDesk/eardrum-postgres/postgresutils"
+	"github.com/Lcat-Technologies/eardrum-postgres/postgresutils"
 )
 
 // This file will not be regenerated automatically.
