@@ -52,8 +52,10 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Authorization struct {
-		Role  func(childComplexity int) int
-		Token func(childComplexity int) int
+		FaceEnrollmentStatus func(childComplexity int) int
+		PinEnrollmentStatus  func(childComplexity int) int
+		Role                 func(childComplexity int) int
+		Token                func(childComplexity int) int
 	}
 
 	Dummy struct {
@@ -191,6 +193,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Authorization.face_enrollment_status":
+		if e.complexity.Authorization.FaceEnrollmentStatus == nil {
+			break
+		}
+
+		return e.complexity.Authorization.FaceEnrollmentStatus(childComplexity), true
+
+	case "Authorization.pin_enrollment_status":
+		if e.complexity.Authorization.PinEnrollmentStatus == nil {
+			break
+		}
+
+		return e.complexity.Authorization.PinEnrollmentStatus(childComplexity), true
 
 	case "Authorization.role":
 		if e.complexity.Authorization.Role == nil {
@@ -1151,7 +1167,7 @@ func (ec *executionContext) field_Mutation_createMerchant_argsInput(
 ) (model.NewMerchant, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNNewMerchant2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewMerchant(ctx, tmp)
+		return ec.unmarshalNNewMerchant2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewMerchant(ctx, tmp)
 	}
 
 	var zeroVal model.NewMerchant
@@ -1174,7 +1190,7 @@ func (ec *executionContext) field_Mutation_createOfflineTransactions_argsInput(
 ) ([]*model.NewOfflineTransaction, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNNewOfflineTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransactionᚄ(ctx, tmp)
+		return ec.unmarshalNNewOfflineTransaction2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransactionᚄ(ctx, tmp)
 	}
 
 	var zeroVal []*model.NewOfflineTransaction
@@ -1197,7 +1213,7 @@ func (ec *executionContext) field_Mutation_createOnlineTransaction_argsInput(
 ) (model.NewOnlineTransaction, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNNewOnlineTransaction2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOnlineTransaction(ctx, tmp)
+		return ec.unmarshalNNewOnlineTransaction2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOnlineTransaction(ctx, tmp)
 	}
 
 	var zeroVal model.NewOnlineTransaction
@@ -1220,7 +1236,7 @@ func (ec *executionContext) field_Mutation_createUser_argsInput(
 ) (model.NewUser, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNNewUser2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewUser(ctx, tmp)
+		return ec.unmarshalNNewUser2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewUser(ctx, tmp)
 	}
 
 	var zeroVal model.NewUser
@@ -1929,7 +1945,7 @@ func (ec *executionContext) _Authorization_role(ctx context.Context, field graph
 	}
 	res := resTmp.(model.Role)
 	fc.Result = res
-	return ec.marshalNRole2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐRole(ctx, field.Selections, res)
+	return ec.marshalNRole2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐRole(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Authorization_role(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1940,6 +1956,94 @@ func (ec *executionContext) fieldContext_Authorization_role(_ context.Context, f
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Role does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Authorization_pin_enrollment_status(ctx context.Context, field graphql.CollectedField, obj *model.Authorization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Authorization_pin_enrollment_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PinEnrollmentStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Authorization_pin_enrollment_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Authorization",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Authorization_face_enrollment_status(ctx context.Context, field graphql.CollectedField, obj *model.Authorization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Authorization_face_enrollment_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FaceEnrollmentStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Authorization_face_enrollment_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Authorization",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2234,7 +2338,7 @@ func (ec *executionContext) _Merchant_transactions(ctx context.Context, field gr
 	}
 	res := resTmp.([]*model.Transaction)
 	fc.Result = res
-	return ec.marshalOTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
+	return ec.marshalOTransaction2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Merchant_transactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2306,7 +2410,7 @@ func (ec *executionContext) _Mutation_createDummy(ctx context.Context, field gra
 	}
 	res := resTmp.(*model.Dummy)
 	fc.Result = res
-	return ec.marshalODummy2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx, field.Selections, res)
+	return ec.marshalODummy2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createDummy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2364,7 +2468,7 @@ func (ec *executionContext) _Mutation_createMerchant(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Merchant)
 	fc.Result = res
-	return ec.marshalOMerchant2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, field.Selections, res)
+	return ec.marshalOMerchant2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createMerchant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2431,7 +2535,7 @@ func (ec *executionContext) _Mutation_verifyMerchant(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_verifyMerchant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2446,6 +2550,10 @@ func (ec *executionContext) fieldContext_Mutation_verifyMerchant(ctx context.Con
 				return ec.fieldContext_Authorization_token(ctx, field)
 			case "role":
 				return ec.fieldContext_Authorization_role(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Authorization_pin_enrollment_status(ctx, field)
+			case "face_enrollment_status":
+				return ec.fieldContext_Authorization_face_enrollment_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -2489,7 +2597,7 @@ func (ec *executionContext) _Mutation_sendCode(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model.SendCodeStatus)
 	fc.Result = res
-	return ec.marshalOSendCodeStatus2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx, field.Selections, res)
+	return ec.marshalOSendCodeStatus2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_sendCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2550,7 +2658,7 @@ func (ec *executionContext) _Mutation_merchantLogin(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_merchantLogin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2565,6 +2673,10 @@ func (ec *executionContext) fieldContext_Mutation_merchantLogin(ctx context.Cont
 				return ec.fieldContext_Authorization_token(ctx, field)
 			case "role":
 				return ec.fieldContext_Authorization_role(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Authorization_pin_enrollment_status(ctx, field)
+			case "face_enrollment_status":
+				return ec.fieldContext_Authorization_face_enrollment_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -2608,7 +2720,7 @@ func (ec *executionContext) _Mutation_forgotMerchantPassword(ctx context.Context
 	}
 	res := resTmp.(*model.SendCodeStatus)
 	fc.Result = res
-	return ec.marshalOSendCodeStatus2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx, field.Selections, res)
+	return ec.marshalOSendCodeStatus2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_forgotMerchantPassword(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2669,7 +2781,7 @@ func (ec *executionContext) _Mutation_requestMerchantPasswordReset(ctx context.C
 	}
 	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_requestMerchantPasswordReset(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2684,6 +2796,10 @@ func (ec *executionContext) fieldContext_Mutation_requestMerchantPasswordReset(c
 				return ec.fieldContext_Authorization_token(ctx, field)
 			case "role":
 				return ec.fieldContext_Authorization_role(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Authorization_pin_enrollment_status(ctx, field)
+			case "face_enrollment_status":
+				return ec.fieldContext_Authorization_face_enrollment_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -2727,7 +2843,7 @@ func (ec *executionContext) _Mutation_resetMerchantPassword(ctx context.Context,
 	}
 	res := resTmp.(*model.Merchant)
 	fc.Result = res
-	return ec.marshalOMerchant2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, field.Selections, res)
+	return ec.marshalOMerchant2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_resetMerchantPassword(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2794,7 +2910,7 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_refreshToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2809,6 +2925,10 @@ func (ec *executionContext) fieldContext_Mutation_refreshToken(_ context.Context
 				return ec.fieldContext_Authorization_token(ctx, field)
 			case "role":
 				return ec.fieldContext_Authorization_role(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Authorization_pin_enrollment_status(ctx, field)
+			case "face_enrollment_status":
+				return ec.fieldContext_Authorization_face_enrollment_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -2844,7 +2964,7 @@ func (ec *executionContext) _Mutation_updateMerchantPinCode(ctx context.Context,
 	}
 	res := resTmp.(*model.Merchant)
 	fc.Result = res
-	return ec.marshalNMerchant2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, field.Selections, res)
+	return ec.marshalNMerchant2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateMerchantPinCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2908,7 +3028,7 @@ func (ec *executionContext) _Mutation_createOnlineTransaction(ctx context.Contex
 	}
 	res := resTmp.(*model.Transaction)
 	fc.Result = res
-	return ec.marshalOTransaction2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransaction(ctx, field.Selections, res)
+	return ec.marshalOTransaction2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTransaction(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createOnlineTransaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2980,7 +3100,7 @@ func (ec *executionContext) _Mutation_createOfflineTransactions(ctx context.Cont
 	}
 	res := resTmp.([]*model.Transaction)
 	fc.Result = res
-	return ec.marshalOTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
+	return ec.marshalOTransaction2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createOfflineTransactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3055,7 +3175,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3130,7 +3250,7 @@ func (ec *executionContext) _Mutation_verifyUser(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_verifyUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3145,6 +3265,10 @@ func (ec *executionContext) fieldContext_Mutation_verifyUser(ctx context.Context
 				return ec.fieldContext_Authorization_token(ctx, field)
 			case "role":
 				return ec.fieldContext_Authorization_role(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Authorization_pin_enrollment_status(ctx, field)
+			case "face_enrollment_status":
+				return ec.fieldContext_Authorization_face_enrollment_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -3191,7 +3315,7 @@ func (ec *executionContext) _Mutation_userLogin(ctx context.Context, field graph
 	}
 	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_userLogin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3206,6 +3330,10 @@ func (ec *executionContext) fieldContext_Mutation_userLogin(ctx context.Context,
 				return ec.fieldContext_Authorization_token(ctx, field)
 			case "role":
 				return ec.fieldContext_Authorization_role(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Authorization_pin_enrollment_status(ctx, field)
+			case "face_enrollment_status":
+				return ec.fieldContext_Authorization_face_enrollment_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -3252,7 +3380,7 @@ func (ec *executionContext) _Mutation_forgotUserPassword(ctx context.Context, fi
 	}
 	res := resTmp.(*model.SendCodeStatus)
 	fc.Result = res
-	return ec.marshalNSendCodeStatus2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx, field.Selections, res)
+	return ec.marshalNSendCodeStatus2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_forgotUserPassword(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3313,7 +3441,7 @@ func (ec *executionContext) _Mutation_requestUserPasswordReset(ctx context.Conte
 	}
 	res := resTmp.(*model.Authorization)
 	fc.Result = res
-	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
+	return ec.marshalNAuthorization2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_requestUserPasswordReset(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3328,6 +3456,10 @@ func (ec *executionContext) fieldContext_Mutation_requestUserPasswordReset(ctx c
 				return ec.fieldContext_Authorization_token(ctx, field)
 			case "role":
 				return ec.fieldContext_Authorization_role(ctx, field)
+			case "pin_enrollment_status":
+				return ec.fieldContext_Authorization_pin_enrollment_status(ctx, field)
+			case "face_enrollment_status":
+				return ec.fieldContext_Authorization_face_enrollment_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Authorization", field.Name)
 		},
@@ -3374,7 +3506,7 @@ func (ec *executionContext) _Mutation_resetUserPassword(ctx context.Context, fie
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_resetUserPassword(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3449,7 +3581,7 @@ func (ec *executionContext) _Mutation_updateUserPinCode(ctx context.Context, fie
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateUserPinCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3524,7 +3656,7 @@ func (ec *executionContext) _Mutation_updateUserFacialEmbeddings(ctx context.Con
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateUserFacialEmbeddings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3599,7 +3731,7 @@ func (ec *executionContext) _Mutation_regenerateUserQrCode(ctx context.Context, 
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_regenerateUserQrCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3663,7 +3795,7 @@ func (ec *executionContext) _Query_getDummys(ctx context.Context, field graphql.
 	}
 	res := resTmp.([]*model.Dummy)
 	fc.Result = res
-	return ec.marshalNDummy2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx, field.Selections, res)
+	return ec.marshalNDummy2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getDummys(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3710,7 +3842,7 @@ func (ec *executionContext) _Query_getDummy(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Dummy)
 	fc.Result = res
-	return ec.marshalODummy2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx, field.Selections, res)
+	return ec.marshalODummy2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getDummy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3768,7 +3900,7 @@ func (ec *executionContext) _Query_getMerchant(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model.Merchant)
 	fc.Result = res
-	return ec.marshalOMerchant2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, field.Selections, res)
+	return ec.marshalOMerchant2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getMerchant(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3821,7 +3953,7 @@ func (ec *executionContext) _Query_getMerchants(ctx context.Context, field graph
 	}
 	res := resTmp.([]*model.Merchant)
 	fc.Result = res
-	return ec.marshalOMerchant2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchantᚄ(ctx, field.Selections, res)
+	return ec.marshalOMerchant2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchantᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getMerchants(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3874,7 +4006,7 @@ func (ec *executionContext) _Query_getUser(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getUser(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3935,7 +4067,7 @@ func (ec *executionContext) _Query_getUserStateByUuid(ctx context.Context, field
 	}
 	res := resTmp.([]*model.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getUserStateByUuid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4573,7 +4705,7 @@ func (ec *executionContext) _Transaction_user(ctx context.Context, field graphql
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transaction_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4977,7 +5109,7 @@ func (ec *executionContext) _User_transactions(ctx context.Context, field graphq
 	}
 	res := resTmp.([]*model.Transaction)
 	fc.Result = res
-	return ec.marshalOTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
+	return ec.marshalOTransaction2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_transactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6827,7 +6959,7 @@ func (ec *executionContext) unmarshalInputBooleanFilterInput(ctx context.Context
 			it.Or = data
 		case "not":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOBooleanFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐBooleanFilterInput(ctx, v)
+			data, err := ec.unmarshalOBooleanFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐBooleanFilterInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6923,7 +7055,7 @@ func (ec *executionContext) unmarshalInputFloatFilterInput(ctx context.Context, 
 			it.Or = data
 		case "not":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOFloatFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐFloatFilterInput(ctx, v)
+			data, err := ec.unmarshalOFloatFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐFloatFilterInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7000,7 +7132,7 @@ func (ec *executionContext) unmarshalInputFloatFilterInput(ctx context.Context, 
 			it.NotIn = data
 		case "between":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("between"))
-			data, err := ec.unmarshalOFloatFilterBetween2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐFloatFilterBetween(ctx, v)
+			data, err := ec.unmarshalOFloatFilterBetween2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐFloatFilterBetween(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7041,7 +7173,7 @@ func (ec *executionContext) unmarshalInputIDFilterInput(ctx context.Context, obj
 			it.Or = data
 		case "not":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOIDFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐIDFilterInput(ctx, v)
+			data, err := ec.unmarshalOIDFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐIDFilterInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7158,7 +7290,7 @@ func (ec *executionContext) unmarshalInputIntFilterInput(ctx context.Context, ob
 			it.Or = data
 		case "not":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOIntFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐIntFilterInput(ctx, v)
+			data, err := ec.unmarshalOIntFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐIntFilterInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7235,7 +7367,7 @@ func (ec *executionContext) unmarshalInputIntFilterInput(ctx context.Context, ob
 			it.NotIn = data
 		case "between":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("between"))
-			data, err := ec.unmarshalOIntFilterBetween2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐIntFilterBetween(ctx, v)
+			data, err := ec.unmarshalOIntFilterBetween2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐIntFilterBetween(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7468,7 +7600,7 @@ func (ec *executionContext) unmarshalInputSoftDeleteFilterInput(ctx context.Cont
 			it.Or = data
 		case "not":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOSoftDeleteFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSoftDeleteFilterInput(ctx, v)
+			data, err := ec.unmarshalOSoftDeleteFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSoftDeleteFilterInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7545,7 +7677,7 @@ func (ec *executionContext) unmarshalInputSoftDeleteFilterInput(ctx context.Cont
 			it.NotIn = data
 		case "between":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("between"))
-			data, err := ec.unmarshalOTimeFilterBetween2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterBetween(ctx, v)
+			data, err := ec.unmarshalOTimeFilterBetween2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterBetween(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7606,21 +7738,21 @@ func (ec *executionContext) unmarshalInputSqlMutationParams(ctx context.Context,
 		switch k {
 		case "add":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("add"))
-			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
+			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Add = data
 		case "update":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("update"))
-			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
+			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Update = data
 		case "delete":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("delete"))
-			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
+			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7654,14 +7786,14 @@ func (ec *executionContext) unmarshalInputSqlQueryParams(ctx context.Context, ob
 		switch k {
 		case "get":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("get"))
-			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
+			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Get = data
 		case "query":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
+			data, err := ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7709,7 +7841,7 @@ func (ec *executionContext) unmarshalInputStringFilterInput(ctx context.Context,
 			it.Or = data
 		case "not":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOStringFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐStringFilterInput(ctx, v)
+			data, err := ec.unmarshalOStringFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐStringFilterInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7875,7 +8007,7 @@ func (ec *executionContext) unmarshalInputTimeFilterInput(ctx context.Context, o
 			it.Or = data
 		case "not":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			data, err := ec.unmarshalOTimeFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterInput(ctx, v)
+			data, err := ec.unmarshalOTimeFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7952,7 +8084,7 @@ func (ec *executionContext) unmarshalInputTimeFilterInput(ctx context.Context, o
 			it.NotIn = data
 		case "between":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("between"))
-			data, err := ec.unmarshalOTimeFilterBetween2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterBetween(ctx, v)
+			data, err := ec.unmarshalOTimeFilterBetween2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterBetween(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7989,6 +8121,16 @@ func (ec *executionContext) _Authorization(ctx context.Context, sel ast.Selectio
 			}
 		case "role":
 			out.Values[i] = ec._Authorization_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pin_enrollment_status":
+			out.Values[i] = ec._Authorization_pin_enrollment_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "face_enrollment_status":
+			out.Values[i] = ec._Authorization_face_enrollment_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -9053,11 +9195,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAuthorization2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx context.Context, sel ast.SelectionSet, v model.Authorization) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthorization2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx context.Context, sel ast.SelectionSet, v model.Authorization) graphql.Marshaler {
 	return ec._Authorization(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuthorization2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx context.Context, sel ast.SelectionSet, v *model.Authorization) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthorization2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐAuthorization(ctx context.Context, sel ast.SelectionSet, v *model.Authorization) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -9082,7 +9224,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNDummy2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx context.Context, sel ast.SelectionSet, v []*model.Dummy) graphql.Marshaler {
+func (ec *executionContext) marshalNDummy2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx context.Context, sel ast.SelectionSet, v []*model.Dummy) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -9106,7 +9248,7 @@ func (ec *executionContext) marshalNDummy2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardru
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalODummy2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx, sel, v[i])
+			ret[i] = ec.marshalODummy2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9150,11 +9292,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNMerchant2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx context.Context, sel ast.SelectionSet, v model.Merchant) graphql.Marshaler {
+func (ec *executionContext) marshalNMerchant2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx context.Context, sel ast.SelectionSet, v model.Merchant) graphql.Marshaler {
 	return ec._Merchant(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNMerchant2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx context.Context, sel ast.SelectionSet, v *model.Merchant) graphql.Marshaler {
+func (ec *executionContext) marshalNMerchant2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx context.Context, sel ast.SelectionSet, v *model.Merchant) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -9164,12 +9306,12 @@ func (ec *executionContext) marshalNMerchant2ᚖgithubᚗcomᚋGigaDeskᚋeardru
 	return ec._Merchant(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNNewMerchant2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewMerchant(ctx context.Context, v interface{}) (model.NewMerchant, error) {
+func (ec *executionContext) unmarshalNNewMerchant2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewMerchant(ctx context.Context, v interface{}) (model.NewMerchant, error) {
 	res, err := ec.unmarshalInputNewMerchant(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewOfflineTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransactionᚄ(ctx context.Context, v interface{}) ([]*model.NewOfflineTransaction, error) {
+func (ec *executionContext) unmarshalNNewOfflineTransaction2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransactionᚄ(ctx context.Context, v interface{}) ([]*model.NewOfflineTransaction, error) {
 	var vSlice []interface{}
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
@@ -9178,7 +9320,7 @@ func (ec *executionContext) unmarshalNNewOfflineTransaction2ᚕᚖgithubᚗcom�
 	res := make([]*model.NewOfflineTransaction, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNNewOfflineTransaction2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransaction(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNNewOfflineTransaction2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransaction(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -9186,36 +9328,36 @@ func (ec *executionContext) unmarshalNNewOfflineTransaction2ᚕᚖgithubᚗcom�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNNewOfflineTransaction2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransaction(ctx context.Context, v interface{}) (*model.NewOfflineTransaction, error) {
+func (ec *executionContext) unmarshalNNewOfflineTransaction2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOfflineTransaction(ctx context.Context, v interface{}) (*model.NewOfflineTransaction, error) {
 	res, err := ec.unmarshalInputNewOfflineTransaction(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewOnlineTransaction2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOnlineTransaction(ctx context.Context, v interface{}) (model.NewOnlineTransaction, error) {
+func (ec *executionContext) unmarshalNNewOnlineTransaction2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewOnlineTransaction(ctx context.Context, v interface{}) (model.NewOnlineTransaction, error) {
 	res, err := ec.unmarshalInputNewOnlineTransaction(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
+func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
 	res, err := ec.unmarshalInputNewUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNRole2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
+func (ec *executionContext) unmarshalNRole2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
 	var res model.Role
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRole2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v model.Role) graphql.Marshaler {
+func (ec *executionContext) marshalNRole2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v model.Role) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNSendCodeStatus2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx context.Context, sel ast.SelectionSet, v model.SendCodeStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNSendCodeStatus2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx context.Context, sel ast.SelectionSet, v model.SendCodeStatus) graphql.Marshaler {
 	return ec._SendCodeStatus(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSendCodeStatus2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx context.Context, sel ast.SelectionSet, v *model.SendCodeStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNSendCodeStatus2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx context.Context, sel ast.SelectionSet, v *model.SendCodeStatus) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -9287,7 +9429,7 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNTransaction2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v *model.Transaction) graphql.Marshaler {
+func (ec *executionContext) marshalNTransaction2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v *model.Transaction) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -9297,11 +9439,11 @@ func (ec *executionContext) marshalNTransaction2ᚖgithubᚗcomᚋGigaDeskᚋear
 	return ec._Transaction(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2githubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -9622,7 +9764,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalOBooleanFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐBooleanFilterInput(ctx context.Context, v interface{}) (*model.BooleanFilterInput, error) {
+func (ec *executionContext) unmarshalOBooleanFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐBooleanFilterInput(ctx context.Context, v interface{}) (*model.BooleanFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9630,7 +9772,7 @@ func (ec *executionContext) unmarshalOBooleanFilterInput2ᚖgithubᚗcomᚋGigaD
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalODummy2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx context.Context, sel ast.SelectionSet, v *model.Dummy) graphql.Marshaler {
+func (ec *executionContext) marshalODummy2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐDummy(ctx context.Context, sel ast.SelectionSet, v *model.Dummy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -9685,7 +9827,7 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
-func (ec *executionContext) unmarshalOFloatFilterBetween2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐFloatFilterBetween(ctx context.Context, v interface{}) (*model.FloatFilterBetween, error) {
+func (ec *executionContext) unmarshalOFloatFilterBetween2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐFloatFilterBetween(ctx context.Context, v interface{}) (*model.FloatFilterBetween, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9693,7 +9835,7 @@ func (ec *executionContext) unmarshalOFloatFilterBetween2ᚖgithubᚗcomᚋGigaD
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOFloatFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐFloatFilterInput(ctx context.Context, v interface{}) (*model.FloatFilterInput, error) {
+func (ec *executionContext) unmarshalOFloatFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐFloatFilterInput(ctx context.Context, v interface{}) (*model.FloatFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9749,7 +9891,7 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalOIDFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐIDFilterInput(ctx context.Context, v interface{}) (*model.IDFilterInput, error) {
+func (ec *executionContext) unmarshalOIDFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐIDFilterInput(ctx context.Context, v interface{}) (*model.IDFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9805,7 +9947,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) unmarshalOIntFilterBetween2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐIntFilterBetween(ctx context.Context, v interface{}) (*model.IntFilterBetween, error) {
+func (ec *executionContext) unmarshalOIntFilterBetween2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐIntFilterBetween(ctx context.Context, v interface{}) (*model.IntFilterBetween, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9813,7 +9955,7 @@ func (ec *executionContext) unmarshalOIntFilterBetween2ᚖgithubᚗcomᚋGigaDes
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOIntFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐIntFilterInput(ctx context.Context, v interface{}) (*model.IntFilterInput, error) {
+func (ec *executionContext) unmarshalOIntFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐIntFilterInput(ctx context.Context, v interface{}) (*model.IntFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9821,7 +9963,7 @@ func (ec *executionContext) unmarshalOIntFilterInput2ᚖgithubᚗcomᚋGigaDesk�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMerchant2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Merchant) graphql.Marshaler {
+func (ec *executionContext) marshalOMerchant2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Merchant) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -9848,7 +9990,7 @@ func (ec *executionContext) marshalOMerchant2ᚕᚖgithubᚗcomᚋGigaDeskᚋear
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNMerchant2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, sel, v[i])
+			ret[i] = ec.marshalNMerchant2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9868,21 +10010,21 @@ func (ec *executionContext) marshalOMerchant2ᚕᚖgithubᚗcomᚋGigaDeskᚋear
 	return ret
 }
 
-func (ec *executionContext) marshalOMerchant2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx context.Context, sel ast.SelectionSet, v *model.Merchant) graphql.Marshaler {
+func (ec *executionContext) marshalOMerchant2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐMerchant(ctx context.Context, sel ast.SelectionSet, v *model.Merchant) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Merchant(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOSendCodeStatus2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx context.Context, sel ast.SelectionSet, v *model.SendCodeStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOSendCodeStatus2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSendCodeStatus(ctx context.Context, sel ast.SelectionSet, v *model.SendCodeStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._SendCodeStatus(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOSoftDeleteFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSoftDeleteFilterInput(ctx context.Context, v interface{}) (*model.SoftDeleteFilterInput, error) {
+func (ec *executionContext) unmarshalOSoftDeleteFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSoftDeleteFilterInput(ctx context.Context, v interface{}) (*model.SoftDeleteFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9890,7 +10032,7 @@ func (ec *executionContext) unmarshalOSoftDeleteFilterInput2ᚖgithubᚗcomᚋGi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx context.Context, v interface{}) (*model.SQLCreateExtension, error) {
+func (ec *executionContext) unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLCreateExtension(ctx context.Context, v interface{}) (*model.SQLCreateExtension, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9898,7 +10040,7 @@ func (ec *executionContext) unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋGigaD
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSqlMutationParams2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLMutationParams(ctx context.Context, v interface{}) (*model.SQLMutationParams, error) {
+func (ec *executionContext) unmarshalOSqlMutationParams2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLMutationParams(ctx context.Context, v interface{}) (*model.SQLMutationParams, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9906,7 +10048,7 @@ func (ec *executionContext) unmarshalOSqlMutationParams2ᚖgithubᚗcomᚋGigaDe
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSqlQueryParams2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLQueryParams(ctx context.Context, v interface{}) (*model.SQLQueryParams, error) {
+func (ec *executionContext) unmarshalOSqlQueryParams2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐSQLQueryParams(ctx context.Context, v interface{}) (*model.SQLQueryParams, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -10000,7 +10142,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalOStringFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐStringFilterInput(ctx context.Context, v interface{}) (*model.StringFilterInput, error) {
+func (ec *executionContext) unmarshalOStringFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐStringFilterInput(ctx context.Context, v interface{}) (*model.StringFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -10056,7 +10198,7 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) unmarshalOTimeFilterBetween2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterBetween(ctx context.Context, v interface{}) (*model.TimeFilterBetween, error) {
+func (ec *executionContext) unmarshalOTimeFilterBetween2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterBetween(ctx context.Context, v interface{}) (*model.TimeFilterBetween, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -10064,7 +10206,7 @@ func (ec *executionContext) unmarshalOTimeFilterBetween2ᚖgithubᚗcomᚋGigaDe
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOTimeFilterInput2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterInput(ctx context.Context, v interface{}) (*model.TimeFilterInput, error) {
+func (ec *executionContext) unmarshalOTimeFilterInput2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTimeFilterInput(ctx context.Context, v interface{}) (*model.TimeFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -10072,7 +10214,7 @@ func (ec *executionContext) unmarshalOTimeFilterInput2ᚖgithubᚗcomᚋGigaDesk
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Transaction) graphql.Marshaler {
+func (ec *executionContext) marshalOTransaction2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Transaction) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -10099,7 +10241,7 @@ func (ec *executionContext) marshalOTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTransaction2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransaction(ctx, sel, v[i])
+			ret[i] = ec.marshalNTransaction2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTransaction(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -10119,14 +10261,14 @@ func (ec *executionContext) marshalOTransaction2ᚕᚖgithubᚗcomᚋGigaDeskᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalOTransaction2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v *model.Transaction) graphql.Marshaler {
+func (ec *executionContext) marshalOTransaction2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v *model.Transaction) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Transaction(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOUser2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -10153,7 +10295,7 @@ func (ec *executionContext) marshalOUser2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrum
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -10173,7 +10315,7 @@ func (ec *executionContext) marshalOUser2ᚕᚖgithubᚗcomᚋGigaDeskᚋeardrum
 	return ret
 }
 
-func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋGigaDeskᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

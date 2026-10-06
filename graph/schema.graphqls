@@ -25,4 +25,6 @@ enum Role {
 type Authorization{
   token: String!
   role: Role!
+  pin_enrollment_status: Boolean!
+  face_enrollment_status: Boolean!
 }

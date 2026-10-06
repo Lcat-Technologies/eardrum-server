@@ -10,8 +10,10 @@ import (
 )
 
 type Authorization struct {
-	Token string `json:"token"`
-	Role  Role   `json:"role"`
+	Token                string `json:"token"`
+	Role                 Role   `json:"role"`
+	PinEnrollmentStatus  bool   `json:"pin_enrollment_status"`
+	FaceEnrollmentStatus bool   `json:"face_enrollment_status"`
 }
 
 // Boolean Filter simple datatypes

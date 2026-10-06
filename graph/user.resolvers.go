@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 	pgerror"errors"
 	"time"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/Lcat-Technologies/eardrum-server/phoneutils"
 	"github.com/Lcat-Technologies/eardrum-server/pkg/jwt"
 	"github.com/rs/zerolog/log"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -49,8 +49,8 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
-		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
-		PinEnrollmentStatus: user.GetPinStatus(),
+		FaceEnrollmentStatus:  user.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user.GetPinStatus(),
 	}
 
 	return &u, nil
@@ -91,6 +91,8 @@ func (r *mutationResolver) VerifyUser(ctx context.Context, phoneNumber string, o
 	return &model.Authorization{
 		Token: token,
 		Role:  model.RoleUser,
+		PinEnrollmentStatus: user.GetPinStatus(),
+		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
 	}, nil
 }
 
@@ -122,6 +124,8 @@ func (r *mutationResolver) UserLogin(ctx context.Context, phoneNumber string, pa
 	return &model.Authorization{
 		Token: token,
 		Role:  model.RoleUser,
+		PinEnrollmentStatus: user.GetPinStatus(),
+		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
 	}, nil
 }
 
@@ -185,6 +189,8 @@ func (r *mutationResolver) RequestUserPasswordReset(ctx context.Context, phoneNu
 	return &model.Authorization{
 		Token: token,
 		Role:  model.RoleUser,
+		PinEnrollmentStatus: user.GetPinStatus(),
+		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
 	}, nil
 }
 
@@ -232,8 +238,8 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, newPassword st
 		Username:              user.GetUserName(),
 		PhoneNumber:           user.GetPhoneNumber(),
 		AccountBalanceInCents: int(user.GetAccountBalanceInCents()),
-		FaceEnrollmentStatus: user.GetFaceEnrollmentStatus(),
-		PinEnrollmentStatus: user.GetPinStatus(),
+		FaceEnrollmentStatus:  user.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user.GetPinStatus(),
 	}
 
 	//return the updated record
@@ -278,8 +284,8 @@ func (r *mutationResolver) UpdateUserPinCode(ctx context.Context, newPincode str
 		Username:              user2.GetUserName(),
 		PhoneNumber:           user2.GetPhoneNumber(),
 		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
-		FaceEnrollmentStatus: user2.GetFaceEnrollmentStatus(),
-		PinEnrollmentStatus: user2.GetPinStatus(),
+		FaceEnrollmentStatus:  user2.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user2.GetPinStatus(),
 	}
 
 	//return the updated record
@@ -318,8 +324,8 @@ func (r *mutationResolver) UpdateUserFacialEmbeddings(ctx context.Context, newEm
 		Username:              user2.GetUserName(),
 		PhoneNumber:           user2.GetPhoneNumber(),
 		AccountBalanceInCents: int(user2.GetAccountBalanceInCents()),
-		FaceEnrollmentStatus: user2.GetFaceEnrollmentStatus(),
-		PinEnrollmentStatus: user2.GetPinStatus(),
+		FaceEnrollmentStatus:  user2.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user2.GetPinStatus(),
 	}
 
 	//return the updated record
@@ -360,8 +366,8 @@ func (r *mutationResolver) RegenerateUserQRCode(ctx context.Context) (*model.Use
 		PhoneNumber:           user1.GetPhoneNumber(),
 		QRCode:                &qr,
 		AccountBalanceInCents: int(user1.GetAccountBalanceInCents()),
-		FaceEnrollmentStatus: user1.GetFaceEnrollmentStatus(),
-		PinEnrollmentStatus: user1.GetPinStatus(),
+		FaceEnrollmentStatus:  user1.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   user1.GetPinStatus(),
 	}
 	return &userprofile, nil
 }
@@ -402,8 +408,8 @@ func (r *queryResolver) GetUser(ctx context.Context) (*model.User, error) {
 		PhoneNumber:           u.GetPhoneNumber(),
 		QRCode:                &qr,
 		AccountBalanceInCents: int(u.GetAccountBalanceInCents()),
-		FaceEnrollmentStatus: u.GetFaceEnrollmentStatus(),
-		PinEnrollmentStatus: u.GetPinStatus(),
+		FaceEnrollmentStatus:  u.GetFaceEnrollmentStatus(),
+		PinEnrollmentStatus:   u.GetPinStatus(),
 	}
 	return &userprofile, nil
 }
@@ -448,8 +454,8 @@ func (r *queryResolver) GetUserStateByUUID(ctx context.Context, uuid []string) (
 			UUID:                  &uuidStr,
 			FacialEmbeddings:      pointer.Get(dbuser.GetFacialEmbeddings()),
 			AccountBalanceInCents: int(dbuser.GetAccountBalanceInCents()),
-			FaceEnrollmentStatus: dbuser.GetFaceEnrollmentStatus(),
-		    PinEnrollmentStatus: dbuser.GetPinStatus(),
+			FaceEnrollmentStatus:  dbuser.GetFaceEnrollmentStatus(),
+			PinEnrollmentStatus:   dbuser.GetPinStatus(),
 		}
 		Userslist[i] = user
 	}
@@ -496,7 +502,7 @@ func (r *userResolver) Transactions(ctx context.Context, obj *model.User, limit 
 			TransactionCostInCents: int(transaction.GetTransactionCostInCents()),
 			UserUsername:           transaction.GetUserName(),
 			MerchantUsername:       transaction.GetMerchantName(),
-			DeviceModel: transaction.GetTransactionDeviceModel(),
+			DeviceModel:            transaction.GetTransactionDeviceModel(),
 		}
 		transactionslist = append(transactionslist, t)
 	}
