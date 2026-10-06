@@ -10,7 +10,6 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/GigaDesk/eardrum-graph/neo4jutils"
 	"github.com/Lcat-Technologies/eardrum-postgres/merchant"
 	"github.com/Lcat-Technologies/eardrum-postgres/postgresutils"
 	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
@@ -31,7 +30,6 @@ import (
 
 var (
 	postgresInstance postgresutils.PostgresInstance
-	neo4jInstance    neo4jutils.Neo4jInstance
 )
 
 func CustomErrorPresenter(ctx context.Context, e error) *gqlerror.Error {

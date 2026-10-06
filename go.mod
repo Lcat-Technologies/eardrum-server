@@ -17,7 +17,6 @@ require (
 
 require (
 	github.com/AlekSi/pointer v1.2.0
-	github.com/GigaDesk/eardrum-graph v1.0.3
 	github.com/Lcat-Technologies/eardrum-interfaces v1.3.4
 	github.com/Lcat-Technologies/eardrum-prefix v1.0.6
 	github.com/rs/cors v1.11.1
@@ -51,7 +50,6 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/neo4j/neo4j-go-driver/v5 v5.26.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/zerolog v1.35.1
 	github.com/shopspring/decimal v1.3.1 // indirect

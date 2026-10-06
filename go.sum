@@ -2,12 +2,8 @@ github.com/99designs/gqlgen v0.17.55 h1:3vzrNWYyzSZjGDFo68e5j9sSauLxfKvLp+6ioRok
 github.com/99designs/gqlgen v0.17.55/go.mod h1:3Bq768f8hgVPGZxL8aY9MaYmbxa6llPM/qu1IGH1EJo=
 github.com/AlekSi/pointer v1.2.0 h1:glcy/gc4h8HnG2Z3ZECSzZ1IX1x2JxRVuDzaJwQE0+w=
 github.com/AlekSi/pointer v1.2.0/go.mod h1:gZGfd3dpW4vEc/UlyfKKi1roIqcCgwOIvb0tSNSBle0=
-github.com/GigaDesk/eardrum-graph v1.0.3 h1:rjIU4ktiavUHrRXo8L4X9fCN1tskoR4YE8qryYX5okU=
-github.com/GigaDesk/eardrum-graph v1.0.3/go.mod h1:HJY4TqlpsDIZPfYQMx4w49tIiFXOIIG3IU0uUK2srnM=
 github.com/Lcat-Technologies/eardrum-interfaces v1.3.4 h1:BSyO6ORN9OKK6YPBmu0mPa/QYgMNrN/fX1Wu8sDNevY=
 github.com/Lcat-Technologies/eardrum-interfaces v1.3.4/go.mod h1:27DqoR+ovyU8Yd2AiYBy7RbgLtLjXG57nC1NaBUuTaI=
-github.com/Lcat-Technologies/eardrum-postgres v1.2.9 h1:YiSEWYAMVstROm5qERnV0u7mTmGYaKSRBgFIIR3pkYE=
-github.com/Lcat-Technologies/eardrum-postgres v1.2.9/go.mod h1:gcybl0mUewcF9M+vXraO/gI7X5eNRP9Yj+boDO0W8Uo=
 github.com/Lcat-Technologies/eardrum-postgres v1.3.0 h1:fZgXR+onV8Q9sR1V41DJ1BG9LxGDWVMNw3QDGMJ6Zrg=
 github.com/Lcat-Technologies/eardrum-postgres v1.3.0/go.mod h1:gcybl0mUewcF9M+vXraO/gI7X5eNRP9Yj+boDO0W8Uo=
 github.com/Lcat-Technologies/eardrum-prefix v1.0.6 h1:7fDOgkeqlwggVSimXylL09jNJPOfhG6wG9sqhgUh8B8=
@@ -96,8 +92,6 @@ github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RR
 github.com/mitchellh/reflectwalk v1.0.0/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zxSIeXaQ=
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
-github.com/neo4j/neo4j-go-driver/v5 v5.26.0 h1:GB3o4VtIGsvU+RmfgvF7L6nt1IpbPZaGtPMtPSOKmvc=
-github.com/neo4j/neo4j-go-driver/v5 v5.26.0/go.mod h1:Vff8OwT7QpLm7L2yYr85XNWe9Rbqlbeb9asNXJTHO4k=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
