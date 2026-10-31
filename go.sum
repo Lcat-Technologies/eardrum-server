@@ -10,6 +10,10 @@ github.com/Lcat-Technologies/eardrum-postgres v1.3.1 h1:7+U58xuwUUzPAYUCn0KspWwe
 github.com/Lcat-Technologies/eardrum-postgres v1.3.1/go.mod h1:gcybl0mUewcF9M+vXraO/gI7X5eNRP9Yj+boDO0W8Uo=
 github.com/Lcat-Technologies/eardrum-postgres v1.3.2 h1:qeKWKDVhvmln3yyuYA5UHm3+rAzfzrkufkzix+mY8AE=
 github.com/Lcat-Technologies/eardrum-postgres v1.3.2/go.mod h1:gcybl0mUewcF9M+vXraO/gI7X5eNRP9Yj+boDO0W8Uo=
+github.com/Lcat-Technologies/eardrum-postgres v1.3.3 h1:MSJ54OfqswSa7SPLnGS50Xjlj/DmL81W2bmoVyuRNZc=
+github.com/Lcat-Technologies/eardrum-postgres v1.3.3/go.mod h1:gcybl0mUewcF9M+vXraO/gI7X5eNRP9Yj+boDO0W8Uo=
+github.com/Lcat-Technologies/eardrum-postgres v1.3.4 h1:9t4ZPgNdNUjfC2/HBdeyw/0OlCe0bUoZVkP702gAqAQ=
+github.com/Lcat-Technologies/eardrum-postgres v1.3.4/go.mod h1:gcybl0mUewcF9M+vXraO/gI7X5eNRP9Yj+boDO0W8Uo=
 github.com/Lcat-Technologies/eardrum-prefix v1.0.6 h1:7fDOgkeqlwggVSimXylL09jNJPOfhG6wG9sqhgUh8B8=
 github.com/Lcat-Technologies/eardrum-prefix v1.0.6/go.mod h1:U63LIcECtHkuzSHmjYwyCFtxsOaz0s2SKCYzPq3hVOo=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
