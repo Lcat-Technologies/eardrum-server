@@ -6,16 +6,14 @@ package graph
 
 import (
 	"context"
-	pgerror"errors"
+	pgerror "errors"
 
-	"github.com/AlekSi/pointer"
+	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
 	Tx "github.com/Lcat-Technologies/eardrum-interfaces/transaction"
 	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
-	"github.com/Lcat-Technologies/eardrum-postgres/user"
 	"github.com/Lcat-Technologies/eardrum-server/auth"
+	"github.com/Lcat-Technologies/eardrum-server/graph/dataloader"
 	"github.com/Lcat-Technologies/eardrum-server/graph/model"
-	"github.com/Lcat-Technologies/eardrum-interfaces/errors"
-	"github.com/Lcat-Technologies/eardrum-postgres/device"
 )
 
 // CreateOnlineTransaction is the resolver for the createOnlineTransaction field.
@@ -117,19 +115,17 @@ func (r *mutationResolver) CreateOfflineTransactions(ctx context.Context, input 
 
 // Device is the resolver for the device field.
 func (r *transactionResolver) Device(ctx context.Context, obj *model.Transaction) (*string, error) {
-	ts, err:= transaction.GetTransactionByReference(r.Sql.Db, obj.TransactionID)
-	if err!=nil{
-		return nil, err
+	// 1. Get the loaders from the request context
+	loaders := dataloader.ForContext(ctx)
+	if loaders == nil {
+		err1 := errors.New(errors.EARInternalError, pgerror.New("data loaders not found in context"))
+		err1.Log()
+		return nil, err1
 	}
-	id, err := ts.GetTransactionDeviceID()
-	if err!=nil{
-		return nil, nil
-	}
-	ds, err := device.GetDeviceByID(id, r.Sql.Db)
-	if err!=nil{
-		return nil, err
-	}
-	return ds.GetDeviceModel(), nil
+
+	// 2. Use the DeviceLoader instead of a direct DB call
+	// DataLoader takes the key (obj.TransactionID) and handles the batching automatically
+	return loaders.DeviceLoader.Load(ctx, obj.TransactionID)
 }
 
 // User is the resolver for the user field.
@@ -150,23 +146,17 @@ func (r *transactionResolver) User(ctx context.Context, obj *model.Transaction) 
 		return nil, err1
 	}
 
-	//get user from database via username
-	dbuser, err := user.GetUserWithUsername(r.Sql.Db, obj.UserUsername)
-	if err != nil {
-		return nil, err
+	// 1. Get the loaders from the request context
+	loaders := dataloader.ForContext(ctx)
+	if loaders == nil {
+		err1 := errors.New(errors.EARInternalError, pgerror.New("data loaders not found in context"))
+		err1.Log()
+		return nil, err1
 	}
-	uuidStr := dbuser.GetUUID()
 
-	user := &model.User{
-		Username:              dbuser.GetUserName(),
-		PhoneNumber:           dbuser.GetPhoneNumber(),
-		UUID:                  &uuidStr,
-		FacialEmbeddings:      pointer.Get(dbuser.GetFacialEmbeddings()),
-		AccountBalanceInCents: int(dbuser.GetAccountBalanceInCents()),
-		FaceEnrollmentStatus:  dbuser.GetFaceEnrollmentStatus(),
-		PinEnrollmentStatus:   dbuser.GetPinStatus(),
-	}
-	return user, nil
+	// 2. Use the UserLoader instead of a direct DB call
+	// DataLoader takes the key (obj.UserUsername) and handles the batching automatically
+	return loaders.UserLoader.Load(ctx, obj.UserUsername)
 }
 
 // Transaction returns TransactionResolver implementation.
