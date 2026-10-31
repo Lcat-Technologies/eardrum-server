@@ -44,8 +44,8 @@ The platform provides core functionality including:
 - Twilio Verify
 
 ## Architecture
-![birds-eye](https://github.com/user-attachments/assets/9d52fa2c-7b6b-42bc-be92-542f12f6f6d3)
-        
+<img width="765" height="457" alt="Screenshot_2026-10-31_20-30-26" src="https://github.com/user-attachments/assets/ab21d2e3-3bb9-4465-a1a3-6b2fb4924de2" />
+ 
 
 ## Deployment Guide
 * Install [gcloud CLI](https://cloud.google.com/sdk/docs/install)
