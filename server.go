@@ -10,13 +10,14 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/Lcat-Technologies/eardrum-postgres/device"
 	"github.com/Lcat-Technologies/eardrum-postgres/merchant"
 	"github.com/Lcat-Technologies/eardrum-postgres/postgresutils"
 	"github.com/Lcat-Technologies/eardrum-postgres/transaction"
 	"github.com/Lcat-Technologies/eardrum-postgres/user"
-	"github.com/Lcat-Technologies/eardrum-postgres/device"
 	"github.com/Lcat-Technologies/eardrum-server/auth"
 	"github.com/Lcat-Technologies/eardrum-server/graph"
+	"github.com/Lcat-Technologies/eardrum-server/graph/dataloader"
 	"github.com/Lcat-Technologies/eardrum-server/phoneutils"
 	"github.com/Lcat-Technologies/eardrum-server/pkg/jwt"
 	"github.com/Lcat-Technologies/eardrum-server/shutdown"
@@ -92,6 +93,8 @@ func main() {
 
 	router.Use(c.Handler)
 	router.Use(auth.Middleware())
+	// new DataLoader middleware passing *gorm.DB instance
+	router.Use(dataloader.Middleware(postgresInstance.Db))
 
 	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Sql: &postgresInstance}}))
 	server.SetErrorPresenter(CustomErrorPresenter)
