@@ -1,0 +1,6 @@
+
+extend type Query {
+  getUserStatement(phone_number: String!, pin_code: String!, limit: Int = 10, offset: Int = 0, startTime: Time, endTime: Time): [Transaction!]
+}
+
+

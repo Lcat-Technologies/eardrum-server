@@ -102,6 +102,7 @@ type ComplexityRoot struct {
 		GetMerchants       func(childComplexity int) int
 		GetUser            func(childComplexity int) int
 		GetUserStateByUUID func(childComplexity int, uuid []string) int
+		GetUserStatement   func(childComplexity int, phoneNumber string, pinCode string, limit *int, offset *int, startTime *time.Time, endTime *time.Time) int
 	}
 
 	SendCodeStatus struct {
@@ -163,6 +164,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	GetDummys(ctx context.Context) ([]*model.Dummy, error)
 	GetDummy(ctx context.Context, id *int) (*model.Dummy, error)
+	GetUserStatement(ctx context.Context, phoneNumber string, pinCode string, limit *int, offset *int, startTime *time.Time, endTime *time.Time) ([]*model.Transaction, error)
 	GetMerchant(ctx context.Context) (*model.Merchant, error)
 	GetMerchants(ctx context.Context) ([]*model.Merchant, error)
 	GetUser(ctx context.Context) (*model.User, error)
@@ -571,6 +573,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUserStateByUUID(childComplexity, args["uuid"].([]string)), true
 
+	case "Query.getUserStatement":
+		if e.complexity.Query.GetUserStatement == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserStatement_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserStatement(childComplexity, args["phone_number"].(string), args["pin_code"].(string), args["limit"].(*int), args["offset"].(*int), args["startTime"].(*time.Time), args["endTime"].(*time.Time)), true
+
 	case "SendCodeStatus.phone_number":
 		if e.complexity.SendCodeStatus.PhoneNumber == nil {
 			break
@@ -838,7 +852,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema.graphqls" "shop.graphqls" "transaction.graphqls" "user.graphqls"
+//go:embed "kiosk.graphqls" "schema.graphqls" "shop.graphqls" "transaction.graphqls" "user.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -850,6 +864,7 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
+	{Name: "kiosk.graphqls", Input: sourceData("kiosk.graphqls"), BuiltIn: false},
 	{Name: "schema.graphqls", Input: sourceData("schema.graphqls"), BuiltIn: false},
 	{Name: "shop.graphqls", Input: sourceData("shop.graphqls"), BuiltIn: false},
 	{Name: "transaction.graphqls", Input: sourceData("transaction.graphqls"), BuiltIn: false},
@@ -1795,6 +1810,119 @@ func (ec *executionContext) field_Query_getUserStateByUuid_argsUUID(
 	}
 
 	var zeroVal []string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getUserStatement_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Query_getUserStatement_argsPhoneNumber(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["phone_number"] = arg0
+	arg1, err := ec.field_Query_getUserStatement_argsPinCode(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["pin_code"] = arg1
+	arg2, err := ec.field_Query_getUserStatement_argsLimit(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg2
+	arg3, err := ec.field_Query_getUserStatement_argsOffset(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["offset"] = arg3
+	arg4, err := ec.field_Query_getUserStatement_argsStartTime(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["startTime"] = arg4
+	arg5, err := ec.field_Query_getUserStatement_argsEndTime(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["endTime"] = arg5
+	return args, nil
+}
+func (ec *executionContext) field_Query_getUserStatement_argsPhoneNumber(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("phone_number"))
+	if tmp, ok := rawArgs["phone_number"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getUserStatement_argsPinCode(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("pin_code"))
+	if tmp, ok := rawArgs["pin_code"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getUserStatement_argsLimit(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+	if tmp, ok := rawArgs["limit"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getUserStatement_argsOffset(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+	if tmp, ok := rawArgs["offset"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getUserStatement_argsStartTime(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*time.Time, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
+	if tmp, ok := rawArgs["startTime"]; ok {
+		return ec.unmarshalOTime2ᚖtimeᚐTime(ctx, tmp)
+	}
+
+	var zeroVal *time.Time
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getUserStatement_argsEndTime(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*time.Time, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
+	if tmp, ok := rawArgs["endTime"]; ok {
+		return ec.unmarshalOTime2ᚖtimeᚐTime(ctx, tmp)
+	}
+
+	var zeroVal *time.Time
 	return zeroVal, nil
 }
 
@@ -3925,6 +4053,78 @@ func (ec *executionContext) fieldContext_Query_getDummy(ctx context.Context, fie
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getDummy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getUserStatement(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getUserStatement(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserStatement(rctx, fc.Args["phone_number"].(string), fc.Args["pin_code"].(string), fc.Args["limit"].(*int), fc.Args["offset"].(*int), fc.Args["startTime"].(*time.Time), fc.Args["endTime"].(*time.Time))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Transaction)
+	fc.Result = res
+	return ec.marshalOTransaction2ᚕᚖgithubᚗcomᚋLcatᚑTechnologiesᚋeardrumᚑserverᚋgraphᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getUserStatement(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "transaction_id":
+				return ec.fieldContext_Transaction_transaction_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Transaction_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Transaction_updatedAt(ctx, field)
+			case "total_amount_in_cents":
+				return ec.fieldContext_Transaction_total_amount_in_cents(ctx, field)
+			case "transaction_cost_in_cents":
+				return ec.fieldContext_Transaction_transaction_cost_in_cents(ctx, field)
+			case "user_username":
+				return ec.fieldContext_Transaction_user_username(ctx, field)
+			case "merchant_username":
+				return ec.fieldContext_Transaction_merchant_username(ctx, field)
+			case "device":
+				return ec.fieldContext_Transaction_device(ctx, field)
+			case "user":
+				return ec.fieldContext_Transaction_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Transaction", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getUserStatement_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8597,6 +8797,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getDummy(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getUserStatement":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserStatement(ctx, field)
 				return res
 			}
 
